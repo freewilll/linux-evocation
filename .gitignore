@@ -18,6 +18,7 @@ boot/setup.s
 boot/head.s 
 init/main.s
 tools/system
+tools/build
 .tags
 .tags_sorted_by_file
 *.o
