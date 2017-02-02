@@ -26,6 +26,12 @@ ifdef CONFIGURATION
 CONFIGURE = dummy
 endif
 
+# Ported from later kernel, we need include paths
+TOPDIR := $(shell if [ "$$PWD" != "" ]; then echo $$PWD; else pwd; fi)
+
+HPATH = $(TOPDIR)/include
+
+
 #
 # ROOT_DEV specifies the default root-device when making the image.
 # This can be either FLOPPY, CURRENT, /dev/xxxx or empty, in which case
@@ -68,8 +74,8 @@ LD86	=ld86 -0
 
 AS	=as
 LD	=ld
-HOSTCC	=gcc
-CC	=gcc -D__KERNEL__
+HOSTCC	=gcc -I$(HPATH)
+CC	=gcc -D__KERNEL__ -I$(HPATH)
 MAKE	=make
 CPP	=$(CC) -E
 AR	=ar
