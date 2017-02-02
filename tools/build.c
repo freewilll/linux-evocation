@@ -71,7 +71,7 @@ short intel_short(short l)
 	return t.s[0];
 }
 
-void die(char * str)
+void die(char const *str)
 {
 	fprintf(stderr,"%s\n",str);
 	exit(1);
