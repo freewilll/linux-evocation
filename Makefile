@@ -56,7 +56,7 @@ SVGA_MODE=	-DSVGA_MODE=3
 # standard CFLAGS
 #
 
-CFLAGS = -Wall -Wstrict-prototypes -O6 -fomit-frame-pointer -x c++
+CFLAGS = -Wall -O6 -fomit-frame-pointer -x c++
 
 ifdef CONFIG_M486
 CFLAGS := $(CFLAGS) -march=i486
