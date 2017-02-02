@@ -117,7 +117,7 @@ int main(int argc, char ** argv)
 		minor_root = DEFAULT_MINOR_ROOT;
 	}
 	fprintf(stderr, "Root device is (%d, %d)\n", major_root, minor_root);
-	for (i=0;i<sizeof buf; i++) buf[i]=0;
+	for (i=0;i<(int)sizeof buf; i++) buf[i]=0;
 	if ((id=open(argv[1],O_RDONLY,0))<0)
 		die("Unable to open 'boot'");
 	if (read(id,buf,MINIX_HEADER) != MINIX_HEADER)
@@ -173,11 +173,11 @@ int main(int argc, char ** argv)
 		die("Setup exceeds " STRINGIFY(SETUP_SECTS)
 			" sectors - rewrite build/boot/setup");
 	fprintf(stderr,"Setup is %d bytes.\n",i);
-	for (c=0 ; c<sizeof(buf) ; c++)
+	for (c=0 ; c<(int)sizeof(buf) ; c++)
 		buf[c] = '\0';
 	while (i<SETUP_SECTS*512) {
 		c = SETUP_SECTS*512-i;
-		if (c > sizeof(buf))
+		if (c > (int)sizeof(buf))
 			c = sizeof(buf);
 		if (write(1,buf,c) != c)
 			die("Write call failed");
@@ -203,7 +203,7 @@ int main(int argc, char ** argv)
 		int l, n;
 
 		l = sz;
-		if (l > sizeof(buf))
+		if (l > (int)sizeof(buf))
 			l = sizeof(buf);
 		if ((n=read(id, buf, l)) != l) {
 			if (n == -1) 
