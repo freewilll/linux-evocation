@@ -47,7 +47,8 @@ ROOT_DEV = CURRENT
 # The number is the same as you would ordinarily press at bootup.
 #
 
-SVGA_MODE=	-DSVGA_MODE=3
+# Mode 3 doesn't exist in qemu, so use mode 1: 80x28
+SVGA_MODE=	-DSVGA_MODE=1
 
 # Special options.
 #OPTS	= -pro
