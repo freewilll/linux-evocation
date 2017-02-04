@@ -87,6 +87,7 @@ int main(int argc, char ** argv)
 	int i,c,id, sz;
 	unsigned long sys_size;
 	char buf[1024];
+	long *longbuf = (long *)buf;
 	struct exec *ex = (struct exec *)buf;
 	char major_root, minor_root;
 	struct stat sb;
@@ -122,7 +123,7 @@ int main(int argc, char ** argv)
 		die("Unable to open 'boot'");
 	if (read(id,buf,MINIX_HEADER) != MINIX_HEADER)
 		die("Unable to read header of 'boot'");
-	if (((long *) buf)[0]!=intel_long(0x04100301))
+	if (longbuf[0]!=intel_long(0x04100301))
 		die("Non-Minix header of 'boot'");
 	if (((long *) buf)[1]!=intel_long(MINIX_HEADER))
 		die("Non-Minix header of 'boot'");
@@ -151,7 +152,7 @@ int main(int argc, char ** argv)
 		die("Unable to open 'setup'");
 	if (read(id,buf,MINIX_HEADER) != MINIX_HEADER)
 		die("Unable to read header of 'setup'");
-	if (((long *) buf)[0]!=intel_long(0x04100301))
+	if (longbuf[0]!=intel_long(0x04100301))
 		die("Non-Minix header of 'setup'");
 	if (((long *) buf)[1]!=intel_long(MINIX_HEADER))
 		die("Non-Minix header of 'setup'");
