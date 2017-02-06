@@ -73,14 +73,15 @@ endif
 AS86	=as86 -0 -a
 LD86	=ld86 -0
 
-AS	=as
-LD	=ld
-HOSTCC	=gcc -I$(HPATH)
-CC	=gcc -D__KERNEL__ -I$(HPATH)
-MAKE	=make
-CPP	=$(CC) -E
-AR	=ar
-STRIP	=strip
+AS		=as
+LD		=ld
+HOSTCC		=gcc -I$(HPATH)
+CC		=gcc -D__KERNEL__ -I$(HPATH)
+MAKE		=make
+CPP		=$(CC) -E
+AR		=ar
+STRIP		=strip
+OBJCOPY		=objcopy -O binary -R .note -R .comment -S
 
 ARCHIVES	=kernel/kernel.o mm/mm.o fs/fs.o net/net.o ipc/ipc.o
 FILESYSTEMS	=fs/filesystems.a
@@ -139,14 +140,25 @@ tools/version.o: tools/version.c tools/version.h
 init/main.o: $(CONFIGURE) init/main.c
 	$(CC) $(CFLAGS) $(PROFILING) -c -o $*.o $<
 
-tools/system:	boot/head.o init/main.o tools/version.o linuxsubdirs
-	$(LD) $(LDFLAGS) -M boot/head.o init/main.o tools/version.o \
+# TODO WGJA: Severely slimmed down boot sequence to contain just boot/head
+tools/system:	boot/head.o
+	$(LD) $(LDFLAGS) -M boot/head.o
 		$(ARCHIVES) \
 		$(FILESYSTEMS) \
 		$(DRIVERS) \
 		$(MATH) \
 		$(LIBS) \
 		-o tools/system > System.map
+
+# TODO WGJA: Severely slimmed down boot sequence to contain just boot/head
+# tools/system:	boot/head.o init/main.o tools/version.o linuxsubdirs
+# 	$(LD) $(LDFLAGS) -M boot/head.o init/main.o tools/version.o \
+# 		$(ARCHIVES) \
+# 		$(FILESYSTEMS) \
+# 		$(DRIVERS) \
+# 		$(MATH) \
+# 		$(LIBS) \
+# 		-o tools/system > System.map
 
 boot/setup: boot/setup.s
 	$(AS86) -o boot/setup.o boot/setup.s
@@ -166,8 +178,8 @@ zBoot/zSystem: zBoot/*.c zBoot/*.S tools/zSystem
 	cd zBoot;$(MAKE)
 
 zImage: $(CONFIGURE) boot/bootsect boot/setup zBoot/zSystem tools/build
-	tools/build boot/bootsect boot/setup zBoot/zSystem $(ROOT_DEV) > zImage
-	sync
+	$(OBJCOPY) zBoot/zSystem zBoot/zSystem.out
+	tools/build boot/bootsect boot/setup zBoot/zSystem.out $(ROOT_DEV) > zImage
 
 zdisk: zImage
 	dd bs=8192 if=zImage of=/dev/fd0
@@ -177,15 +189,20 @@ zlilo: $(CONFIGURE) zImage
 	cat zImage > /vmlinuz
 	/etc/lilo/install
 
-
-tools/zSystem:	boot/head.o init/main.o tools/version.o linuxsubdirs
-	$(LD) $(LDFLAGS) -T 100000 -M boot/head.o init/main.o tools/version.o \
-		$(ARCHIVES) \
-		$(FILESYSTEMS) \
-		$(DRIVERS) \
-		$(MATH) \
-		$(LIBS) \
+# TODO WGJA: Severely slimmed down boot sequence to contain just boot/head
+tools/zSystem:	boot/head.o
+	$(LD) $(LDFLAGS) -Ttext 100000 -M boot/head.o \
 		-o tools/zSystem > zSystem.map
+
+# TODO WGJA: Severely slimmed down boot sequence to contain just boot/head
+# tools/zSystem:	boot/head.o init/main.o tools/version.o linuxsubdirs
+# 	$(LD) $(LDFLAGS) -T 100000 -M boot/head.o init/main.o tools/version.o \
+# 		$(ARCHIVES) \
+# 		$(FILESYSTEMS) \
+# 		$(DRIVERS) \
+# 		$(MATH) \
+# 		$(LIBS) \
+# 		-o tools/zSystem > zSystem.map
 
 fs: dummy
 	$(MAKE) linuxsubdirs SUBDIRS=fs

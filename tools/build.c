@@ -51,6 +51,8 @@ typedef union {
 	char b[4];
 } conv;
 
+int fd;
+
 long intel_long(long l)
 {
 	conv t;
@@ -88,7 +90,6 @@ int main(int argc, char ** argv)
 	unsigned long sys_size;
 	char buf[1024];
 	long *longbuf = (long *)buf;
-	struct exec *ex = (struct exec *)buf;
 	char major_root, minor_root;
 	struct stat sb;
 
@@ -185,39 +186,35 @@ int main(int argc, char ** argv)
 		i += c;
 	}
 	
+
 	if ((id=open(argv[3],O_RDONLY,0))<0)
 		die("Unable to open 'system'");
-	if (read(id,buf,GCC_HEADER) != GCC_HEADER)
-		die("Unable to read header of 'system'");
-	if (N_MAGIC(*ex) != ZMAGIC)
-		die("Non-GCC header of 'system'");
-	fprintf(stderr,"System is %d kB (%d kB code, %d kB data and %d kB bss)\n",
-		(ex->a_text+ex->a_data+ex->a_bss)/1024,
-		ex->a_text /1024,
-		ex->a_data /1024,
-		ex->a_bss  /1024);
-	sz = N_SYMOFF(*ex) - GCC_HEADER + 4;
+	if (fstat (id, &sb))
+		die("Unable to stat 'system'");
+
+	sz = sb.st_size;
+	fprintf (stderr, "System is %d kB\n", sz/1024);
 	sys_size = (sz + 15) / 16;
-	if (sys_size > SYS_SIZE)
-		die("System is too big");
+	/* 0x28000*16 = 2.5 MB, conservative estimate for the current maximum */
+	if (sys_size > 0xffff)
+		fprintf(stderr,"warning: kernel is too big for standalone boot "
+		    "from floppy\n");
 	while (sz > 0) {
 		int l, n;
 
-		l = sz;
-		if (l > (int)sizeof(buf))
-			l = sizeof(buf);
+		l = (sz > (int)sizeof(buf)) ? sizeof(buf) : sz;
 		if ((n=read(id, buf, l)) != l) {
-			if (n == -1) 
-				perror(argv[1]);
+			if (n < 0)
+				die("Error reading 'system'");
 			else
-				fprintf(stderr, "Unexpected EOF\n");
-			die("Can't read 'system'");
+				die("Unexpected EOF");
 		}
 		if (write(1, buf, l) != l)
-			die("Write call failed");
+			die("Write failed");
 		sz -= l;
 	}
 	close(id);
+
 	if (lseek(1,500,0) == 500) {
 		buf[0] = (sys_size & 0xff);
 		buf[1] = ((sys_size >> 8) & 0xff);

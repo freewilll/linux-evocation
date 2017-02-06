@@ -15,6 +15,8 @@
 
 #include <linux/segment.h>
 
+.globl startup_32
+
 startup_32:
 	cld
 	cli
@@ -23,14 +25,14 @@ startup_32:
 	mov %ax,%es
 	mov %ax,%fs
 	mov %ax,%gs
-	lss _stack_start,%esp
+	lss stack_start,%esp
 	xorl %eax,%eax
 1:	incl %eax		# check that A20 really IS enabled
 	movl %eax,0x000000	# loop forever if it isn't
 	cmpl %eax,0x100000
 	je 1b
 /*
- * Initialize eflags.  Some BIOS's leave bits like NT set.  This would
+ * Initialize eflags.  Some BIOSses leave bits like NT set.  This would
  * confuse the debugger if this code is traced.
  * XXX - best to initialize before switching to protected mode.
  */
@@ -40,14 +42,17 @@ startup_32:
  * Clear BSS
  */
 	xorl %eax,%eax
-	movl $__edata,%edi
-	movl $__end,%ecx
+	movl $_edata,%edi
+	movl $_end,%ecx
 	subl %edi,%ecx
 	cld
 	rep
 	stosb
+
+
 /*
  * Do the decompression, and jump to the new kernel..
  */
-	call _decompress_kernel
+
+	call decompress_kernel
 	ljmp $KERNEL_CS, $0x100000
