@@ -31,7 +31,6 @@ TOPDIR := $(shell if [ "$$PWD" != "" ]; then echo $$PWD; else pwd; fi)
 
 HPATH = $(TOPDIR)/include
 
-
 #
 # ROOT_DEV specifies the default root-device when making the image.
 # This can be either FLOPPY, CURRENT, /dev/xxxx or empty, in which case
@@ -93,6 +92,9 @@ LIBS		=lib/lib.a
 SUBDIRS		=kernel mm fs net ipc ibcs lib
 
 KERNELHDRS	=/usr/src/linux/include
+
+# Add local usr/include path to avoid pulling anything from a much more modern /usr/include
+CC := $(CC) -I$(TOPDIR)/usr/include
 
 .c.s:
 	$(CC) $(CFLAGS) -S -o $*.s $<

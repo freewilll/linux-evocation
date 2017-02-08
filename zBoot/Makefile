@@ -4,13 +4,10 @@ SYSTEM = ../tools/zSystem
 
 OBJCOPY = objcopy -O binary -R .note -R .comment -S
 
-#LD = gcc
-#TEST = -DTEST_DRIVER
-
 zOBJECTS = $(HEAD) inflate.o unzip.o misc.o string.o
 
-# TODO WGJA: unhardcode /home/ubuntu/mac/slackware-1.0.1-include
-CFLAGS = -O6 -DSTDC_HEADERS $(TEST) -I/home/ubuntu/mac/slackware-1.0.1-include -fno-stack-protector
+# Add local usr/include path to avoid pulling anything from a much more modern /usr/include
+CFLAGS := -O6 -DSTDC_HEADERS $(TEST) -I/home/ubuntu/linux/usr/include -fno-stack-protector
 
 ZIMAGE_OFFSET = 0x0
 ZLDFLAGS = -e startup_32
