@@ -142,25 +142,14 @@ tools/version.o: tools/version.c tools/version.h
 init/main.o: $(CONFIGURE) init/main.c
 	$(CC) $(CFLAGS) $(PROFILING) -c -o $*.o $<
 
-# TODO WGJA: Severely slimmed down boot sequence to contain just boot/head
-tools/system:	boot/head.o
-	$(LD) $(LDFLAGS) -M boot/head.o
+tools/system:	boot/head.o init/main.o tools/version.o linuxsubdirs
+	$(LD) $(LDFLAGS) -M boot/head.o init/main.o tools/version.o \
 		$(ARCHIVES) \
 		$(FILESYSTEMS) \
 		$(DRIVERS) \
 		$(MATH) \
 		$(LIBS) \
 		-o tools/system > System.map
-
-# TODO WGJA: Severely slimmed down boot sequence to contain just boot/head
-# tools/system:	boot/head.o init/main.o tools/version.o linuxsubdirs
-# 	$(LD) $(LDFLAGS) -M boot/head.o init/main.o tools/version.o \
-# 		$(ARCHIVES) \
-# 		$(FILESYSTEMS) \
-# 		$(DRIVERS) \
-# 		$(MATH) \
-# 		$(LIBS) \
-# 		-o tools/system > System.map
 
 boot/setup: boot/setup.s
 	$(AS86) -o boot/setup.o boot/setup.s
@@ -191,12 +180,13 @@ zlilo: $(CONFIGURE) zImage
 	cat zImage > /vmlinuz
 	/etc/lilo/install
 
-# TODO WGJA: Severely slimmed down boot sequence to contain just boot/head
-tools/zSystem:	boot/head.o
+# TODO WGJA: Work in progress build
+tools/zSystem:	boot/head.o wip.o
 	$(LD) $(LDFLAGS) -Ttext 100000 -M boot/head.o \
+		wip.o \
 		-o tools/zSystem > zSystem.map
 
-# TODO WGJA: Severely slimmed down boot sequence to contain just boot/head
+# TODO WGJA: Work in progress build
 # tools/zSystem:	boot/head.o init/main.o tools/version.o linuxsubdirs
 # 	$(LD) $(LDFLAGS) -T 100000 -M boot/head.o init/main.o tools/version.o \
 # 		$(ARCHIVES) \
