@@ -427,7 +427,7 @@ extern inline void remove_wait_queue(struct wait_queue ** p, struct wait_queue *
 	    (ok = 1) &&
 #endif
 	    ((*p = wait->next) == wait)) {
-		*p = NULL;
+		*p = (wait_queue *)NULL;
 	} else {
 		tmp = wait;
 		while (tmp->next != wait) {
@@ -439,7 +439,7 @@ extern inline void remove_wait_queue(struct wait_queue ** p, struct wait_queue *
 		}
 		tmp->next = wait->next;
 	}
-	wait->next = NULL;
+	wait->next = (wait_queue *)NULL;
 	restore_flags(flags);
 #ifdef DEBUG
 	if (!ok) {
@@ -462,7 +462,7 @@ extern inline void select_wait(struct wait_queue ** wait_address, select_table *
  	entry = p->entry + p->nr;
 	entry->wait_address = wait_address;
 	entry->wait.task = current;
-	entry->wait.next = NULL;
+	entry->wait.next = (wait_queue *)NULL;
 	add_wait_queue(wait_address,&entry->wait);
 	p->nr++;
 }

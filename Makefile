@@ -89,7 +89,9 @@ DRIVERS		=kernel/blk_drv/blk_drv.a kernel/chr_drv/chr_drv.a \
 		 ibcs/ibcs.o
 MATH		=kernel/FPU-emu/math.a
 LIBS		=lib/lib.a
-SUBDIRS		=kernel mm fs net ipc ibcs lib
+# TODO WGJA: Work in progress build
+SUBDIRS		=kernel ibcs
+#SUBDIRS	=kernel mm fs net ipc ibcs lib
 
 KERNELHDRS	=/usr/src/linux/include
 
@@ -181,9 +183,11 @@ zlilo: $(CONFIGURE) zImage
 	/etc/lilo/install
 
 # TODO WGJA: Work in progress build
-tools/zSystem:	boot/head.o wip.o
+tools/zSystem:	boot/head.o wip.o linuxsubdirs
 	$(LD) $(LDFLAGS) -Ttext 100000 -M boot/head.o \
 		wip.o \
+		kernel/kernel.o \
+		ibcs/ibcs.o \
 		-o tools/zSystem > zSystem.map
 
 # TODO WGJA: Work in progress build

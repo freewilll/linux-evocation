@@ -20,7 +20,7 @@
 int verify_area(int type, void * addr, unsigned long count);
 
 extern void math_error(void);
-volatile void panic(const char * str);
+void panic(const char * str);
 volatile void do_exit(long error_code);
 unsigned long simple_strtoul(const char *,char **,unsigned int);
 int sprintf(char * buf, const char * fmt, ...);
