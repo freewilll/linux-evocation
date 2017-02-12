@@ -13,8 +13,10 @@
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-OBJS  = ctype.o _exit.o open.o close.o errno.o write.o dup.o setsid.o \
-	execve.o wait.o string.o malloc.o
+# TODO WGJA: Work in progress build
+OBJS  = ctype.o
+# OBJS  = ctype.o _exit.o open.o close.o errno.o write.o dup.o setsid.o \
+# 	execve.o wait.o string.o malloc.o
 
 lib.a: $(OBJS)
 	$(AR) rcs lib.a $(OBJS)

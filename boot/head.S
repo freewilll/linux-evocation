@@ -13,7 +13,7 @@
 .globl _swapper_pg_dir,_pg0
 .globl _empty_bad_page
 .globl _empty_bad_page_table
-.globl _empty_zero_page
+.globl empty_zero_page
 .globl _tmp_floppy_area,_floppy_track_buffer
 
 #include <linux/tasks.h>
@@ -64,11 +64,11 @@ startup_32:
 	popfl
 /*
  * Copy bootup parameters out of the way. First 2kB of
- * _empty_zero_page is for boot parameters, second 2kB
+ * empty_zero_page is for boot parameters, second 2kB
  * is for the command line.
  */
 	movl $0x90000,%esi
-	movl $_empty_zero_page,%edi
+	movl $empty_zero_page,%edi
 	movl $512,%ecx
 	cld
 	rep
@@ -79,7 +79,7 @@ startup_32:
 	stosl
 	cmpw $(CL_MAGIC),CL_MAGIC_ADDR
 	jne 1f
-	movl $_empty_zero_page+2048,%edi
+	movl $empty_zero_page+2048,%edi
 	movzwl CL_OFFSET,%esi
 	addl $(CL_BASE_ADDR),%esi
 	movl $2048,%ecx
@@ -254,7 +254,7 @@ _empty_bad_page:
 _empty_bad_page_table:
 
 .org 0x5000
-_empty_zero_page:
+empty_zero_page:
 
 .org 0x6000
 /*

@@ -25,4 +25,5 @@ tools/build
 .tags_sorted_by_file
 *.o
 *.s
+*.a
 .fseventsd

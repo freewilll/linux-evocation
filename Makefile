@@ -56,7 +56,7 @@ SVGA_MODE=	-DSVGA_MODE=1
 # standard CFLAGS
 #
 
-CFLAGS = -Wall -O6 -fomit-frame-pointer -x c++
+CFLAGS = -Wall -O6 -fomit-frame-pointer -x c++ -fno-stack-protector
 
 ifdef CONFIG_M486
 CFLAGS := $(CFLAGS) -march=i486
@@ -90,7 +90,7 @@ DRIVERS		=kernel/blk_drv/blk_drv.a kernel/chr_drv/chr_drv.a \
 MATH		=kernel/FPU-emu/math.a
 LIBS		=lib/lib.a
 # TODO WGJA: Work in progress build
-SUBDIRS		=kernel ibcs
+SUBDIRS		=kernel ibcs lib
 #SUBDIRS	=kernel mm fs net ipc ibcs lib
 
 KERNELHDRS	=/usr/src/linux/include
@@ -188,6 +188,7 @@ tools/zSystem:	boot/head.o wip.o linuxsubdirs
 		wip.o \
 		kernel/kernel.o \
 		ibcs/ibcs.o \
+		$(LIBS) \
 		-o tools/zSystem > zSystem.map
 
 # TODO WGJA: Work in progress build
