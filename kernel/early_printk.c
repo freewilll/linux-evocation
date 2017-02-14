@@ -6,26 +6,11 @@
 #include <linux/types.h>
 #include <glob.h>
 
-extern "C" void lcall7(void);
 extern char empty_zero_page[PAGE_SIZE];
 extern int vsprintf(char *,const char *,va_list);
 
-struct stack_struct {
-	long * a;
-	short b;
-};
-
-struct desc_struct default_ldt;
-
 #define PARAM	empty_zero_page
 #define SCREEN_INFO (*(struct screen_info *) (PARAM+0))
-
-int hard_math = 0;		/* set by boot/head.S */
-int x86 = 0;			/* set by boot/head.S to 3 or 4 */
-
-long user_stack [ PAGE_SIZE>>2 ] ;
-
-stack_struct stack_start = { & user_stack [PAGE_SIZE>>2] , KERNEL_DS };
 
 char *vidmem = (char *)0xb8000;
 int lines, cols;
@@ -111,12 +96,4 @@ void init_early_printk() {
 	lines = SCREEN_INFO.orig_video_lines;
 	cols = SCREEN_INFO.orig_video_cols;
 	printk("Early kernel printk initialized\n");
-}
-
-
-extern "C" void start_kernel(void) {
-	init_early_printk();
-	set_call_gate(&default_ldt,lcall7);
-
-	for (;;);
 }

@@ -183,9 +183,9 @@ zlilo: $(CONFIGURE) zImage
 	/etc/lilo/install
 
 # TODO WGJA: Work in progress build
-tools/zSystem:	boot/head.o wip.o linuxsubdirs
+tools/zSystem:	boot/head.o init/main.o linuxsubdirs
 	$(LD) $(LDFLAGS) -Ttext 100000 -M boot/head.o \
-		wip.o \
+		init/main.o \
 		kernel/kernel.o \
 		ibcs/ibcs.o \
 		$(LIBS) \

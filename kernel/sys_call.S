@@ -140,242 +140,242 @@ lcall7:
 
 # TODO WGJA: finish sys_call.S
 
-# .align 4
-# handle_bottom_half:
-# 	pushfl
-# 	incl _intr_count
-# 	sti
-# 	call _do_bottom_half
-# 	popfl
-# 	decl _intr_count
-# 	jmp 9f
-# .align 4
-# reschedule:
-# 	pushl $ret_from_sys_call
-# 	jmp _schedule
-# .align 4
-# _system_call:
-# 	pushl %eax			# save orig_eax
-# 	SAVE_ALL
-# 	movl $-ENOSYS,EAX(%esp)
-# 	cmpl NR_syscalls,%eax
-# 	jae ret_from_sys_call
-# 	movl _current,%ebx
-# 	andl $~CF_MASK,EFLAGS(%esp)	# clear carry - assume no errors
-# 	movl $0,errno(%ebx)
-# 	testb $0x20,flags(%ebx)		# PF_TRACESYS
-# 	jne 1f
-# 	call _sys_call_table(,%eax,4)
-# 	movl %eax,EAX(%esp)		# save the return value
-# 	movl errno(%ebx),%edx
-# 	negl %edx
-# 	je ret_from_sys_call
-# 	movl %edx,EAX(%esp)
-# 	orl $(CF_MASK),EFLAGS(%esp)	# set carry to indicate error
-# 	jmp ret_from_sys_call
-# .align 4
-# 1:	call _syscall_trace
-# 	movl ORIG_EAX(%esp),%eax
-# 	call _sys_call_table(,%eax,4)
-# 	movl %eax,EAX(%esp)		# save the return value
-# 	movl _current,%eax
-# 	movl errno(%eax),%edx
-# 	negl %edx
-# 	je 1f
-# 	movl %edx,EAX(%esp)
-# 	orl $(CF_MASK),EFLAGS(%esp)	# set carry to indicate error
-# 1:	call _syscall_trace
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: handle_bottom_half:
+# TODO WGJA WIP: 	pushfl
+# TODO WGJA WIP: 	incl _intr_count
+# TODO WGJA WIP: 	sti
+# TODO WGJA WIP: 	call _do_bottom_half
+# TODO WGJA WIP: 	popfl
+# TODO WGJA WIP: 	decl _intr_count
+# TODO WGJA WIP: 	jmp 9f
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: reschedule:
+# TODO WGJA WIP: 	pushl $ret_from_sys_call
+# TODO WGJA WIP: 	jmp _schedule
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _system_call:
+# TODO WGJA WIP: 	pushl %eax			# save orig_eax
+# TODO WGJA WIP: 	SAVE_ALL
+# TODO WGJA WIP: 	movl $-ENOSYS,EAX(%esp)
+# TODO WGJA WIP: 	cmpl NR_syscalls,%eax
+# TODO WGJA WIP: 	jae ret_from_sys_call
+# TODO WGJA WIP: 	movl _current,%ebx
+# TODO WGJA WIP: 	andl $~CF_MASK,EFLAGS(%esp)	# clear carry - assume no errors
+# TODO WGJA WIP: 	movl $0,errno(%ebx)
+# TODO WGJA WIP: 	testb $0x20,flags(%ebx)		# PF_TRACESYS
+# TODO WGJA WIP: 	jne 1f
+# TODO WGJA WIP: 	call _sys_call_table(,%eax,4)
+# TODO WGJA WIP: 	movl %eax,EAX(%esp)		# save the return value
+# TODO WGJA WIP: 	movl errno(%ebx),%edx
+# TODO WGJA WIP: 	negl %edx
+# TODO WGJA WIP: 	je ret_from_sys_call
+# TODO WGJA WIP: 	movl %edx,EAX(%esp)
+# TODO WGJA WIP: 	orl $(CF_MASK),EFLAGS(%esp)	# set carry to indicate error
+# TODO WGJA WIP: 	jmp ret_from_sys_call
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: 1:	call _syscall_trace
+# TODO WGJA WIP: 	movl ORIG_EAX(%esp),%eax
+# TODO WGJA WIP: 	call _sys_call_table(,%eax,4)
+# TODO WGJA WIP: 	movl %eax,EAX(%esp)		# save the return value
+# TODO WGJA WIP: 	movl _current,%eax
+# TODO WGJA WIP: 	movl errno(%eax),%edx
+# TODO WGJA WIP: 	negl %edx
+# TODO WGJA WIP: 	je 1f
+# TODO WGJA WIP: 	movl %edx,EAX(%esp)
+# TODO WGJA WIP: 	orl $(CF_MASK),EFLAGS(%esp)	# set carry to indicate error
+# TODO WGJA WIP: 1:	call _syscall_trace
 
 # TODO WGJA: finish sys_call.S
 .align 4,0x90
 ret_from_sys_call:
 	jmp ret_from_sys_call
 
-# 	.align 4,0x90
-# ret_from_sys_call:
-# 	cmpl $0,_intr_count
-# 	jne 2f
-# 	movl _bh_mask,%eax
-# 	andl _bh_active,%eax
-# 	jne handle_bottom_half
-# 9:	movl EFLAGS(%esp),%eax		# check VM86 flag: CS/SS are
-# 	testl $(VM_MASK),%eax		# different then
-# 	jne 1f
-# 	cmpw $(KERNEL_CS),CS(%esp)	# was old code segment supervisor ?
-# 	je 2f
-# 1:	sti
-# 	orl $(IF_MASK),%eax		# these just try to make sure
-# 	andl $~NT_MASK,%eax		# the program doesn't do anything
-# 	movl %eax,EFLAGS(%esp)		# stupid
-# 	cmpl $0,_need_resched
-# 	jne reschedule
-# 	movl _current,%eax
-# 	cmpl _task,%eax			# task[0] cannot have signals
-# 	je 2f
-# 	cmpl $0,state(%eax)		# state
-# 	jne reschedule
-# 	cmpl $0,counter(%eax)		# counter
-# 	je reschedule
-# 	movl blocked(%eax),%ecx
-# 	movl %ecx,%ebx			# save blocked in %ebx for signal handling
-# 	notl %ecx
-# 	andl signal(%eax),%ecx
-# 	jne signal_return
-# 2:	RESTORE_ALL
-# .align 4
-# signal_return:
-# 	movl %esp,%ecx
-# 	pushl %ecx
-# 	testl $(VM_MASK),EFLAGS(%ecx)
-# 	jne v86_signal_return
-# 	pushl %ebx
-# 	call do_signal
-# 	popl %ebx
-# 	popl %ebx
-# 	RESTORE_ALL
-# .align 4
-# v86_signal_return:
-# 	call _save_v86_state
-# 	movl %eax,%esp
-# 	pushl %eax
-# 	pushl %ebx
-# 	call _do_signal
-# 	popl %ebx
-# 	popl %ebx
-# 	RESTORE_ALL
-
-# .align 4
-# _divide_error:
-# 	pushl $0		# no error code
-# 	pushl $_do_divide_error
-# .align 4,0x90
-# error_code:
-# 	push %fs
-# 	push %es
-# 	push %ds
-# 	pushl %eax
-# 	pushl %ebp
-# 	pushl %edi
-# 	pushl %esi
-# 	pushl %edx
-# 	pushl %ecx
-# 	pushl %ebx
-# 	cld
-# 	movl $-1, %eax
-# 	xchgl %eax, ORIG_EAX(%esp)	# orig_eax (get the error code. )
-# 	xorl %ebx,%ebx			# zero ebx
-# 	mov %gs,%bx			# get the lower order bits of gs
-# 	xchgl %ebx, GS(%esp)		# get the address and save gs.
-# 	pushl %eax			# push the error code
-# 	lea 4(%esp),%edx
-# 	pushl %edx
-# 	movl $(KERNEL_DS),%edx
-# 	mov %dx,%ds
-# 	mov %dx,%es
-# 	movl $(USER_DS),%edx
-# 	mov %dx,%fs
-# 	call *%ebx
-# 	addl $8,%esp
-# 	jmp ret_from_sys_call
-
-# .align 4
-# _coprocessor_error:
-# 	pushl $0
-# 	pushl $_do_coprocessor_error
-# 	jmp error_code
-
-# .align 4
-# _device_not_available:
-# 	pushl $-1		# mark this as an int
-# 	SAVE_ALL
-# 	pushl $ret_from_sys_call
-# 	movl %cr0,%eax
-# 	testl $0x4,%eax			# EM (math emulation bit)
-# 	je _math_state_restore
-# 	pushl $0		# temporary storage for ORIG_EIP
-# 	call _math_emulate
-# 	addl $4,%esp
-# 	ret
-
-# .align 4
-# _debug:
-# 	pushl $0
-# 	pushl $_do_debug
-# 	jmp error_code
-
-# .align 4
-# _nmi:
-# 	pushl $0
-# 	pushl $_do_nmi
-# 	jmp error_code
-
-# .align 4
-# _int3:
-# 	pushl $0
-# 	pushl $_do_int3
-# 	jmp error_code
-
-# .align 4
-# _overflow:
-# 	pushl $0
-# 	pushl $_do_overflow
-# 	jmp error_code
-
-# .align 4
-# _bounds:
-# 	pushl $0
-# 	pushl $_do_bounds
-# 	jmp error_code
-
-# .align 4
-# _invalid_op:
-# 	pushl $0
-# 	pushl $_do_invalid_op
-# 	jmp error_code
-
-# .align 4
-# _coprocessor_segment_overrun:
-# 	pushl $0
-# 	pushl $_do_coprocessor_segment_overrun
-# 	jmp error_code
-
-# .align 4
-# _reserved:
-# 	pushl $0
-# 	pushl $_do_reserved
-# 	jmp error_code
-
-# .align 4
-# _double_fault:
-# 	pushl $_do_double_fault
-# 	jmp error_code
-
-# .align 4
-# _invalid_TSS:
-# 	pushl $_do_invalid_TSS
-# 	jmp error_code
-
-# .align 4
-# _segment_not_present:
-# 	pushl $_do_segment_not_present
-# 	jmp error_code
-
-# .align 4
-# _stack_segment:
-# 	pushl $_do_stack_segment
-# 	jmp error_code
-
-# .align 4
-# _general_protection:
-# 	pushl $_do_general_protection
-# 	jmp error_code
-
-# .align 4
-# _alignment_check:
-# 	pushl $_do_alignment_check
-# 	jmp error_code
-
-# .align 4
-# _page_fault:
-# 	pushl $_do_page_fault
-# 	jmp error_code
+# TODO WGJA WIP: 	.align 4,0x90
+# TODO WGJA WIP: ret_from_sys_call:
+# TODO WGJA WIP: 	cmpl $0,_intr_count
+# TODO WGJA WIP: 	jne 2f
+# TODO WGJA WIP: 	movl _bh_mask,%eax
+# TODO WGJA WIP: 	andl _bh_active,%eax
+# TODO WGJA WIP: 	jne handle_bottom_half
+# TODO WGJA WIP: 9:	movl EFLAGS(%esp),%eax		# check VM86 flag: CS/SS are
+# TODO WGJA WIP: 	testl $(VM_MASK),%eax		# different then
+# TODO WGJA WIP: 	jne 1f
+# TODO WGJA WIP: 	cmpw $(KERNEL_CS),CS(%esp)	# was old code segment supervisor ?
+# TODO WGJA WIP: 	je 2f
+# TODO WGJA WIP: 1:	sti
+# TODO WGJA WIP: 	orl $(IF_MASK),%eax		# these just try to make sure
+# TODO WGJA WIP: 	andl $~NT_MASK,%eax		# the program doesn't do anything
+# TODO WGJA WIP: 	movl %eax,EFLAGS(%esp)		# stupid
+# TODO WGJA WIP: 	cmpl $0,_need_resched
+# TODO WGJA WIP: 	jne reschedule
+# TODO WGJA WIP: 	movl _current,%eax
+# TODO WGJA WIP: 	cmpl _task,%eax			# task[0] cannot have signals
+# TODO WGJA WIP: 	je 2f
+# TODO WGJA WIP: 	cmpl $0,state(%eax)		# state
+# TODO WGJA WIP: 	jne reschedule
+# TODO WGJA WIP: 	cmpl $0,counter(%eax)		# counter
+# TODO WGJA WIP: 	je reschedule
+# TODO WGJA WIP: 	movl blocked(%eax),%ecx
+# TODO WGJA WIP: 	movl %ecx,%ebx			# save blocked in %ebx for signal handling
+# TODO WGJA WIP: 	notl %ecx
+# TODO WGJA WIP: 	andl signal(%eax),%ecx
+# TODO WGJA WIP: 	jne signal_return
+# TODO WGJA WIP: 2:	RESTORE_ALL
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: signal_return:
+# TODO WGJA WIP: 	movl %esp,%ecx
+# TODO WGJA WIP: 	pushl %ecx
+# TODO WGJA WIP: 	testl $(VM_MASK),EFLAGS(%ecx)
+# TODO WGJA WIP: 	jne v86_signal_return
+# TODO WGJA WIP: 	pushl %ebx
+# TODO WGJA WIP: 	call do_signal
+# TODO WGJA WIP: 	popl %ebx
+# TODO WGJA WIP: 	popl %ebx
+# TODO WGJA WIP: 	RESTORE_ALL
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: v86_signal_return:
+# TODO WGJA WIP: 	call _save_v86_state
+# TODO WGJA WIP: 	movl %eax,%esp
+# TODO WGJA WIP: 	pushl %eax
+# TODO WGJA WIP: 	pushl %ebx
+# TODO WGJA WIP: 	call _do_signal
+# TODO WGJA WIP: 	popl %ebx
+# TODO WGJA WIP: 	popl %ebx
+# TODO WGJA WIP: 	RESTORE_ALL
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _divide_error:
+# TODO WGJA WIP: 	pushl $0		# no error code
+# TODO WGJA WIP: 	pushl $_do_divide_error
+# TODO WGJA WIP: .align 4,0x90
+# TODO WGJA WIP: error_code:
+# TODO WGJA WIP: 	push %fs
+# TODO WGJA WIP: 	push %es
+# TODO WGJA WIP: 	push %ds
+# TODO WGJA WIP: 	pushl %eax
+# TODO WGJA WIP: 	pushl %ebp
+# TODO WGJA WIP: 	pushl %edi
+# TODO WGJA WIP: 	pushl %esi
+# TODO WGJA WIP: 	pushl %edx
+# TODO WGJA WIP: 	pushl %ecx
+# TODO WGJA WIP: 	pushl %ebx
+# TODO WGJA WIP: 	cld
+# TODO WGJA WIP: 	movl $-1, %eax
+# TODO WGJA WIP: 	xchgl %eax, ORIG_EAX(%esp)	# orig_eax (get the error code. )
+# TODO WGJA WIP: 	xorl %ebx,%ebx			# zero ebx
+# TODO WGJA WIP: 	mov %gs,%bx			# get the lower order bits of gs
+# TODO WGJA WIP: 	xchgl %ebx, GS(%esp)		# get the address and save gs.
+# TODO WGJA WIP: 	pushl %eax			# push the error code
+# TODO WGJA WIP: 	lea 4(%esp),%edx
+# TODO WGJA WIP: 	pushl %edx
+# TODO WGJA WIP: 	movl $(KERNEL_DS),%edx
+# TODO WGJA WIP: 	mov %dx,%ds
+# TODO WGJA WIP: 	mov %dx,%es
+# TODO WGJA WIP: 	movl $(USER_DS),%edx
+# TODO WGJA WIP: 	mov %dx,%fs
+# TODO WGJA WIP: 	call *%ebx
+# TODO WGJA WIP: 	addl $8,%esp
+# TODO WGJA WIP: 	jmp ret_from_sys_call
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _coprocessor_error:
+# TODO WGJA WIP: 	pushl $0
+# TODO WGJA WIP: 	pushl $_do_coprocessor_error
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _device_not_available:
+# TODO WGJA WIP: 	pushl $-1		# mark this as an int
+# TODO WGJA WIP: 	SAVE_ALL
+# TODO WGJA WIP: 	pushl $ret_from_sys_call
+# TODO WGJA WIP: 	movl %cr0,%eax
+# TODO WGJA WIP: 	testl $0x4,%eax			# EM (math emulation bit)
+# TODO WGJA WIP: 	je _math_state_restore
+# TODO WGJA WIP: 	pushl $0		# temporary storage for ORIG_EIP
+# TODO WGJA WIP: 	call _math_emulate
+# TODO WGJA WIP: 	addl $4,%esp
+# TODO WGJA WIP: 	ret
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _debug:
+# TODO WGJA WIP: 	pushl $0
+# TODO WGJA WIP: 	pushl $_do_debug
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _nmi:
+# TODO WGJA WIP: 	pushl $0
+# TODO WGJA WIP: 	pushl $_do_nmi
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _int3:
+# TODO WGJA WIP: 	pushl $0
+# TODO WGJA WIP: 	pushl $_do_int3
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _overflow:
+# TODO WGJA WIP: 	pushl $0
+# TODO WGJA WIP: 	pushl $_do_overflow
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _bounds:
+# TODO WGJA WIP: 	pushl $0
+# TODO WGJA WIP: 	pushl $_do_bounds
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _invalid_op:
+# TODO WGJA WIP: 	pushl $0
+# TODO WGJA WIP: 	pushl $_do_invalid_op
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _coprocessor_segment_overrun:
+# TODO WGJA WIP: 	pushl $0
+# TODO WGJA WIP: 	pushl $_do_coprocessor_segment_overrun
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _reserved:
+# TODO WGJA WIP: 	pushl $0
+# TODO WGJA WIP: 	pushl $_do_reserved
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _double_fault:
+# TODO WGJA WIP: 	pushl $_do_double_fault
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _invalid_TSS:
+# TODO WGJA WIP: 	pushl $_do_invalid_TSS
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _segment_not_present:
+# TODO WGJA WIP: 	pushl $_do_segment_not_present
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _stack_segment:
+# TODO WGJA WIP: 	pushl $_do_stack_segment
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _general_protection:
+# TODO WGJA WIP: 	pushl $_do_general_protection
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _alignment_check:
+# TODO WGJA WIP: 	pushl $_do_alignment_check
+# TODO WGJA WIP: 	jmp error_code
+# TODO WGJA WIP: 
+# TODO WGJA WIP: .align 4
+# TODO WGJA WIP: _page_fault:
+# TODO WGJA WIP: 	pushl $_do_page_fault
+# TODO WGJA WIP: 	jmp error_code
