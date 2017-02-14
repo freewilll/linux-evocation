@@ -1,32 +1,33 @@
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  *  linux/init/main.c
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  *  Copyright (C) 1991, 1992  Linus Torvalds
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #include <stdarg.h>
-// TODO WGJA WIP: 
+/*
+ *  linux/init/main.c
+ *
+ *  Copyright (C) 1991, 1992  Linus Torvalds
+ */
+
+#include <stdarg.h>
+
 #include <asm/system.h>
 // TODO WGJA WIP: #include <asm/io.h>
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #include <linux/mktime.h>
-// TODO WGJA WIP: #include <linux/types.h>
+#include <linux/mm.h>
+#include <linux/types.h>
 // TODO WGJA WIP: #include <linux/fcntl.h>
-// TODO WGJA WIP: #include <linux/config.h>
-// TODO WGJA WIP: #include <linux/sched.h>
-// TODO WGJA WIP: #include <linux/tty.h>
+#include <linux/config.h>
+#include <linux/sched.h>
+#include <linux/tty.h>
 #include <linux/head.h>
 // TODO WGJA WIP: #include <linux/unistd.h>
-// TODO WGJA WIP: #include <linux/string.h>
+#include <linux/string.h>
 // TODO WGJA WIP: #include <linux/timer.h>
-// TODO WGJA WIP: #include <linux/fs.h>
+#include <linux/fs.h>
 // TODO WGJA WIP: #include <linux/ctype.h>
 // TODO WGJA WIP: #include <linux/delay.h>
 // TODO WGJA WIP: #include <linux/utsname.h>
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern unsigned long * prof_buffer;
 // TODO WGJA WIP: extern unsigned long prof_len;
-// TODO WGJA WIP: extern char edata, end;
+extern char edata, end;
 // TODO WGJA WIP: extern char *linux_banner;
 extern "C" void lcall7(void);
 struct desc_struct default_ldt;
@@ -65,8 +66,8 @@ struct desc_struct default_ldt;
 // TODO WGJA WIP: static char printbuf[1024];
 // TODO WGJA WIP: 
 void init_early_printk();
-// TODO WGJA WIP: extern char empty_zero_page[PAGE_SIZE];
-// TODO WGJA WIP: extern int vsprintf(char *,const char *,va_list);
+extern char empty_zero_page[PAGE_SIZE];
+extern int vsprintf(char *,const char *,va_list);
 // TODO WGJA WIP: extern void init(void);
 // TODO WGJA WIP: extern void init_IRQ(void);
 // TODO WGJA WIP: extern long blk_dev_init(long,long);
@@ -87,26 +88,26 @@ void init_early_printk();
 // TODO WGJA WIP: #ifdef CONFIG_SCSI
 // TODO WGJA WIP: extern unsigned long scsi_dev_init(unsigned long, unsigned long);
 // TODO WGJA WIP: #endif
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This is set up by the setup-routine at boot-time
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: #define PARAM	empty_zero_page
-// TODO WGJA WIP: #define EXT_MEM_K (*(unsigned short *) (PARAM+2))
-// TODO WGJA WIP: #define DRIVE_INFO (*(struct drive_info_struct *) (PARAM+0x80))
-// TODO WGJA WIP: #define SCREEN_INFO (*(struct screen_info *) (PARAM+0))
-// TODO WGJA WIP: #define MOUNT_ROOT_RDONLY (*(unsigned short *) (PARAM+0x1F2))
-// TODO WGJA WIP: #define RAMDISK_SIZE (*(unsigned short *) (PARAM+0x1F8))
-// TODO WGJA WIP: #define ORIG_ROOT_DEV (*(unsigned short *) (PARAM+0x1FC))
-// TODO WGJA WIP: #define AUX_DEVICE_INFO (*(unsigned char *) (PARAM+0x1FF))
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Boot command-line arguments
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: #define MAX_INIT_ARGS 8
-// TODO WGJA WIP: #define MAX_INIT_ENVS 8
-// TODO WGJA WIP: #define COMMAND_LINE ((char *) (PARAM+2048))
-// TODO WGJA WIP: 
+
+/*
+ * This is set up by the setup-routine at boot-time
+ */
+#define PARAM	empty_zero_page
+#define EXT_MEM_K (*(unsigned short *) (PARAM+2))
+#define DRIVE_INFO (*(struct drive_info_struct *) (PARAM+0x80))
+#define SCREEN_INFO (*(struct screen_info *) (PARAM+0))
+#define MOUNT_ROOT_RDONLY (*(unsigned short *) (PARAM+0x1F2))
+#define RAMDISK_SIZE (*(unsigned short *) (PARAM+0x1F8))
+#define ORIG_ROOT_DEV (*(unsigned short *) (PARAM+0x1FC))
+#define AUX_DEVICE_INFO (*(unsigned char *) (PARAM+0x1FF))
+
+/*
+ * Boot command-line arguments
+ */
+#define MAX_INIT_ARGS 8
+#define MAX_INIT_ENVS 8
+#define COMMAND_LINE ((char *) (PARAM+2048))
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * Yeah, yeah, it's ugly, but I cannot find how to do this correctly
 // TODO WGJA WIP:  * and this seems to work. I anybody has more info on the real-time
@@ -146,12 +147,12 @@ void init_early_printk();
 // TODO WGJA WIP: 	time.mon--;
 // TODO WGJA WIP: 	startup_time = kernel_mktime(&time);
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static unsigned long memory_start = 0;	/* After mem_init, stores the */
-// TODO WGJA WIP: 					/* amount of free user memory */
-// TODO WGJA WIP: static unsigned long memory_end = 0;
-// TODO WGJA WIP: static unsigned long low_memory_start = 0;
-// TODO WGJA WIP: 
+
+static unsigned long memory_start = 0;	/* After mem_init, stores the */
+					/* amount of free user memory */
+static unsigned long memory_end = 0;
+static unsigned long low_memory_start = 0;
+
 // TODO WGJA WIP: static char * argv_init[MAX_INIT_ARGS+2] = { "init", NULL, };
 // TODO WGJA WIP: static char * envp_init[MAX_INIT_ENVS+2] = { "HOME=/", "TERM=console", NULL, };
 // TODO WGJA WIP: 
@@ -160,18 +161,18 @@ void init_early_printk();
 // TODO WGJA WIP: 
 // TODO WGJA WIP: static char * argv[] = { "-/bin/sh",NULL };
 // TODO WGJA WIP: static char * envp[] = { "HOME=/usr/root", "TERM=console", NULL };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct drive_info_struct { char dummy[32]; } drive_info;
-// TODO WGJA WIP: struct screen_info screen_info;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: unsigned char aux_device_present;
-// TODO WGJA WIP: int ramdisk_size;
-// TODO WGJA WIP: int root_mountflags = 0;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static char fpu_error = 0;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static char command_line[80] = { 0, };
-// TODO WGJA WIP: 
+
+struct drive_info_struct { char dummy[32]; } drive_info;
+struct screen_info screen_info;
+
+unsigned char aux_device_present;
+int ramdisk_size;
+int root_mountflags = 0;
+
+static char fpu_error = 0;
+
+static char command_line[80] = { 0, };
+
 // TODO WGJA WIP: char *get_options(char *str, int *ints) 
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	char *cur = str;
@@ -339,29 +340,29 @@ extern "C" void start_kernel(void)
  * enable them
  */
 	set_call_gate(&default_ldt,lcall7);
-// TODO WGJA WIP:  	ROOT_DEV = ORIG_ROOT_DEV;
-// TODO WGJA WIP:  	drive_info = DRIVE_INFO;
-// TODO WGJA WIP:  	screen_info = SCREEN_INFO;
-// TODO WGJA WIP: 	aux_device_present = AUX_DEVICE_INFO;
-// TODO WGJA WIP: 	memory_end = (1<<20) + (EXT_MEM_K<<10);
-// TODO WGJA WIP: 	memory_end &= PAGE_MASK;
-// TODO WGJA WIP: 	ramdisk_size = RAMDISK_SIZE;
-// TODO WGJA WIP: 	strcpy(command_line,COMMAND_LINE);
-// TODO WGJA WIP: #ifdef CONFIG_MAX_16M
-// TODO WGJA WIP: 	if (memory_end > 16*1024*1024)
-// TODO WGJA WIP: 		memory_end = 16*1024*1024;
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 	if (MOUNT_ROOT_RDONLY)
-// TODO WGJA WIP: 		root_mountflags |= MS_RDONLY;
-// TODO WGJA WIP: 	if ((unsigned long)&end >= (1024*1024)) {
-// TODO WGJA WIP: 		memory_start = (unsigned long) &end;
-// TODO WGJA WIP: 		low_memory_start = PAGE_SIZE;
-// TODO WGJA WIP: 	} else {
-// TODO WGJA WIP: 		memory_start = 1024*1024;
-// TODO WGJA WIP: 		low_memory_start = (unsigned long) &end;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	low_memory_start = PAGE_ALIGN(low_memory_start);
-// TODO WGJA WIP: 	memory_start = paging_init(memory_start,memory_end);
+ 	ROOT_DEV = ORIG_ROOT_DEV;
+ 	drive_info = DRIVE_INFO;
+ 	screen_info = SCREEN_INFO;
+	aux_device_present = AUX_DEVICE_INFO;
+	memory_end = (1<<20) + (EXT_MEM_K<<10);
+	memory_end &= PAGE_MASK;
+	ramdisk_size = RAMDISK_SIZE;
+	strcpy(command_line,COMMAND_LINE);
+#ifdef CONFIG_MAX_16M
+	if (memory_end > 16*1024*1024)
+		memory_end = 16*1024*1024;
+#endif
+	if (MOUNT_ROOT_RDONLY)
+		root_mountflags |= MS_RDONLY;
+	if ((unsigned long)&end >= (1024*1024)) {
+		memory_start = (unsigned long) &end;
+		low_memory_start = PAGE_SIZE;
+	} else {
+		memory_start = 1024*1024;
+		low_memory_start = (unsigned long) &end;
+	}
+	low_memory_start = PAGE_ALIGN(low_memory_start);
+	memory_start = paging_init(memory_start,memory_end);
 // TODO WGJA WIP: 	trap_init();
 // TODO WGJA WIP: 	init_IRQ();
 // TODO WGJA WIP: 	sched_init();

@@ -6,121 +6,121 @@
 typedef unsigned int size_t;
 #endif
 
-#ifndef _SSIZE_T
-#define _SSIZE_T
-typedef int ssize_t;
-#endif
-
-#ifndef _TIME_T
-#define _TIME_T
-typedef long time_t;
-#endif
-
-#ifndef _CLOCK_T
-#define _CLOCK_T
-typedef long clock_t;
-#endif
-
-#ifndef _PTRDIFF_T
-#define _PTRDIFF_T
-typedef int ptrdiff_t;
-#endif
+// TODO WGJA WIP: #ifndef _SSIZE_T
+// TODO WGJA WIP: #define _SSIZE_T
+// TODO WGJA WIP: typedef int ssize_t;
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #ifndef _TIME_T
+// TODO WGJA WIP: #define _TIME_T
+// TODO WGJA WIP: typedef long time_t;
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #ifndef _CLOCK_T
+// TODO WGJA WIP: #define _CLOCK_T
+// TODO WGJA WIP: typedef long clock_t;
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #ifndef _PTRDIFF_T
+// TODO WGJA WIP: #define _PTRDIFF_T
+// TODO WGJA WIP: typedef int ptrdiff_t;
+// TODO WGJA WIP: #endif
 
 #ifndef NULL
 #define NULL ((void *) 0)
 #endif
 
-typedef int pid_t;
-typedef unsigned short uid_t;
-typedef unsigned short gid_t;
+// TODO WGJA WIP: typedef int pid_t;
+// TODO WGJA WIP: typedef unsigned short uid_t;
+// TODO WGJA WIP: typedef unsigned short gid_t;
 typedef unsigned short dev_t;
-#ifdef OLD_LINUX
-typedef unsigned short ino_t;
-#else
-typedef unsigned long ino_t;
-#endif
-typedef unsigned short mode_t;
-typedef unsigned short umode_t;
-typedef unsigned short nlink_t;
-typedef int daddr_t;
-typedef long off_t;
-
-/* bsd */
-typedef unsigned char u_char;
-typedef unsigned short u_short;
-typedef unsigned int u_int;
-typedef unsigned long u_long;
-
-/* sysv */
-typedef unsigned char unchar;
-typedef unsigned short ushort;
-typedef unsigned int uint;
-typedef unsigned long ulong;
-
-typedef char *caddr_t;
-
-typedef unsigned char cc_t;
-typedef unsigned int speed_t;
-typedef unsigned long tcflag_t;
-
-/*
- * This allows for 256 file descriptors: if NR_OPEN is ever grown beyond that
- * you'll have to change this too. But 256 fd's seem to be enough even for such
- * "real" unices like SunOS, so hopefully this is one limit that doesn't have
- * to be changed.
- *
- * Note that POSIX wants the FD_CLEAR(fd,fdsetp) defines to be in <sys/time.h>
- * (and thus <linux/time.h>) - but this is a more logical place for them. Solved
- * by having dummy defines in <sys/time.h>.
- */
-
-/*
- * Those macros may have been defined in <gnu/types.h>. But we always
- * use the ones here. 
- */
-#undef __FDSET_LONGS
-#define __FDSET_LONGS 8
-
-typedef struct fd_set {
-	unsigned long fds_bits [__FDSET_LONGS];
-} fd_set;
-
-#undef __NFDBITS
-#define __NFDBITS	(8 * sizeof(unsigned long))
-
-#undef __FD_SETSIZE
-#define __FD_SETSIZE	(__FDSET_LONGS*__NFDBITS)
-
-#undef	__FD_SET
-#define __FD_SET(fd,fdsetp) \
-		__asm__ __volatile__("btsl %1,%0": \
-			"=m" (*(fd_set *) (fdsetp)):"r" ((int) (fd)))
-
-#undef	__FD_CLR
-#define __FD_CLR(fd,fdsetp) \
-		__asm__ __volatile__("btrl %1,%0": \
-			"=m" (*(fd_set *) (fdsetp)):"r" ((int) (fd)))
-
-#undef	__FD_ISSET
-#define __FD_ISSET(fd,fdsetp) (__extension__ ({ \
-		unsigned char __result; \
-		__asm__ __volatile__("btl %1,%2 ; setb %0" \
-			:"=q" (__result) :"r" ((int) (fd)), \
-			"m" (*(fd_set *) (fdsetp))); \
-		__result; }))
-
-#undef	__FD_ZERO
-#define __FD_ZERO(fdsetp) \
-		__asm__ __volatile__("cld ; rep ; stosl" \
-			:"=m" (*(fd_set *) (fdsetp)) \
-			:"a" (0), "c" (__FDSET_LONGS), \
-			"D" ((fd_set *) (fdsetp)) :"cx","di")
-
-struct ustat {
-	daddr_t f_tfree;
-	ino_t f_tinode;
-	char f_fname[6];
-	char f_fpack[6];
-};
+// TODO WGJA WIP: #ifdef OLD_LINUX
+// TODO WGJA WIP: typedef unsigned short ino_t;
+// TODO WGJA WIP: #else
+// TODO WGJA WIP: typedef unsigned long ino_t;
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: typedef unsigned short mode_t;
+// TODO WGJA WIP: typedef unsigned short umode_t;
+// TODO WGJA WIP: typedef unsigned short nlink_t;
+// TODO WGJA WIP: typedef int daddr_t;
+// TODO WGJA WIP: typedef long off_t;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /* bsd */
+// TODO WGJA WIP: typedef unsigned char u_char;
+// TODO WGJA WIP: typedef unsigned short u_short;
+// TODO WGJA WIP: typedef unsigned int u_int;
+// TODO WGJA WIP: typedef unsigned long u_long;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /* sysv */
+// TODO WGJA WIP: typedef unsigned char unchar;
+// TODO WGJA WIP: typedef unsigned short ushort;
+// TODO WGJA WIP: typedef unsigned int uint;
+// TODO WGJA WIP: typedef unsigned long ulong;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: typedef char *caddr_t;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: typedef unsigned char cc_t;
+// TODO WGJA WIP: typedef unsigned int speed_t;
+// TODO WGJA WIP: typedef unsigned long tcflag_t;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * This allows for 256 file descriptors: if NR_OPEN is ever grown beyond that
+// TODO WGJA WIP:  * you'll have to change this too. But 256 fd's seem to be enough even for such
+// TODO WGJA WIP:  * "real" unices like SunOS, so hopefully this is one limit that doesn't have
+// TODO WGJA WIP:  * to be changed.
+// TODO WGJA WIP:  *
+// TODO WGJA WIP:  * Note that POSIX wants the FD_CLEAR(fd,fdsetp) defines to be in <sys/time.h>
+// TODO WGJA WIP:  * (and thus <linux/time.h>) - but this is a more logical place for them. Solved
+// TODO WGJA WIP:  * by having dummy defines in <sys/time.h>.
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * Those macros may have been defined in <gnu/types.h>. But we always
+// TODO WGJA WIP:  * use the ones here. 
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: #undef __FDSET_LONGS
+// TODO WGJA WIP: #define __FDSET_LONGS 8
+// TODO WGJA WIP: 
+// TODO WGJA WIP: typedef struct fd_set {
+// TODO WGJA WIP: 	unsigned long fds_bits [__FDSET_LONGS];
+// TODO WGJA WIP: } fd_set;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #undef __NFDBITS
+// TODO WGJA WIP: #define __NFDBITS	(8 * sizeof(unsigned long))
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #undef __FD_SETSIZE
+// TODO WGJA WIP: #define __FD_SETSIZE	(__FDSET_LONGS*__NFDBITS)
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #undef	__FD_SET
+// TODO WGJA WIP: #define __FD_SET(fd,fdsetp) \
+// TODO WGJA WIP: 		__asm__ __volatile__("btsl %1,%0": \
+// TODO WGJA WIP: 			"=m" (*(fd_set *) (fdsetp)):"r" ((int) (fd)))
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #undef	__FD_CLR
+// TODO WGJA WIP: #define __FD_CLR(fd,fdsetp) \
+// TODO WGJA WIP: 		__asm__ __volatile__("btrl %1,%0": \
+// TODO WGJA WIP: 			"=m" (*(fd_set *) (fdsetp)):"r" ((int) (fd)))
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #undef	__FD_ISSET
+// TODO WGJA WIP: #define __FD_ISSET(fd,fdsetp) (__extension__ ({ \
+// TODO WGJA WIP: 		unsigned char __result; \
+// TODO WGJA WIP: 		__asm__ __volatile__("btl %1,%2 ; setb %0" \
+// TODO WGJA WIP: 			:"=q" (__result) :"r" ((int) (fd)), \
+// TODO WGJA WIP: 			"m" (*(fd_set *) (fdsetp))); \
+// TODO WGJA WIP: 		__result; }))
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #undef	__FD_ZERO
+// TODO WGJA WIP: #define __FD_ZERO(fdsetp) \
+// TODO WGJA WIP: 		__asm__ __volatile__("cld ; rep ; stosl" \
+// TODO WGJA WIP: 			:"=m" (*(fd_set *) (fdsetp)) \
+// TODO WGJA WIP: 			:"a" (0), "c" (__FDSET_LONGS), \
+// TODO WGJA WIP: 			"D" ((fd_set *) (fdsetp)) :"cx","di")
+// TODO WGJA WIP: 
+// TODO WGJA WIP: struct ustat {
+// TODO WGJA WIP: 	daddr_t f_tfree;
+// TODO WGJA WIP: 	ino_t f_tinode;
+// TODO WGJA WIP: 	char f_fname[6];
+// TODO WGJA WIP: 	char f_fpack[6];
+// TODO WGJA WIP: };
 
 #endif

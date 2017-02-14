@@ -7,32 +7,35 @@
 #
 # Note 2! The CFLAGS definitions are now in the main makefile...
 
-SUBDIRS = minix ext ext2 msdos proc isofs nfs xiafs
+# TODO WGJA: Work in progress build
+SUBDIRS =
+#SUBDIRS = minix ext ext2 msdos proc isofs nfs xiafs
 
-ifdef CONFIG_MINIX_FS
-FS_SUBDIRS := $(FS_SUBDIRS) minix
-endif
-ifdef CONFIG_EXT_FS
-FS_SUBDIRS := $(FS_SUBDIRS) ext
-endif
-ifdef CONFIG_EXT2_FS
-FS_SUBDIRS := $(FS_SUBDIRS) ext2
-endif
-ifdef CONFIG_MSDOS_FS
-FS_SUBDIRS := $(FS_SUBDIRS) msdos
-endif
-ifdef CONFIG_PROC_FS
-FS_SUBDIRS := $(FS_SUBDIRS) proc
-endif
-ifdef CONFIG_ISO9660_FS
-FS_SUBDIRS := $(FS_SUBDIRS) isofs
-endif
-ifdef CONFIG_NFS_FS
-FS_SUBDIRS := $(FS_SUBDIRS) nfs
-endif
-ifdef CONFIG_XIA_FS
-FS_SUBDIRS := $(FS_SUBDIRS) xiafs
-endif
+# TODO WGJA: Work in progress build
+# ifdef CONFIG_MINIX_FS
+# FS_SUBDIRS := $(FS_SUBDIRS) minix
+# endif
+# ifdef CONFIG_EXT_FS
+# FS_SUBDIRS := $(FS_SUBDIRS) ext
+# endif
+# ifdef CONFIG_EXT2_FS
+# FS_SUBDIRS := $(FS_SUBDIRS) ext2
+# endif
+# ifdef CONFIG_MSDOS_FS
+# FS_SUBDIRS := $(FS_SUBDIRS) msdos
+# endif
+# ifdef CONFIG_PROC_FS
+# FS_SUBDIRS := $(FS_SUBDIRS) proc
+# endif
+# ifdef CONFIG_ISO9660_FS
+# FS_SUBDIRS := $(FS_SUBDIRS) isofs
+# endif
+# ifdef CONFIG_NFS_FS
+# FS_SUBDIRS := $(FS_SUBDIRS) nfs
+# endif
+# ifdef CONFIG_XIA_FS
+# FS_SUBDIRS := $(FS_SUBDIRS) xiafs
+# endif
 
 
 .c.s:
@@ -42,9 +45,11 @@ endif
 .s.o:
 	$(AS) -o $*.o $<
 
-OBJS=	open.o read_write.o inode.o devices.o file_table.o buffer.o super.o \
-	block_dev.o stat.o exec.o pipe.o namei.o fcntl.o ioctl.o \
-	select.o fifo.o locks.o filesystems.o
+# TODO WGJA: Work in progress build
+OBJS=	super.o
+# OBJS=	open.o read_write.o inode.o devices.o file_table.o buffer.o super.o \
+# 	block_dev.o stat.o exec.o pipe.o namei.o fcntl.o ioctl.o \
+# 	select.o fifo.o locks.o filesystems.o
 
 all: fs.o filesystems.a
 

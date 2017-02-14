@@ -10,7 +10,7 @@
 
 .text
 .globl _idt,_gdt,
-.globl _swapper_pg_dir,_pg0
+.globl swapper_pg_dir,_pg0
 .globl _empty_bad_page
 .globl _empty_bad_page_table
 .globl empty_zero_page
@@ -214,12 +214,12 @@ rp_sidt:
 setup_paging:
 	movl $1024*2,%ecx		/* 2 pages - swapper_pg_dir+1 page table */
 	xorl %eax,%eax
-	movl $_swapper_pg_dir,%edi	/* swapper_pg_dir is at 0x1000 */
+	movl $swapper_pg_dir,%edi	/* swapper_pg_dir is at 0x1000 */
 	cld;rep;stosl
 /* Identity-map the kernel in low 4MB memory for ease of transition */
-	movl $_pg0+7,_swapper_pg_dir		/* set present bit/user r/w */
+	movl $_pg0+7,swapper_pg_dir		/* set present bit/user r/w */
 /* But the real place is at 0xC0000000 */
-	movl $_pg0+7,_swapper_pg_dir+3072	/* set present bit/user r/w */
+	movl $_pg0+7,swapper_pg_dir+3072	/* set present bit/user r/w */
 	movl $_pg0+4092,%edi
 	movl $0x03ff007,%eax		/*  4Mb - 4096 + 7 (r/w user,p) */
 	std
@@ -227,7 +227,7 @@ setup_paging:
 	subl $0x1000,%eax
 	jge 1b
 	cld
-	movl $_swapper_pg_dir,%eax
+	movl $swapper_pg_dir,%eax
 	movl %eax,%cr3			/* cr3 - page directory start */
 	movl %cr0,%eax
 	orl $0x80000000,%eax
@@ -239,7 +239,7 @@ setup_paging:
  * caught. Thus the swapper page directory has been moved to 0x1000
  */
 .org 0x1000
-_swapper_pg_dir:
+swapper_pg_dir:
 /*
  * The page tables are initialized to only 4MB here - the final page
  * tables are set up later depending on memory size.
