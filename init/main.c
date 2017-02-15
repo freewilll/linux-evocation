@@ -364,10 +364,7 @@ extern "C" void start_kernel(void)
 	low_memory_start = PAGE_ALIGN(low_memory_start);
 	memory_start = paging_init(memory_start,memory_end);
 
-	printk("start_kernel completed. Halting CPU\n");
-	__asm__ ("hlt" :::);
-
-// TODO WGJA WIP: 	trap_init();
+	trap_init();	// TODO WGJA enable traps
 // TODO WGJA WIP: 	init_IRQ();
 // TODO WGJA WIP: 	sched_init();
 // TODO WGJA WIP: 	parse_options(command_line);
@@ -442,7 +439,7 @@ extern "C" void start_kernel(void)
 // TODO WGJA WIP: 	for(;;)
 // TODO WGJA WIP: 		idle();
 }
-// TODO WGJA WIP: 
+
 // TODO WGJA WIP: static int printf(const char *fmt, ...)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	va_list args;

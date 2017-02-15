@@ -67,13 +67,13 @@ do { \
 
 // TODO WGJA WIP: #define set_intr_gate(n,addr) \
 // TODO WGJA WIP: 	_set_gate(&idt[n],14,0,addr)
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define set_trap_gate(n,addr) \
-// TODO WGJA WIP: 	_set_gate(&idt[n],15,0,addr)
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define set_system_gate(n,addr) \
-// TODO WGJA WIP: 	_set_gate(&idt[n],15,3,addr)
-// TODO WGJA WIP: 
+
+#define set_trap_gate(n,addr) \
+	_set_gate(&idt[n],15,0,addr)
+
+#define set_system_gate(n,addr) \
+	_set_gate(&idt[n],15,3,addr)
+
 #define set_call_gate(a,addr) \
 	_set_gate(a,12,3,addr)
 // TODO WGJA WIP: 

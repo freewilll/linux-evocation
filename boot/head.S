@@ -9,7 +9,7 @@
  */
 
 .text
-.globl _idt,_gdt,
+.globl idt,_gdt,
 .globl swapper_pg_dir,_pg0
 .globl _empty_bad_page
 .globl _empty_bad_page_table
@@ -188,7 +188,7 @@ setup_idt:
 	movw %dx,%ax		/* selector = 0x0010 = cs */
 	movw $0x8E00,%dx	/* interrupt gate - dpl=0, present */
 
-	lea _idt,%edi
+	lea idt,%edi
 	mov $256,%ecx
 rp_sidt:
 	movl %eax,(%edi)
@@ -307,10 +307,10 @@ ignore_int:
 .word 0
 idt_descr:
 	.word 256*8-1		# idt contains 256 entries
-	.long 0xc0000000+_idt
+	.long 0xc0000000+idt
 
 .align 4
-_idt:
+idt:
 	.fill 256,8,0		# idt is uninitialized
 
 .align 4

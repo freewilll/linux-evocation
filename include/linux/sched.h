@@ -82,7 +82,7 @@
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern void sched_init(void);
 // TODO WGJA WIP: extern void show_state(void);
-// TODO WGJA WIP: extern void trap_init(void);
+extern void trap_init(void);
 // TODO WGJA WIP: extern void panic(const char * str);
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern "C" void schedule(void);
