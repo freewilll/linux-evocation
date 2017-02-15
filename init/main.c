@@ -363,6 +363,10 @@ extern "C" void start_kernel(void)
 	}
 	low_memory_start = PAGE_ALIGN(low_memory_start);
 	memory_start = paging_init(memory_start,memory_end);
+
+	printk("start_kernel completed. Halting CPU\n");
+	__asm__ ("hlt" :::);
+
 // TODO WGJA WIP: 	trap_init();
 // TODO WGJA WIP: 	init_IRQ();
 // TODO WGJA WIP: 	sched_init();
