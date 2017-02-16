@@ -12,21 +12,21 @@
 // TODO WGJA WIP:  */
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #include <linux/config.h>
-// TODO WGJA WIP: #include <linux/signal.h>
-// TODO WGJA WIP: #include <linux/sched.h>
+#include <linux/signal.h>
+#include <linux/sched.h>
 #include <linux/page.h>
 // TODO WGJA WIP: #include <linux/timer.h>
-// TODO WGJA WIP: #include <linux/kernel.h>
+#include <linux/kernel.h>
 // TODO WGJA WIP: #include <linux/sys.h>
 // TODO WGJA WIP: #include <linux/fdreg.h>
-// TODO WGJA WIP: #include <linux/errno.h>
+#include <linux/errno.h>
 // TODO WGJA WIP: #include <linux/time.h>
-// TODO WGJA WIP: #include <linux/ptrace.h>
+#include <linux/ptrace.h>
 #include <linux/segment.h>
 // TODO WGJA WIP: #include <linux/delay.h>
 // TODO WGJA WIP: 
-// TODO WGJA WIP: #include <asm/system.h>
-// TODO WGJA WIP: #include <asm/io.h>
+#include <asm/system.h>
+#include <asm/io.h>
 // TODO WGJA WIP: #include <asm/segment.h>
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #define TIMER_IRQ 0
@@ -38,7 +38,7 @@
 // TODO WGJA WIP:  */
 int hard_math = 0;		/* set by boot/head.S */
 int x86 = 0;			/* set by boot/head.S to 3 or 4 */
-// TODO WGJA WIP: int ignore_irq13 = 0;		/* set if exception 16 works */
+int ignore_irq13 = 0;		/* set if exception 16 works */
 // TODO WGJA WIP: int wp_works_ok = 0;		/* not used currently */
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern int _setitimer(int, struct itimerval *, struct itimerval *);

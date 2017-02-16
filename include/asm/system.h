@@ -17,11 +17,11 @@
 // TODO WGJA WIP: 	"mov %%ax,%%fs\n\t" \
 // TODO WGJA WIP: 	"mov %%ax,%%gs" \
 // TODO WGJA WIP: 	: /* no outputs */ :"i" (USER_DS), "i" (USER_CS):"ax")
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define sti() __asm__ __volatile__ ("sti": : :"memory")
-// TODO WGJA WIP: #define cli() __asm__ __volatile__ ("cli": : :"memory")
-// TODO WGJA WIP: #define nop() __asm__ __volatile__ ("nop")
-// TODO WGJA WIP: 
+
+#define sti() __asm__ __volatile__ ("sti": : :"memory")
+#define cli() __asm__ __volatile__ ("cli": : :"memory")
+#define nop() __asm__ __volatile__ ("nop")
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * Clear and set 'TS' bit respectively
 // TODO WGJA WIP:  */
@@ -43,13 +43,13 @@
 // TODO WGJA WIP: 	__asm__("xchgb %0,%1":"=q" (res),"=m" (*m):"0" (0x1));
 // TODO WGJA WIP: 	return res;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define save_flags(x) \
-// TODO WGJA WIP: __asm__ __volatile__("pushfl ; popl %0":"=r" (x): /* no input */ :"memory")
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define restore_flags(x) \
-// TODO WGJA WIP: __asm__ __volatile__("pushl %0 ; popfl": /* no output */ :"r" (x):"memory")
-// TODO WGJA WIP: 
+
+#define save_flags(x) \
+__asm__ __volatile__("pushfl ; popl %0":"=r" (x): /* no input */ :"memory")
+
+#define restore_flags(x) \
+__asm__ __volatile__("pushl %0 ; popfl": /* no output */ :"r" (x):"memory")
+
 // TODO WGJA WIP: #define iret() __asm__ __volatile__ ("iret": : :"memory")
 
 #define _set_gate(gate_addr,type,dpl,addr) \
@@ -65,8 +65,8 @@ do { \
 	 "3" ((char *) (addr)),"2" (KERNEL_CS << 16)); \
 } while (0)
 
-// TODO WGJA WIP: #define set_intr_gate(n,addr) \
-// TODO WGJA WIP: 	_set_gate(&idt[n],14,0,addr)
+#define set_intr_gate(n,addr) \
+	_set_gate(&idt[n],14,0,addr)
 
 #define set_trap_gate(n,addr) \
 	_set_gate(&idt[n],15,0,addr)

@@ -14,8 +14,8 @@
 // TODO WGJA WIP: #define HZ 100
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #include <linux/tasks.h>
-// TODO WGJA WIP: #include <asm/system.h>
-// TODO WGJA WIP: 
+#include <asm/system.h>
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * User space process size: 3GB. This is hardcoded into a few places,
 // TODO WGJA WIP:  * so don't change it unless you know what you are doing.
@@ -57,10 +57,10 @@
 // TODO WGJA WIP: #define FIRST_TASK task[0]
 // TODO WGJA WIP: #define LAST_TASK task[NR_TASKS-1]
 // TODO WGJA WIP: 
-// TODO WGJA WIP: #include <linux/head.h>
-// TODO WGJA WIP: #include <linux/fs.h>
-// TODO WGJA WIP: #include <linux/mm.h>
-// TODO WGJA WIP: #include <linux/signal.h>
+#include <linux/head.h>
+#include <linux/fs.h>
+#include <linux/mm.h>
+#include <linux/signal.h>
 // TODO WGJA WIP: #include <linux/time.h>
 // TODO WGJA WIP: #include <linux/param.h>
 // TODO WGJA WIP: #include <linux/resource.h>
@@ -287,12 +287,12 @@ extern void trap_init(void);
 // TODO WGJA WIP: extern unsigned long startup_time;
 // TODO WGJA WIP: extern int jiffies_offset;
 // TODO WGJA WIP: extern int need_resched;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern int hard_math;
-// TODO WGJA WIP: extern int x86;
-// TODO WGJA WIP: extern int ignore_irq13;
-// TODO WGJA WIP: extern int wp_works_ok;
-// TODO WGJA WIP: 
+
+extern int hard_math;
+extern int x86;
+extern int ignore_irq13;
+extern int wp_works_ok;
+
 // TODO WGJA WIP: #define CURRENT_TIME (startup_time+(jiffies+jiffies_offset)/HZ)
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern void sleep_on(struct wait_queue ** p);
@@ -303,11 +303,11 @@ extern void trap_init(void);
 // TODO WGJA WIP: extern void notify_parent(struct task_struct * tsk);
 // TODO WGJA WIP: extern int send_sig(unsigned long sig,struct task_struct * p,int priv);
 // TODO WGJA WIP: extern int in_group_p(gid_t grp);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern int request_irq(unsigned int irq,void (*handler)(int));
-// TODO WGJA WIP: extern void free_irq(unsigned int irq);
-// TODO WGJA WIP: extern int irqaction(unsigned int irq,struct sigaction * sa);
-// TODO WGJA WIP: 
+
+extern int request_irq(unsigned int irq,void (*handler)(int));
+extern void free_irq(unsigned int irq);
+extern int irqaction(unsigned int irq,struct sigaction * sa);
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * Entry into gdt where to find first TSS. GDT layout:
 // TODO WGJA WIP:  *   0 - nul

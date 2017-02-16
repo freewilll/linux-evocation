@@ -13,14 +13,14 @@
 #include <linux/head.h>
 #include <linux/sched.h>
 #include <linux/kernel.h>
-// TODO WGJA WIP: #include <linux/string.h>
-// TODO WGJA WIP: #include <linux/errno.h>
-// TODO WGJA WIP: #include <linux/segment.h>
-// TODO WGJA WIP: #include <linux/ptrace.h>
+#include <linux/string.h>
+#include <linux/errno.h>
+#include <linux/segment.h>
+#include <linux/ptrace.h>
 
 #include <asm/system.h>
-// TODO WGJA WIP: #include <asm/segment.h>
-// TODO WGJA WIP: #include <asm/io.h>
+#include <asm/segment.h>
+#include <asm/io.h>
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #define get_seg_byte(seg,addr) ({ \
 // TODO WGJA WIP: register char __res; \
@@ -190,8 +190,11 @@ extern "C" void alignment_check(void);
 // TODO WGJA WIP:  * the correct behaviour even in the presense of the asynchronous
 // TODO WGJA WIP:  * IRQ13 behaviour
 // TODO WGJA WIP:  */
-// TODO WGJA WIP: void math_error(void)
-// TODO WGJA WIP: {
+void math_error(void)
+{
+	// TODO WGJA enable math_error
+	printk("Math error. Hanging.");
+	for (;;);
 // TODO WGJA WIP: 	struct i387_hard_struct * env;
 // TODO WGJA WIP: 
 // TODO WGJA WIP: 	clts();
@@ -208,8 +211,8 @@ extern "C" void alignment_check(void);
 // TODO WGJA WIP: 	env->fos = env->twd;
 // TODO WGJA WIP: 	env->swd &= 0xffff0000;
 // TODO WGJA WIP: 	env->twd = 0xffffffff;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+}
+
 // TODO WGJA WIP: extern "C" void do_coprocessor_error(struct pt_regs * regs, long error_code)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	ignore_irq13 = 1;

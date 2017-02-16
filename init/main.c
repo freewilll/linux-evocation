@@ -7,8 +7,8 @@
 #include <stdarg.h>
 
 #include <asm/system.h>
-// TODO WGJA WIP: #include <asm/io.h>
-// TODO WGJA WIP: 
+#include <asm/io.h>
+
 // TODO WGJA WIP: #include <linux/mktime.h>
 #include <linux/mm.h>
 #include <linux/types.h>
@@ -69,7 +69,7 @@ void init_early_printk();
 extern char empty_zero_page[PAGE_SIZE];
 extern int vsprintf(char *,const char *,va_list);
 // TODO WGJA WIP: extern void init(void);
-// TODO WGJA WIP: extern void init_IRQ(void);
+extern void init_IRQ(void);
 // TODO WGJA WIP: extern long blk_dev_init(long,long);
 // TODO WGJA WIP: extern long chr_dev_init(long,long);
 // TODO WGJA WIP: extern void floppy_init(void);
@@ -365,7 +365,11 @@ extern "C" void start_kernel(void)
 	memory_start = paging_init(memory_start,memory_end);
 
 	trap_init();	// TODO WGJA enable traps
-// TODO WGJA WIP: 	init_IRQ();
+	init_IRQ();
+
+	printk("start_kernel completed. Halting CPU\n");
+	__asm__ ("hlt" :::);
+
 // TODO WGJA WIP: 	sched_init();
 // TODO WGJA WIP: 	parse_options(command_line);
 // TODO WGJA WIP: #ifdef CONFIG_PROFILE

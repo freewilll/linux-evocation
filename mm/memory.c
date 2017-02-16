@@ -28,17 +28,17 @@
  * 20.12.91  -  Ok, making the swap-device changeable like the root.
  */
 
-// TODO WGJA WIP: #include <asm/system.h>
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #include <linux/signal.h>
+#include <asm/system.h>
+
+#include <linux/signal.h>
 #include <linux/sched.h>
 #include <linux/head.h>
 #include <linux/mm.h>
 #include <linux/kernel.h>
-// TODO WGJA WIP: #include <linux/errno.h>
+#include <linux/errno.h>
 #include <linux/string.h>
 #include <linux/types.h>
-// TODO WGJA WIP: #include <linux/ptrace.h>
+#include <linux/ptrace.h>
 // TODO WGJA WIP: #include <linux/mman.h>
 // TODO WGJA WIP: 
 // TODO WGJA WIP: unsigned long high_memory = 0;

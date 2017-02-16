@@ -187,9 +187,15 @@ lcall7:
 # TODO WGJA WIP: 1:	call _syscall_trace
 
 # TODO WGJA: finish sys_call.S
+ret_from_sys_call_hang_msg:
+	.asciz "ret_from_sys_call called. Hanging.\n"
+
 .align 4,0x90
 ret_from_sys_call:
-	jmp ret_from_sys_call
+	pushl $ret_from_sys_call_hang_msg
+	call printk
+ret_from_sys_call_hang:
+	jmp ret_from_sys_call_hang
 
 # TODO WGJA WIP: 	.align 4,0x90
 # TODO WGJA WIP: ret_from_sys_call:
