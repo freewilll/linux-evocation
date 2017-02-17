@@ -367,8 +367,10 @@ extern "C" void start_kernel(void)
 	trap_init();	// TODO WGJA enable traps
 	init_IRQ();
 
-	printk("start_kernel completed. Halting CPU\n");
-	__asm__ ("hlt" :::);
+	printk("start_kernel completed. Going in an idle loop.\n");
+	for (;;) {
+		__asm__ ("hlt" :::);
+	}
 
 // TODO WGJA WIP: 	sched_init();
 // TODO WGJA WIP: 	parse_options(command_line);
