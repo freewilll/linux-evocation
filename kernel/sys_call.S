@@ -78,7 +78,7 @@ errno		= 24
 
 ENOSYS = 38
 
-.globl _system_call,lcall7
+.globl system_call,lcall7
 .globl _device_not_available, _coprocessor_error
 .globl _divide_error,_debug,_nmi,_int3,_overflow,_bounds,_invalid_op
 .globl _double_fault,_coprocessor_segment_overrun
@@ -138,118 +138,105 @@ lcall7:
 	popl %eax
 	jmp ret_from_sys_call
 
-# TODO WGJA: finish sys_call.S
-
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: handle_bottom_half:
-# TODO WGJA WIP: 	pushfl
-# TODO WGJA WIP: 	incl _intr_count
-# TODO WGJA WIP: 	sti
-# TODO WGJA WIP: 	call _do_bottom_half
-# TODO WGJA WIP: 	popfl
-# TODO WGJA WIP: 	decl _intr_count
-# TODO WGJA WIP: 	jmp 9f
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: reschedule:
-# TODO WGJA WIP: 	pushl $ret_from_sys_call
-# TODO WGJA WIP: 	jmp _schedule
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _system_call:
-# TODO WGJA WIP: 	pushl %eax			# save orig_eax
-# TODO WGJA WIP: 	SAVE_ALL
-# TODO WGJA WIP: 	movl $-ENOSYS,EAX(%esp)
-# TODO WGJA WIP: 	cmpl NR_syscalls,%eax
-# TODO WGJA WIP: 	jae ret_from_sys_call
-# TODO WGJA WIP: 	movl _current,%ebx
-# TODO WGJA WIP: 	andl $~CF_MASK,EFLAGS(%esp)	# clear carry - assume no errors
-# TODO WGJA WIP: 	movl $0,errno(%ebx)
-# TODO WGJA WIP: 	testb $0x20,flags(%ebx)		# PF_TRACESYS
-# TODO WGJA WIP: 	jne 1f
-# TODO WGJA WIP: 	call _sys_call_table(,%eax,4)
-# TODO WGJA WIP: 	movl %eax,EAX(%esp)		# save the return value
-# TODO WGJA WIP: 	movl errno(%ebx),%edx
-# TODO WGJA WIP: 	negl %edx
-# TODO WGJA WIP: 	je ret_from_sys_call
-# TODO WGJA WIP: 	movl %edx,EAX(%esp)
-# TODO WGJA WIP: 	orl $(CF_MASK),EFLAGS(%esp)	# set carry to indicate error
-# TODO WGJA WIP: 	jmp ret_from_sys_call
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: 1:	call _syscall_trace
-# TODO WGJA WIP: 	movl ORIG_EAX(%esp),%eax
-# TODO WGJA WIP: 	call _sys_call_table(,%eax,4)
-# TODO WGJA WIP: 	movl %eax,EAX(%esp)		# save the return value
-# TODO WGJA WIP: 	movl _current,%eax
-# TODO WGJA WIP: 	movl errno(%eax),%edx
-# TODO WGJA WIP: 	negl %edx
-# TODO WGJA WIP: 	je 1f
-# TODO WGJA WIP: 	movl %edx,EAX(%esp)
-# TODO WGJA WIP: 	orl $(CF_MASK),EFLAGS(%esp)	# set carry to indicate error
-# TODO WGJA WIP: 1:	call _syscall_trace
-
-# TODO WGJA: finish sys_call.S
-ret_from_sys_call_hang_msg:
-	.asciz "ret_from_sys_call called. Hanging.\n"
+.align 4
+handle_bottom_half:
+	pushfl
+	incl intr_count
+	sti
+	call do_bottom_half
+	popfl
+	decl intr_count
+	jmp 9f
+.align 4
+reschedule:
+	pushl $ret_from_sys_call
+	jmp schedule
+.align 4
+system_call:
+	pushl %eax			# save orig_eax
+	SAVE_ALL
+	movl $-ENOSYS,EAX(%esp)
+	cmpl NR_syscalls,%eax
+	jae ret_from_sys_call
+	movl current,%ebx
+	andl $~CF_MASK,EFLAGS(%esp)	# clear carry - assume no errors
+	movl $0,errno(%ebx)
+	testb $0x20,flags(%ebx)		# PF_TRACESYS
+	jne 1f
+	call sys_call_table(,%eax,4)
+	movl %eax,EAX(%esp)		# save the return value
+	movl errno(%ebx),%edx
+	negl %edx
+	je ret_from_sys_call
+	movl %edx,EAX(%esp)
+	orl $(CF_MASK),EFLAGS(%esp)	# set carry to indicate error
+	jmp ret_from_sys_call
+.align 4
+1:	call syscall_trace
+	movl ORIG_EAX(%esp),%eax
+	call sys_call_table(,%eax,4)
+	movl %eax,EAX(%esp)		# save the return value
+	movl current,%eax
+	movl errno(%eax),%edx
+	negl %edx
+	je 1f
+	movl %edx,EAX(%esp)
+	orl $(CF_MASK),EFLAGS(%esp)	# set carry to indicate error
+1:	call syscall_trace
 
 .align 4,0x90
 ret_from_sys_call:
-	pushl $ret_from_sys_call_hang_msg
-	call printk
-ret_from_sys_call_hang:
-	jmp ret_from_sys_call_hang
+	cmpl $0,intr_count
+	jne 2f
+	movl bh_mask,%eax
+	andl bh_active,%eax
+	jne handle_bottom_half
+9:	movl EFLAGS(%esp),%eax		# check VM86 flag: CS/SS are
+	testl $(VM_MASK),%eax		# different then
+	jne 1f
+	cmpw $(KERNEL_CS),CS(%esp)	# was old code segment supervisor ?
+	je 2f
+1:	sti
+	orl $(IF_MASK),%eax		# these just try to make sure
+	andl $~NT_MASK,%eax		# the program doesn't do anything
+	movl %eax,EFLAGS(%esp)		# stupid
+	cmpl $0,need_resched
+	jne reschedule
+	movl current,%eax
+	cmpl task,%eax			# task[0] cannot have signals
+	je 2f
+	cmpl $0,state(%eax)		# state
+	jne reschedule
+	cmpl $0,counter(%eax)		# counter
+	je reschedule
+	movl blocked(%eax),%ecx
+	movl %ecx,%ebx			# save blocked in %ebx for signal handling
+	notl %ecx
+	andl signal(%eax),%ecx
+	jne signal_return
+2:	RESTORE_ALL
+.align 4
+signal_return:
+	movl %esp,%ecx
+	pushl %ecx
+	testl $(VM_MASK),EFLAGS(%ecx)
+	jne v86_signal_return
+	pushl %ebx
+	call do_signal
+	popl %ebx
+	popl %ebx
+	RESTORE_ALL
+.align 4
+v86_signal_return:
+	call save_v86_state
+	movl %eax,%esp
+	pushl %eax
+	pushl %ebx
+	call do_signal
+	popl %ebx
+	popl %ebx
+	RESTORE_ALL
 
-# TODO WGJA WIP: 	.align 4,0x90
-# TODO WGJA WIP: ret_from_sys_call:
-# TODO WGJA WIP: 	cmpl $0,_intr_count
-# TODO WGJA WIP: 	jne 2f
-# TODO WGJA WIP: 	movl _bh_mask,%eax
-# TODO WGJA WIP: 	andl _bh_active,%eax
-# TODO WGJA WIP: 	jne handle_bottom_half
-# TODO WGJA WIP: 9:	movl EFLAGS(%esp),%eax		# check VM86 flag: CS/SS are
-# TODO WGJA WIP: 	testl $(VM_MASK),%eax		# different then
-# TODO WGJA WIP: 	jne 1f
-# TODO WGJA WIP: 	cmpw $(KERNEL_CS),CS(%esp)	# was old code segment supervisor ?
-# TODO WGJA WIP: 	je 2f
-# TODO WGJA WIP: 1:	sti
-# TODO WGJA WIP: 	orl $(IF_MASK),%eax		# these just try to make sure
-# TODO WGJA WIP: 	andl $~NT_MASK,%eax		# the program doesn't do anything
-# TODO WGJA WIP: 	movl %eax,EFLAGS(%esp)		# stupid
-# TODO WGJA WIP: 	cmpl $0,_need_resched
-# TODO WGJA WIP: 	jne reschedule
-# TODO WGJA WIP: 	movl _current,%eax
-# TODO WGJA WIP: 	cmpl _task,%eax			# task[0] cannot have signals
-# TODO WGJA WIP: 	je 2f
-# TODO WGJA WIP: 	cmpl $0,state(%eax)		# state
-# TODO WGJA WIP: 	jne reschedule
-# TODO WGJA WIP: 	cmpl $0,counter(%eax)		# counter
-# TODO WGJA WIP: 	je reschedule
-# TODO WGJA WIP: 	movl blocked(%eax),%ecx
-# TODO WGJA WIP: 	movl %ecx,%ebx			# save blocked in %ebx for signal handling
-# TODO WGJA WIP: 	notl %ecx
-# TODO WGJA WIP: 	andl signal(%eax),%ecx
-# TODO WGJA WIP: 	jne signal_return
-# TODO WGJA WIP: 2:	RESTORE_ALL
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: signal_return:
-# TODO WGJA WIP: 	movl %esp,%ecx
-# TODO WGJA WIP: 	pushl %ecx
-# TODO WGJA WIP: 	testl $(VM_MASK),EFLAGS(%ecx)
-# TODO WGJA WIP: 	jne v86_signal_return
-# TODO WGJA WIP: 	pushl %ebx
-# TODO WGJA WIP: 	call do_signal
-# TODO WGJA WIP: 	popl %ebx
-# TODO WGJA WIP: 	popl %ebx
-# TODO WGJA WIP: 	RESTORE_ALL
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: v86_signal_return:
-# TODO WGJA WIP: 	call _save_v86_state
-# TODO WGJA WIP: 	movl %eax,%esp
-# TODO WGJA WIP: 	pushl %eax
-# TODO WGJA WIP: 	pushl %ebx
-# TODO WGJA WIP: 	call _do_signal
-# TODO WGJA WIP: 	popl %ebx
-# TODO WGJA WIP: 	popl %ebx
-# TODO WGJA WIP: 	RESTORE_ALL
-# TODO WGJA WIP: 
 # TODO WGJA WIP: .align 4
 # TODO WGJA WIP: _divide_error:
 # TODO WGJA WIP: 	pushl $0		# no error code

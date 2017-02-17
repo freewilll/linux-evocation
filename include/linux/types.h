@@ -73,18 +73,18 @@ typedef unsigned short dev_t;
 // TODO WGJA WIP:  * (and thus <linux/time.h>) - but this is a more logical place for them. Solved
 // TODO WGJA WIP:  * by having dummy defines in <sys/time.h>.
 // TODO WGJA WIP:  */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Those macros may have been defined in <gnu/types.h>. But we always
-// TODO WGJA WIP:  * use the ones here. 
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: #undef __FDSET_LONGS
-// TODO WGJA WIP: #define __FDSET_LONGS 8
-// TODO WGJA WIP: 
-// TODO WGJA WIP: typedef struct fd_set {
-// TODO WGJA WIP: 	unsigned long fds_bits [__FDSET_LONGS];
-// TODO WGJA WIP: } fd_set;
-// TODO WGJA WIP: 
+
+/*
+ * Those macros may have been defined in <gnu/types.h>. But we always
+ * use the ones here. 
+ */
+#undef __FDSET_LONGS
+#define __FDSET_LONGS 8
+
+typedef struct fd_set {
+	unsigned long fds_bits [__FDSET_LONGS];
+} fd_set;
+
 // TODO WGJA WIP: #undef __NFDBITS
 // TODO WGJA WIP: #define __NFDBITS	(8 * sizeof(unsigned long))
 // TODO WGJA WIP: 

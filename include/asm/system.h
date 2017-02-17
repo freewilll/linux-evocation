@@ -87,23 +87,23 @@ do { \
 // TODO WGJA WIP: 	*(gate_addr) = (((base) & 0x0000ffff)<<16) | \
 // TODO WGJA WIP: 		((limit) & 0x0ffff); }
 // TODO WGJA WIP: 
-// TODO WGJA WIP: #define _set_tssldt_desc(n,addr,limit,type) \
-// TODO WGJA WIP: __asm__ __volatile__ ("movw $" #limit ",%1\n\t" \
-// TODO WGJA WIP: 	"movw %%ax,%2\n\t" \
-// TODO WGJA WIP: 	"rorl $16,%%eax\n\t" \
-// TODO WGJA WIP: 	"movb %%al,%3\n\t" \
-// TODO WGJA WIP: 	"movb $" type ",%4\n\t" \
-// TODO WGJA WIP: 	"movb $0x00,%5\n\t" \
-// TODO WGJA WIP: 	"movb %%ah,%6\n\t" \
-// TODO WGJA WIP: 	"rorl $16,%%eax" \
-// TODO WGJA WIP: 	: /* no output */ \
-// TODO WGJA WIP: 	:"a" (addr+0xc0000000), "m" (*(n)), "m" (*(n+2)), "m" (*(n+4)), \
-// TODO WGJA WIP: 	 "m" (*(n+5)), "m" (*(n+6)), "m" (*(n+7)) \
-// TODO WGJA WIP: 	)
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define set_tss_desc(n,addr) _set_tssldt_desc(((char *) (n)),((int)(addr)),235,"0x89")
-// TODO WGJA WIP: #define set_ldt_desc(n,addr,size) \
-// TODO WGJA WIP: 	_set_tssldt_desc(((char *) (n)),((int)(addr)),((size << 3) - 1),"0x82")
-// TODO WGJA WIP: 
+#define _set_tssldt_desc(n,addr,limit,type) \
+__asm__ __volatile__ ("movw $" #limit ",%1\n\t" \
+	"movw %%ax,%2\n\t" \
+	"rorl $16,%%eax\n\t" \
+	"movb %%al,%3\n\t" \
+	"movb $" type ",%4\n\t" \
+	"movb $0x00,%5\n\t" \
+	"movb %%ah,%6\n\t" \
+	"rorl $16,%%eax" \
+	: /* no output */ \
+	:"a" (addr+0xc0000000), "m" (*(n)), "m" (*(n+2)), "m" (*(n+4)), \
+	 "m" (*(n+5)), "m" (*(n+6)), "m" (*(n+7)) \
+	)
+
+#define set_tss_desc(n,addr) _set_tssldt_desc(((char *) (n)),((int)(addr)),235,"0x89")
+#define set_ldt_desc(n,addr,size) \
+	_set_tssldt_desc(((char *) (n)),((int)(addr)),((size << 3) - 1),"0x82")
+
 
 #endif

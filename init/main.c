@@ -17,9 +17,9 @@
 #include <linux/sched.h>
 #include <linux/tty.h>
 #include <linux/head.h>
-// TODO WGJA WIP: #include <linux/unistd.h>
+#include <linux/unistd.h>
 #include <linux/string.h>
-// TODO WGJA WIP: #include <linux/timer.h>
+#include <linux/timer.h>
 #include <linux/fs.h>
 // TODO WGJA WIP: #include <linux/ctype.h>
 // TODO WGJA WIP: #include <linux/delay.h>
@@ -331,6 +331,24 @@ static char command_line[80] = { 0, };
 // TODO WGJA WIP: 	outb_p(0,0xf0);
 // TODO WGJA WIP: }
 // TODO WGJA WIP: 
+
+// WGJA Add a temporary keyboard handler to be able to check aliveness
+#define KEYBOARD_IRQ 1
+static void keyboard_interrupt(int int_pt_regs)
+{
+	// If we don't read the scan code, they keyboard controller won't send another one
+	unsigned char scancode;
+	if (!(inb_p(0x64) & 0x01)) {
+		printk("Keyboard interrupt - bad keyb read.\n");
+		goto end_kbd_intr;
+	}
+	scancode = inb(0x60);
+	printk("%c", scancode);
+	end_kbd_intr:
+	return;
+}
+
+
 extern "C" void start_kernel(void)
 {
 	// For easy work in progress early kernel debugging
@@ -366,13 +384,16 @@ extern "C" void start_kernel(void)
 
 	trap_init();	// TODO WGJA enable traps
 	init_IRQ();
+	sched_init();
+
+	// WGJA Add a temporary keyboard handler to be able to check aliveness
+	request_irq(KEYBOARD_IRQ, keyboard_interrupt);
+	sti();
 
 	printk("start_kernel completed. Going in an idle loop.\n");
-	for (;;) {
+	for (;;)
 		__asm__ ("hlt" :::);
-	}
 
-// TODO WGJA WIP: 	sched_init();
 // TODO WGJA WIP: 	parse_options(command_line);
 // TODO WGJA WIP: #ifdef CONFIG_PROFILE
 // TODO WGJA WIP: 	prof_buffer = (unsigned long *) memory_start;

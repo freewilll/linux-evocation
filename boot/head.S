@@ -9,7 +9,7 @@
  */
 
 .text
-.globl idt,_gdt,
+.globl idt,gdt,
 .globl swapper_pg_dir,_pg0
 .globl _empty_bad_page
 .globl _empty_bad_page_table
@@ -317,14 +317,14 @@ idt:
 .word 0
 gdt_descr:
 	.word (8+2*NR_TASKS)*8-1
-	.long 0xc0000000+_gdt
+	.long 0xc0000000+gdt
 
 /*
  * This gdt setup gives the kernel a 1GB address space at virtual
  * address 0xC0000000 - space enough for expansion, I hope.
  */
 .align 4
-_gdt:
+gdt:
 	.quad 0x0000000000000000	/* NULL descriptor */
 	.quad 0x0000000000000000	/* not used */
 	.quad 0xc0c39a000000ffff	/* 0x10 kernel 1GB code at 0xC0000000 */
