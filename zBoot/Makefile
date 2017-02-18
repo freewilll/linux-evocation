@@ -7,7 +7,7 @@ OBJCOPY = objcopy -O binary -R .note -R .comment -S
 zOBJECTS = $(HEAD) inflate.o unzip.o misc.o string.o
 
 # Add local usr/include path to avoid pulling anything from a much more modern /usr/include
-CFLAGS := -O6 -DSTDC_HEADERS $(TEST) -I/home/ubuntu/linux/usr/include -fno-stack-protector
+CFLAGS := -O6 -DSTDC_HEADERS $(TEST) -I/home/ubuntu/linux/usr/include -fno-stack-protector -fno-builtin
 
 ZIMAGE_OFFSET = 0x0
 ZLDFLAGS = -e startup_32
