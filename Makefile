@@ -57,7 +57,6 @@ SVGA_MODE=	-DSVGA_MODE=1
 #
 
 WARNING_CFLAGS=\
-	-fpermissive \
 	-Wno-comment \
 	-Wno-char-subscripts \
 	-Wno-strict-aliasing \

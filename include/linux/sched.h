@@ -249,7 +249,7 @@ struct task_struct {
 /* argv.. */	0,0,0,0, \
 /* pid etc.. */	0,0,0,0, \
 /* suppl grps*/ {NOGROUP,}, \
-/* proc links*/ &init_task,&init_task,NULL,NULL,NULL,NULL, \
+/* proc links*/ &init_task,&init_task,(task_struct*) NULL,(task_struct*) NULL,(task_struct*) NULL,(wait_queue*) NULL, \
 /* uid etc */	0,0,0,0,0,0, \
 /* timeout */	0,0,0,0,0,0,0,0,0,0,0,0, \
 /* min_flt */	0,0,0,0, \
@@ -259,12 +259,12 @@ struct task_struct {
 /* math */	0, \
 /* rss */	2, \
 /* comm */	"swapper", \
-/* vm86_info */	NULL, 0, \
-/* fs info */	0,-1,0022,NULL,NULL,NULL,NULL, \
-/* ipc */	NULL, NULL, \
-/* filp */	{NULL,}, \
+/* vm86_info */	(vm86_struct*)NULL, 0, \
+/* fs info */	0,-1,0022,(inode*)NULL,(inode*)NULL,(inode*)NULL,(vm_area_struct*)NULL, \
+/* ipc */	(shm_desc*) NULL, (sem_undo*) NULL, \
+/* filp */	{(file *) NULL,}, \
 /* cloe */	{{ 0, }}, \
-/* ldt */	NULL, \
+/* ldt */	(desc_struct*) NULL, \
 /*tss*/	{0,0, \
 	 sizeof(init_kernel_stack) + (long) &init_kernel_stack, KERNEL_DS, 0, \
 	 0,0,0,0,0,0, \

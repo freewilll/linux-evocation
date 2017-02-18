@@ -66,7 +66,7 @@ int jiffies_offset = 0;		/* # clock ticks to add to get "true
 				   to WWV :-) */
 
 struct task_struct *current = &init_task;
-struct task_struct *last_task_used_math = NULL;
+struct task_struct *last_task_used_math = (task_struct *) NULL;
 
 struct task_struct * task[NR_TASKS] = {&init_task, };
 
@@ -258,7 +258,7 @@ confuse_gcc2:
 // TODO WGJA WIP: 	__sleep_on(p,TASK_UNINTERRUPTIBLE);
 // TODO WGJA WIP: }
 
-static struct timer_list * next_timer = NULL;
+static struct timer_list * next_timer = (timer_list *) NULL;
 
 // TODO WGJA WIP: void add_timer(struct timer_list * timer)
 // TODO WGJA WIP: {
@@ -528,7 +528,7 @@ void sched_init(void)
 	set_system_gate(0x80,&system_call);
 	p = gdt+2+FIRST_TSS_ENTRY;
 	for(i=1 ; i<NR_TASKS ; i++) {
-		task[i] = NULL;
+		task[i] = (task_struct*) NULL;
 		p->a=p->b=0;
 		p++;
 		p->a=p->b=0;

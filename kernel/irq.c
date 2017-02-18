@@ -138,15 +138,19 @@ static void (*bad_interrupt[16])(void) = {
 /*
  * Initial irq handlers.
  */
+
+typedef __sighandler_t sh;
+typedef void (*sr)(void);
+
 static struct sigaction irq_sigaction[16] = {
-	{ NULL, 0, 0, NULL }, { NULL, 0, 0, NULL },
-	{ NULL, 0, 0, NULL }, { NULL, 0, 0, NULL },
-	{ NULL, 0, 0, NULL }, { NULL, 0, 0, NULL },
-	{ NULL, 0, 0, NULL }, { NULL, 0, 0, NULL },
-	{ NULL, 0, 0, NULL }, { NULL, 0, 0, NULL },
-	{ NULL, 0, 0, NULL }, { NULL, 0, 0, NULL },
-	{ NULL, 0, 0, NULL }, { NULL, 0, 0, NULL },
-	{ NULL, 0, 0, NULL }, { NULL, 0, 0, NULL }
+	{ (sh) NULL, 0, 0, (sr) NULL }, { (sh) NULL, 0, 0, (sr) NULL },
+	{ (sh) NULL, 0, 0, (sr) NULL }, { (sh) NULL, 0, 0, (sr) NULL },
+	{ (sh) NULL, 0, 0, (sr) NULL }, { (sh) NULL, 0, 0, (sr) NULL },
+	{ (sh) NULL, 0, 0, (sr) NULL }, { (sh) NULL, 0, 0, (sr) NULL },
+	{ (sh) NULL, 0, 0, (sr) NULL }, { (sh) NULL, 0, 0, (sr) NULL },
+	{ (sh) NULL, 0, 0, (sr) NULL }, { (sh) NULL, 0, 0, (sr) NULL },
+	{ (sh) NULL, 0, 0, (sr) NULL }, { (sh) NULL, 0, 0, (sr) NULL },
+	{ (sh) NULL, 0, 0, (sr) NULL }, { (sh) NULL, 0, 0, (sr) NULL }
 };
 
 /*
@@ -215,7 +219,7 @@ int request_irq(unsigned int irq, void (*handler)(int))
 	sa.sa_handler = handler;
 	sa.sa_flags = 0;
 	sa.sa_mask = 0;
-	sa.sa_restorer = NULL;
+	sa.sa_restorer = (void (*)(void)) NULL;
 	return irqaction(irq,&sa);
 }
 
@@ -242,10 +246,10 @@ void free_irq(unsigned int irq)
 		outb(cache_A1,0xA1);
 	}
 	set_intr_gate(0x20+irq,bad_interrupt[irq]);
-	sa->sa_handler = NULL;
+	sa->sa_handler = (__sighandler_t) NULL;
 	sa->sa_flags = 0;
 	sa->sa_mask = 0;
-	sa->sa_restorer = NULL;
+	sa->sa_restorer = (void (*)(void)) NULL;
 	restore_flags(flags);
 }
 
@@ -274,7 +278,7 @@ static struct sigaction ignore_IRQ = {
 	no_action,
 	0,
 	SA_INTERRUPT,
-	NULL
+	(void (*)(void)) NULL
 };
 
 void init_IRQ(void)
@@ -290,7 +294,7 @@ void init_IRQ(void)
 
 	/* intialize the bottom half routines. */
 	for (i = 0; i < 32; i++) {
-		bh_base[i].routine = NULL;
+		bh_base[i].routine = (void (*)(void*)) NULL;
 		bh_base[i].data = NULL;
 	}
 	bh_active = 0;
