@@ -163,7 +163,7 @@ system_call:
 	movl $0,errno(%ebx)
 	testb $0x20,flags(%ebx)		# PF_TRACESYS
 	jne 1f
-	call sys_call_table(,%eax,4)
+	call *sys_call_table(,%eax,4)
 	movl %eax,EAX(%esp)		# save the return value
 	movl errno(%ebx),%edx
 	negl %edx
@@ -174,7 +174,7 @@ system_call:
 .align 4
 1:	call syscall_trace
 	movl ORIG_EAX(%esp),%eax
-	call sys_call_table(,%eax,4)
+	call *sys_call_table(,%eax,4)
 	movl %eax,EAX(%esp)		# save the return value
 	movl current,%eax
 	movl errno(%eax),%edx

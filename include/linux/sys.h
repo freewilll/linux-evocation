@@ -4,8 +4,9 @@
 
 #define sys_clone sys_fork
 
-// TODO WGJA WIP: extern "C" {
-// TODO WGJA WIP: 
+extern "C" {
+
+extern int sys_todo();
 // TODO WGJA WIP: extern int sys_setup();
 // TODO WGJA WIP: extern int sys_exit();
 // TODO WGJA WIP: extern int sys_fork();
@@ -118,7 +119,7 @@
 // TODO WGJA WIP: extern int sys_newuname();
 // TODO WGJA WIP: extern int sys_iopl();
 // TODO WGJA WIP: extern int sys_vhangup();
-// TODO WGJA WIP: extern int sys_idle();
+extern int sys_idle();
 // TODO WGJA WIP: extern int sys_vm86();
 // TODO WGJA WIP: extern int sys_wait4();
 // TODO WGJA WIP: extern int sys_swapoff();
@@ -148,7 +149,134 @@ typedef int (*fn_ptr)();
 
 
 // TODO WGJA syscalls
-fn_ptr sys_call_table[] = {};
+fn_ptr sys_call_table[] = {
+  sys_todo, 			// #define __NR_setup		  0
+  sys_todo, 			// #define __NR_exit		  1
+  sys_todo, 			// #define __NR_fork		  2
+  sys_todo, 			// #define __NR_read		  3
+  sys_todo, 			// #define __NR_write		  4
+  sys_todo, 			// #define __NR_open		  5
+  sys_todo, 			// #define __NR_close		  6
+  sys_todo, 			// #define __NR_waitpid		  7
+  sys_todo, 			// #define __NR_creat		  8
+  sys_todo, 			// #define __NR_link		  9
+  sys_todo, 			// #define __NR_unlink		 10
+  sys_todo, 			// #define __NR_execve		 11
+  sys_todo, 			// #define __NR_chdir		 12
+  sys_todo, 			// #define __NR_time		 13
+  sys_todo, 			// #define __NR_mknod		 14
+  sys_todo, 			// #define __NR_chmod		 15
+  sys_todo, 			// #define __NR_chown		 16
+  sys_todo, 			// #define __NR_break		 17
+  sys_todo, 			// #define __NR_oldstat		 18
+  sys_todo, 			// #define __NR_lseek		 19
+  sys_todo, 			// #define __NR_getpid		 20
+  sys_todo, 			// #define __NR_mount		 21
+  sys_todo, 			// #define __NR_umount		 22
+  sys_todo, 			// #define __NR_setuid		 23
+  sys_todo, 			// #define __NR_getuid		 24
+  sys_todo, 			// #define __NR_stime		 25
+  sys_todo, 			// #define __NR_ptrace		 26
+  sys_todo, 			// #define __NR_alarm		 27
+  sys_todo, 			// #define __NR_oldfstat	 28
+  sys_todo, 			// #define __NR_pause		 29
+  sys_todo, 			// #define __NR_utime		 30
+  sys_todo, 			// #define __NR_stty		 31
+  sys_todo, 			// #define __NR_gtty		 32
+  sys_todo, 			// #define __NR_access		 33
+  sys_todo, 			// #define __NR_nice		 34
+  sys_todo, 			// #define __NR_ftime		 35
+  sys_todo, 			// #define __NR_sync		 36
+  sys_todo, 			// #define __NR_kill		 37
+  sys_todo, 			// #define __NR_rename		 38
+  sys_todo, 			// #define __NR_mkdir		 39
+  sys_todo, 			// #define __NR_rmdir		 40
+  sys_todo, 			// #define __NR_dup		 41
+  sys_todo, 			// #define __NR_pipe		 42
+  sys_todo, 			// #define __NR_times		 43
+  sys_todo, 			// #define __NR_prof		 44
+  sys_todo, 			// #define __NR_brk		 45
+  sys_todo, 			// #define __NR_setgid		 46
+  sys_todo, 			// #define __NR_getgid		 47
+  sys_todo, 			// #define __NR_signal		 48
+  sys_todo, 			// #define __NR_geteuid		 49
+  sys_todo, 			// #define __NR_getegid		 50
+  sys_todo, 			// #define __NR_acct		 51
+  sys_todo, 			// #define __NR_phys		 52
+  sys_todo, 			// #define __NR_lock		 53
+  sys_todo, 			// #define __NR_ioctl		 54
+  sys_todo, 			// #define __NR_fcntl		 55
+  sys_todo, 			// #define __NR_mpx		 56
+  sys_todo, 			// #define __NR_setpgid		 57
+  sys_todo, 			// #define __NR_ulimit		 58
+  sys_todo, 			// #define __NR_oldolduname	 59
+  sys_todo, 			// #define __NR_umask		 60
+  sys_todo, 			// #define __NR_chroot		 61
+  sys_todo, 			// #define __NR_ustat		 62
+  sys_todo, 			// #define __NR_dup2		 63
+  sys_todo, 			// #define __NR_getppid		 64
+  sys_todo, 			// #define __NR_getpgrp		 65
+  sys_todo, 			// #define __NR_setsid		 66
+  sys_todo, 			// #define __NR_sigaction	 67
+  sys_todo, 			// #define __NR_sgetmask	 68
+  sys_todo, 			// #define __NR_ssetmask	 69
+  sys_todo, 			// #define __NR_setreuid	 70
+  sys_todo, 			// #define __NR_setregid	 71
+  sys_todo, 			// #define __NR_sigsuspend	 72
+  sys_todo, 			// #define __NR_sigpending	 73
+  sys_todo, 			// #define __NR_sethostname	 74
+  sys_todo, 			// #define __NR_setrlimit	 75
+  sys_todo, 			// #define __NR_getrlimit	 76
+  sys_todo, 			// #define __NR_getrusage	 77
+  sys_todo, 			// #define __NR_gettimeofday	 78
+  sys_todo, 			// #define __NR_settimeofday	 79
+  sys_todo, 			// #define __NR_getgroups	 80
+  sys_todo, 			// #define __NR_setgroups	 81
+  sys_todo, 			// #define __NR_select		 82
+  sys_todo, 			// #define __NR_symlink		 83
+  sys_todo, 			// #define __NR_oldlstat	 84
+  sys_todo, 			// #define __NR_readlink	 85
+  sys_todo, 			// #define __NR_uselib		 86
+  sys_todo, 			// #define __NR_swapon		 87
+  sys_todo, 			// #define __NR_reboot		 88
+  sys_todo, 			// #define __NR_readdir		 89
+  sys_todo, 			// #define __NR_mmap		 90
+  sys_todo, 			// #define __NR_munmap		 91
+  sys_todo, 			// #define __NR_truncate	 92
+  sys_todo, 			// #define __NR_ftruncate	 93
+  sys_todo, 			// #define __NR_fchmod		 94
+  sys_todo, 			// #define __NR_fchown		 95
+  sys_todo, 			// #define __NR_getpriority	 96
+  sys_todo, 			// #define __NR_setpriority	 97
+  sys_todo, 			// #define __NR_profil		 98
+  sys_todo, 			// #define __NR_statfs		 99
+  sys_todo, 			// #define __NR_fstatfs		100
+  sys_todo, 			// #define __NR_ioperm		101
+  sys_todo, 			// #define __NR_socketcall	102
+  sys_todo, 			// #define __NR_syslog		103
+  sys_todo, 			// #define __NR_setitimer	104
+  sys_todo, 			// #define __NR_getitimer	105
+  sys_todo, 			// #define __NR_stat		106
+  sys_todo, 			// #define __NR_lstat		107
+  sys_todo, 			// #define __NR_fstat		108
+  sys_todo, 			// #define __NR_olduname	109
+  sys_todo, 			// #define __NR_iopl		110
+  sys_todo, 			// #define __NR_vhangup		111
+  sys_idle, 			// #define __NR_idle		112		DONE
+  sys_todo, 			// #define __NR_vm86		113
+  sys_todo, 			// #define __NR_wait4		114
+  sys_todo, 			// #define __NR_swapoff		115
+  sys_todo, 			// #define __NR_sysinfo		116
+  sys_todo, 			// #define __NR_ipc		117	
+  sys_todo, 			// #define __NR_fsync		118
+  sys_todo, 			// #define __NR_sigreturn	119
+  sys_todo, 			// #define __NR_clone		120
+  sys_todo, 			// #define __NR_setdomainname	121
+  sys_todo, 			// #define __NR_uname		122
+  sys_todo, 			// #define __NR_modify_ldt	123
+};
+
+
 
 // TODO WGJA WIP: fn_ptr sys_call_table[] = { sys_setup, sys_exit, sys_fork, sys_read,
 // TODO WGJA WIP: sys_write, sys_open, sys_close, sys_waitpid, sys_creat, sys_link,
@@ -173,8 +301,8 @@ fn_ptr sys_call_table[] = {};
 // TODO WGJA WIP: sys_newfstat, sys_uname, sys_iopl, sys_vhangup, sys_idle, sys_vm86,
 // TODO WGJA WIP: sys_wait4, sys_swapoff, sys_sysinfo, sys_ipc, sys_fsync, sys_sigreturn,
 // TODO WGJA WIP: sys_clone, sys_setdomainname, sys_newuname, sys_modify_ldt};
-// TODO WGJA WIP: 
-// TODO WGJA WIP: }
+
+}
 
 /* So we don't have to do any more manual updating.... */
 int NR_syscalls = sizeof(sys_call_table)/sizeof(fn_ptr);

@@ -31,20 +31,20 @@ extern char edata, end;
 // TODO WGJA WIP: extern char *linux_banner;
 extern "C" void lcall7(void);
 struct desc_struct default_ldt;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * we need this inline - forking from kernel space will result
-// TODO WGJA WIP:  * in NO COPY ON WRITE (!!!), until an execve is executed. This
-// TODO WGJA WIP:  * is no problem, but for the stack. This is handled by not letting
-// TODO WGJA WIP:  * main() use the stack at all after fork(). Thus, no function
-// TODO WGJA WIP:  * calls - which means inline code for fork too, as otherwise we
-// TODO WGJA WIP:  * would use the stack upon exit from 'fork()'.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Actually only pause and fork are needed inline, so that there
-// TODO WGJA WIP:  * won't be any messing with the stack from main(), but we define
-// TODO WGJA WIP:  * some others too.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: static inline _syscall0(int,idle)
+
+/*
+ * we need this inline - forking from kernel space will result
+ * in NO COPY ON WRITE (!!!), until an execve is executed. This
+ * is no problem, but for the stack. This is handled by not letting
+ * main() use the stack at all after fork(). Thus, no function
+ * calls - which means inline code for fork too, as otherwise we
+ * would use the stack upon exit from 'fork()'.
+ *
+ * Actually only pause and fork are needed inline, so that there
+ * won't be any messing with the stack from main(), but we define
+ * some others too.
+ */
+static inline _syscall0(int,idle)
 // TODO WGJA WIP: static inline _syscall0(int,fork)
 // TODO WGJA WIP: static inline _syscall0(int,pause)
 // TODO WGJA WIP: static inline _syscall1(int,setup,void *,BIOS)
@@ -390,9 +390,14 @@ extern "C" void start_kernel(void)
 	request_irq(KEYBOARD_IRQ, keyboard_interrupt);
 	sti();
 
-	printk("start_kernel completed. Going in an idle loop.\n");
-	for (;;)
-		__asm__ ("hlt" :::);
+	printk("Moving to user mode\n");
+	move_to_user_mode();
+
+	printk("Going idle\n");
+	for (;;) {
+		printk(".");
+		idle();
+	}
 
 // TODO WGJA WIP: 	parse_options(command_line);
 // TODO WGJA WIP: #ifdef CONFIG_PROFILE
