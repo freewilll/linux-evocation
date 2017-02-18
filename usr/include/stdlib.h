@@ -210,13 +210,8 @@ extern void * valloc(size_t __size);
 
 
 #ifndef	__NORETURN
-#ifdef	__GNUC__
-/* The `volatile' keyword tells GCC that a function never returns.  */
-#define	__NORETURN	__volatile
-#else	/* Not GCC.  */
 #define	__NORETURN
-#endif	/* GCC.  */
-#endif	/* __NORETURN not defined.  */
+#endif
 
 /* Abort execution and generate a core-dump.  */
 extern __NORETURN void abort(void);
