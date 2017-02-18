@@ -56,7 +56,19 @@ SVGA_MODE=	-DSVGA_MODE=1
 # standard CFLAGS
 #
 
-CFLAGS = -Wall -O6 -fomit-frame-pointer -x c++ -fno-stack-protector -fpermissive
+WARNING_CFLAGS=\
+	-fpermissive \
+	-Wno-comment \
+	-Wno-char-subscripts \
+	-Wno-strict-aliasing \
+	-Wno-endif-labels \
+	-Wno-parentheses \
+	-Wno-unused-variable \
+	-Wno-sign-compare \
+	-Wno-return-type \
+	-Wno-unused-but-set-variable \
+	-Wno-narrowing
+CFLAGS= -Wall $(WARNING_CFLAGS) -O6 -fomit-frame-pointer -x c++ -fno-stack-protector
 
 ifdef CONFIG_M486
 CFLAGS := $(CFLAGS) -march=i486
