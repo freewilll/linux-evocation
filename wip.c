@@ -1,4 +1,5 @@
 #include <linux/kernel.h>
+#include <linux/errno.h>
 
 // TODO WGJA panic
 void panic(const char * s)
@@ -37,6 +38,5 @@ int send_sig(unsigned long sig,struct task_struct * p,int priv)
 extern "C" int sys_todo(void)
 {
 	printk("todo syscall.\n");
-	return 0;
+	return -ENOSYS;
 }
-
