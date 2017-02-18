@@ -1,5 +1,6 @@
 .config*
 config.old
+config.new
 include/linux/autoconf.h
 tools/version.h
 .profile
