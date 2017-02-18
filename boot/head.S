@@ -27,6 +27,11 @@
 /*
  * swapper_pg_dir is the main page directory, address 0x00001000
  */
+
+ // To keep ld happy
+ .globl _start
+ _start:
+
 startup_32:
 	cld
 	movl $(KERNEL_DS),%eax
