@@ -25,7 +25,6 @@ all: blk_drv.a scsisubdirs
 blk_drv.a: $(OBJS)
 	rm -f blk_drv.a
 	$(AR) rcs blk_drv.a $(OBJS)
-	sync
 
 scsisubdirs: dummy
 	@for i in $(SUBDIRS); do (cd $$i && echo $$i && $(MAKE)) || exit; done

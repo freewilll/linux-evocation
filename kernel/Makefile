@@ -30,7 +30,6 @@ all: kernel.o kernelsubdirs
 
 kernel.o: $(OBJS)
 	$(LD) -r -o kernel.o $(OBJS)
-	sync
 
 kernelsubdirs: dummy
 	@for i in $(SUBDIRS); do (cd $$i && echo $$i && $(MAKE)) || exit; done

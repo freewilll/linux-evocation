@@ -22,7 +22,6 @@ OBJS  = emulate.o
 
 ibcs.o: $(OBJS)
 	$(LD) -r -o ibcs.o $(OBJS)
-	sync
 
 clean:
 	rm -f core *.o *.a *.s

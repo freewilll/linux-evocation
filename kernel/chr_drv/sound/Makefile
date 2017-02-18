@@ -20,7 +20,6 @@ OBJS	= sound_stub.o
 
 sound.a: $(OBJS) 
 	$(AR) rcs sound.a $(OBJS)
-	sync
 
 clean:
 	rm -f core *.o *.a

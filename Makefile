@@ -241,7 +241,6 @@ mrproper: clean
 
 backup: mrproper
 	cd .. && tar cf - linux | gzip -9 > backup.gz
-	sync
 
 depend dep:
 	touch tools/version.h

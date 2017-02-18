@@ -35,7 +35,6 @@ endif
 math.a: $(OBJS)
 	rm -f math.a
 	$(AR) rcs math.a $(OBJS)
-	sync
 
 clean:
 	rm -f core *.o *.a *.s

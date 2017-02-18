@@ -20,7 +20,6 @@ OBJS  = ctype.o errno.o
 
 lib.a: $(OBJS)
 	$(AR) rcs lib.a $(OBJS)
-	sync
 
 clean:
 	rm -f core *.o *.a *.s

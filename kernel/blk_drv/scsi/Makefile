@@ -59,7 +59,6 @@ endif
 scsi.a: $(SCSI_OBJS)
 	rm -f scsi.a
 	$(AR) rcs scsi.a $(SCSI_OBJS)
-	sync
 
 else
 
