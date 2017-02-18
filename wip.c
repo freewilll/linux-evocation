@@ -40,3 +40,8 @@ extern "C" int sys_todo(void)
 	printk("todo syscall.\n");
 	return -ENOSYS;
 }
+
+// TODO WGJA move sound_mem_init to real thing
+void sound_mem_init(void)
+{
+}

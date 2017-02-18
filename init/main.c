@@ -379,12 +379,17 @@ extern "C" void start_kernel(void)
 		memory_start = 1024*1024;
 		low_memory_start = (unsigned long) &end;
 	}
+
 	low_memory_start = PAGE_ALIGN(low_memory_start);
 	memory_start = paging_init(memory_start,memory_end);
 
 	trap_init();	// TODO WGJA enable traps
 	init_IRQ();
 	sched_init();
+
+	// WGJA TODO devices
+
+	mem_init(low_memory_start,memory_start,memory_end);
 
 	// WGJA Add a temporary keyboard handler to be able to check aliveness
 	request_irq(KEYBOARD_IRQ, keyboard_interrupt);
@@ -413,7 +418,7 @@ extern "C" void start_kernel(void)
 // TODO WGJA WIP: #endif
 // TODO WGJA WIP: 	memory_start = inode_init(memory_start,memory_end);
 // TODO WGJA WIP: 	memory_start = file_table_init(memory_start,memory_end);
-// TODO WGJA WIP: 	mem_init(low_memory_start,memory_start,memory_end);
+// TODO WGJA WIP:	mem_init(low_memory_start,memory_start,memory_end);      // Done
 // TODO WGJA WIP: 	buffer_init();
 // TODO WGJA WIP: 	time_init();
 // TODO WGJA WIP: 	floppy_init();

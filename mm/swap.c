@@ -14,7 +14,7 @@
 #include <linux/head.h>
 #include <linux/kernel.h>
 #include <linux/errno.h>
-// TODO WGJA WIP: #include <linux/string.h>
+#include <linux/string.h>
 // TODO WGJA WIP: #include <linux/stat.h>
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #include <asm/system.h> /* for cli()/sti() */

@@ -58,8 +58,8 @@
 // TODO WGJA WIP: extern volatile short free_page_ptr; /* used by malloc and tcp/ip. */
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern int nr_swap_pages;
-// TODO WGJA WIP: extern int nr_free_pages;
-// TODO WGJA WIP: extern unsigned long free_page_list;
+extern int nr_free_pages;
+extern unsigned long free_page_list;
 // TODO WGJA WIP: extern int nr_secondary_pages;
 // TODO WGJA WIP: extern unsigned long secondary_page_list;
 // TODO WGJA WIP: 
@@ -105,8 +105,8 @@
 // TODO WGJA WIP: 	struct task_struct *tsk, unsigned long user_esp);
 
 extern unsigned long paging_init(unsigned long start_mem, unsigned long end_mem);
-// TODO WGJA WIP: extern void mem_init(unsigned long low_start_mem,
-// TODO WGJA WIP: 		     unsigned long start_mem, unsigned long end_mem);
+extern void mem_init(unsigned long low_start_mem,
+		     unsigned long start_mem, unsigned long end_mem);
 // TODO WGJA WIP: extern void show_mem(void);
 // TODO WGJA WIP: extern void oom(struct task_struct * task);
 // TODO WGJA WIP: extern void si_meminfo(struct sysinfo * val);
@@ -131,12 +131,12 @@ extern unsigned long paging_init(unsigned long start_mem, unsigned long end_mem)
 #define invalidate() \
 __asm__ __volatile__("movl %%cr3,%%eax\n\tmovl %%eax,%%cr3": : :"ax")
 
-// TODO WGJA WIP: extern unsigned long high_memory;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define MAP_NR(addr) ((addr) >> PAGE_SHIFT)
-// TODO WGJA WIP: #define MAP_PAGE_RESERVED (1<<15)
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern unsigned short * mem_map;
+extern unsigned long high_memory;
+
+#define MAP_NR(addr) ((addr) >> PAGE_SHIFT)
+#define MAP_PAGE_RESERVED (1<<15)
+
+extern unsigned short * mem_map;
 
 #define PAGE_PRESENT	0x001
 #define PAGE_RW		0x002

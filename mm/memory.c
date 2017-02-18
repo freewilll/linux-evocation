@@ -39,16 +39,16 @@
 #include <linux/string.h>
 #include <linux/types.h>
 #include <linux/ptrace.h>
-// TODO WGJA WIP: #include <linux/mman.h>
-// TODO WGJA WIP: 
-// TODO WGJA WIP: unsigned long high_memory = 0;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern void sound_mem_init(void);
+#include <linux/mman.h>
+
+unsigned long high_memory = 0;
+
+extern void sound_mem_init(void);
 // TODO WGJA WIP: extern void die_if_kernel(char *,struct pt_regs *,long);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: int nr_swap_pages = 0;
-// TODO WGJA WIP: int nr_free_pages = 0;
-// TODO WGJA WIP: unsigned long free_page_list = 0;
+
+int nr_swap_pages = 0;
+int nr_free_pages = 0;
+unsigned long free_page_list = 0;
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * The secondary free_page_list is used for malloc() etc things that
 // TODO WGJA WIP:  * may need pages during interrupts etc. Normal get_free_page() operations
@@ -60,9 +60,9 @@
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #define copy_page(from,to) \
 // TODO WGJA WIP: __asm__("cld ; rep ; movsl": :"S" (from),"D" (to),"c" (1024):"cx","di","si")
-// TODO WGJA WIP: 
-// TODO WGJA WIP: unsigned short * mem_map = NULL;
-// TODO WGJA WIP: 
+
+unsigned short * mem_map = (unsigned short *) NULL;
+
 // TODO WGJA WIP: #define CODE_SPACE(addr,p) ((addr) < (p)->end_code)
 // TODO WGJA WIP: 
 // TODO WGJA WIP: /*
@@ -1034,64 +1034,64 @@ unsigned long paging_init(unsigned long start_mem, unsigned long end_mem)
 	return start_mem;
 }
 
-// TODO WGJA WIP: void mem_init(unsigned long start_low_mem,
-// TODO WGJA WIP: 	      unsigned long start_mem, unsigned long end_mem)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int codepages = 0;
-// TODO WGJA WIP: 	int reservedpages = 0;
-// TODO WGJA WIP: 	int datapages = 0;
-// TODO WGJA WIP: 	unsigned long tmp;
-// TODO WGJA WIP: 	unsigned short * p;
-// TODO WGJA WIP: 	extern int etext;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	cli();
-// TODO WGJA WIP: 	end_mem &= PAGE_MASK;
-// TODO WGJA WIP: 	high_memory = end_mem;
-// TODO WGJA WIP: 	start_mem +=  0x0000000f;
-// TODO WGJA WIP: 	start_mem &= ~0x0000000f;
-// TODO WGJA WIP: 	tmp = MAP_NR(end_mem);
-// TODO WGJA WIP: 	mem_map = (unsigned short *) start_mem;
-// TODO WGJA WIP: 	p = mem_map + tmp;
-// TODO WGJA WIP: 	start_mem = (unsigned long) p;
-// TODO WGJA WIP: 	while (p > mem_map)
-// TODO WGJA WIP: 		*--p = MAP_PAGE_RESERVED;
-// TODO WGJA WIP: 	start_low_mem = PAGE_ALIGN(start_low_mem);
-// TODO WGJA WIP: 	start_mem = PAGE_ALIGN(start_mem);
-// TODO WGJA WIP: 	while (start_low_mem < 0xA0000) {
-// TODO WGJA WIP: 		mem_map[MAP_NR(start_low_mem)] = 0;
-// TODO WGJA WIP: 		start_low_mem += PAGE_SIZE;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	while (start_mem < end_mem) {
-// TODO WGJA WIP: 		mem_map[MAP_NR(start_mem)] = 0;
-// TODO WGJA WIP: 		start_mem += PAGE_SIZE;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	sound_mem_init();
-// TODO WGJA WIP: 	free_page_list = 0;
-// TODO WGJA WIP: 	nr_free_pages = 0;
-// TODO WGJA WIP: 	for (tmp = 0 ; tmp < end_mem ; tmp += PAGE_SIZE) {
-// TODO WGJA WIP: 		if (mem_map[MAP_NR(tmp)]) {
-// TODO WGJA WIP: 			if (tmp >= 0xA0000 && tmp < 0x100000)
-// TODO WGJA WIP: 				reservedpages++;
-// TODO WGJA WIP: 			else if (tmp < (unsigned long) &etext)
-// TODO WGJA WIP: 				codepages++;
-// TODO WGJA WIP: 			else
-// TODO WGJA WIP: 				datapages++;
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		*(unsigned long *) tmp = free_page_list;
-// TODO WGJA WIP: 		free_page_list = tmp;
-// TODO WGJA WIP: 		nr_free_pages++;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	tmp = nr_free_pages << PAGE_SHIFT;
-// TODO WGJA WIP: 	printk("Memory: %dk/%dk available (%dk kernel code, %dk reserved, %dk data)\n",
-// TODO WGJA WIP: 		tmp >> 10,
-// TODO WGJA WIP: 		end_mem >> 10,
-// TODO WGJA WIP: 		codepages << PAGE_SHIFT-10,
-// TODO WGJA WIP: 		reservedpages << PAGE_SHIFT-10,
-// TODO WGJA WIP: 		datapages << PAGE_SHIFT-10);
-// TODO WGJA WIP: 	return;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+void mem_init(unsigned long start_low_mem,
+	      unsigned long start_mem, unsigned long end_mem)
+{
+	int codepages = 0;
+	int reservedpages = 0;
+	int datapages = 0;
+	unsigned long tmp;
+	unsigned short * p;
+	extern int etext;
+
+	cli();
+	end_mem &= PAGE_MASK;
+	high_memory = end_mem;
+	start_mem +=  0x0000000f;
+	start_mem &= ~0x0000000f;
+	tmp = MAP_NR(end_mem);
+	mem_map = (unsigned short *) start_mem;
+	p = mem_map + tmp;
+	start_mem = (unsigned long) p;
+	while (p > mem_map)
+		*--p = MAP_PAGE_RESERVED;
+	start_low_mem = PAGE_ALIGN(start_low_mem);
+	start_mem = PAGE_ALIGN(start_mem);
+	while (start_low_mem < 0xA0000) {
+		mem_map[MAP_NR(start_low_mem)] = 0;
+		start_low_mem += PAGE_SIZE;
+	}
+	while (start_mem < end_mem) {
+		mem_map[MAP_NR(start_mem)] = 0;
+		start_mem += PAGE_SIZE;
+	}
+	sound_mem_init();
+	free_page_list = 0;
+	nr_free_pages = 0;
+	for (tmp = 0 ; tmp < end_mem ; tmp += PAGE_SIZE) {
+		if (mem_map[MAP_NR(tmp)]) {
+			if (tmp >= 0xA0000 && tmp < 0x100000)
+				reservedpages++;
+			else if (tmp < (unsigned long) &etext)
+				codepages++;
+			else
+				datapages++;
+			continue;
+		}
+		*(unsigned long *) tmp = free_page_list;
+		free_page_list = tmp;
+		nr_free_pages++;
+	}
+	tmp = nr_free_pages << PAGE_SHIFT;
+	printk("Memory: %dk/%dk available (%dk kernel code, %dk reserved, %dk data)\n",
+		tmp >> 10,
+		end_mem >> 10,
+		codepages << PAGE_SHIFT-10,
+		reservedpages << PAGE_SHIFT-10,
+		datapages << PAGE_SHIFT-10);
+	return;
+}
+
 // TODO WGJA WIP: void si_meminfo(struct sysinfo *val)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	int i;
