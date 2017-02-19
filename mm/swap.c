@@ -18,19 +18,19 @@
 // TODO WGJA WIP: #include <linux/stat.h>
 
 #include <asm/system.h> /* for cli()/sti() */
-// TODO WGJA WIP: #include <asm/bitops.h>
+#include <asm/bitops.h>
 
 #define MAX_SWAPFILES 8
 
 #define SWP_USED	1
 #define SWP_WRITEOK	3
 
-// TODO WGJA WIP: #define SWP_TYPE(entry) (((entry) & 0xfe) >> 1)
-// TODO WGJA WIP: #define SWP_OFFSET(entry) ((entry) >> PAGE_SHIFT)
+#define SWP_TYPE(entry) (((entry) & 0xfe) >> 1)
+#define SWP_OFFSET(entry) ((entry) >> PAGE_SHIFT)
 #define SWP_ENTRY(type,offset) (((type) << 1) | ((offset) << PAGE_SHIFT))
 
 static int nr_swapfiles = 0;
-// TODO WGJA WIP: static struct wait_queue * lock_queue = NULL;
+static struct wait_queue * lock_queue = (wait_queue *) NULL;
 
 static struct swap_info_struct {
 	unsigned long flags;
@@ -53,8 +53,8 @@ extern int shm_swap (int);
 #define NR_LAST_FREE_PAGES 32
 static unsigned long last_free_pages[NR_LAST_FREE_PAGES] = {0,};
 
-// TODO WGJA WIP: #define SWAP_BITS PAGE_SIZE
-// TODO WGJA WIP: 
+#define SWAP_BITS PAGE_SIZE
+
 // TODO WGJA WIP: void rw_swap_page(int rw, unsigned long entry, char * buf)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	unsigned long type, offset;
@@ -122,74 +122,74 @@ unsigned int get_swap_page(void)
 	return 0;
 }
 
-// TODO WGJA WIP: unsigned long swap_duplicate(unsigned long entry)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct swap_info_struct * p;
-// TODO WGJA WIP: 	unsigned long offset, type;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!entry)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	offset = SWP_OFFSET(entry);
-// TODO WGJA WIP: 	type = SWP_TYPE(entry);
-// TODO WGJA WIP: 	if (type == SHM_SWP_TYPE)
-// TODO WGJA WIP: 		return entry;
-// TODO WGJA WIP: 	if (type >= nr_swapfiles) {
-// TODO WGJA WIP: 		printk("Trying to duplicate nonexistent swap-page\n");
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	p = type + swap_info;
-// TODO WGJA WIP: 	if (offset >= SWAP_BITS) {
-// TODO WGJA WIP: 		printk("swap_free: weirness\n");
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!p->swap_map[offset]) {
-// TODO WGJA WIP: 		printk("swap_duplicate: trying to duplicate unused page\n");
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	p->swap_map[offset]++;
-// TODO WGJA WIP: 	return entry;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void swap_free(unsigned long entry)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct swap_info_struct * p;
-// TODO WGJA WIP: 	unsigned long offset, type;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!entry)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	type = SWP_TYPE(entry);
-// TODO WGJA WIP: 	if (type == SHM_SWP_TYPE)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	if (type >= nr_swapfiles) {
-// TODO WGJA WIP: 		printk("Trying to free nonexistent swap-page\n");
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	p = & swap_info[type];
-// TODO WGJA WIP: 	offset = SWP_OFFSET(entry);
-// TODO WGJA WIP: 	if (offset >= SWAP_BITS) {
-// TODO WGJA WIP: 		printk("swap_free: weirness\n");
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!(p->flags & SWP_USED)) {
-// TODO WGJA WIP: 		printk("Trying to free swap from unused swap-device\n");
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	while (set_bit(offset,p->swap_lockmap))
-// TODO WGJA WIP: 		sleep_on(&lock_queue);
-// TODO WGJA WIP: 	if (offset < p->lowest_bit)
-// TODO WGJA WIP: 		p->lowest_bit = offset;
-// TODO WGJA WIP: 	if (offset > p->highest_bit)
-// TODO WGJA WIP: 		p->highest_bit = offset;
-// TODO WGJA WIP: 	if (!p->swap_map[offset])
-// TODO WGJA WIP: 		printk("swap_free: swap-space map bad (entry %08x)\n",entry);
-// TODO WGJA WIP: 	else
-// TODO WGJA WIP: 		if (!--p->swap_map[offset])
-// TODO WGJA WIP: 			nr_swap_pages++;
-// TODO WGJA WIP: 	if (!clear_bit(offset,p->swap_lockmap))
-// TODO WGJA WIP: 		printk("swap_free: lock already cleared\n");
-// TODO WGJA WIP: 	wake_up(&lock_queue);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+unsigned long swap_duplicate(unsigned long entry)
+{
+	struct swap_info_struct * p;
+	unsigned long offset, type;
+
+	if (!entry)
+		return 0;
+	offset = SWP_OFFSET(entry);
+	type = SWP_TYPE(entry);
+	if (type == SHM_SWP_TYPE)
+		return entry;
+	if (type >= nr_swapfiles) {
+		printk("Trying to duplicate nonexistent swap-page\n");
+		return 0;
+	}
+	p = type + swap_info;
+	if (offset >= SWAP_BITS) {
+		printk("swap_free: weirness\n");
+		return 0;
+	}
+	if (!p->swap_map[offset]) {
+		printk("swap_duplicate: trying to duplicate unused page\n");
+		return 0;
+	}
+	p->swap_map[offset]++;
+	return entry;
+}
+
+void swap_free(unsigned long entry)
+{
+	struct swap_info_struct * p;
+	unsigned long offset, type;
+
+	if (!entry)
+		return;
+	type = SWP_TYPE(entry);
+	if (type == SHM_SWP_TYPE)
+		return;
+	if (type >= nr_swapfiles) {
+		printk("Trying to free nonexistent swap-page\n");
+		return;
+	}
+	p = & swap_info[type];
+	offset = SWP_OFFSET(entry);
+	if (offset >= SWAP_BITS) {
+		printk("swap_free: weirness\n");
+		return;
+	}
+	if (!(p->flags & SWP_USED)) {
+		printk("Trying to free swap from unused swap-device\n");
+		return;
+	}
+	while (set_bit(offset,p->swap_lockmap))
+		sleep_on(&lock_queue);
+	if (offset < p->lowest_bit)
+		p->lowest_bit = offset;
+	if (offset > p->highest_bit)
+		p->highest_bit = offset;
+	if (!p->swap_map[offset])
+		printk("swap_free: swap-space map bad (entry %08x)\n",entry);
+	else
+		if (!--p->swap_map[offset])
+			nr_swap_pages++;
+	if (!clear_bit(offset,p->swap_lockmap))
+		printk("swap_free: lock already cleared\n");
+	wake_up(&lock_queue);
+}
+
 // TODO WGJA WIP: void swap_in(unsigned long *table_ptr)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	unsigned long entry;

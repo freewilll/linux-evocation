@@ -10,12 +10,12 @@ typedef unsigned int size_t;
 // TODO WGJA WIP: #define _SSIZE_T
 // TODO WGJA WIP: typedef int ssize_t;
 // TODO WGJA WIP: #endif
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #ifndef _TIME_T
-// TODO WGJA WIP: #define _TIME_T
-// TODO WGJA WIP: typedef long time_t;
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 
+
+#ifndef _TIME_T
+#define _TIME_T
+typedef long time_t;
+#endif
+
 // TODO WGJA WIP: #ifndef _CLOCK_T
 // TODO WGJA WIP: #define _CLOCK_T
 // TODO WGJA WIP: typedef long clock_t;
@@ -30,39 +30,39 @@ typedef unsigned int size_t;
 #define NULL ((void *) 0)
 #endif
 
-// TODO WGJA WIP: typedef int pid_t;
-// TODO WGJA WIP: typedef unsigned short uid_t;
-// TODO WGJA WIP: typedef unsigned short gid_t;
+typedef int pid_t;
+typedef unsigned short uid_t;
+typedef unsigned short gid_t;
 typedef unsigned short dev_t;
 // TODO WGJA WIP: #ifdef OLD_LINUX
 // TODO WGJA WIP: typedef unsigned short ino_t;
 // TODO WGJA WIP: #else
 // TODO WGJA WIP: typedef unsigned long ino_t;
 // TODO WGJA WIP: #endif
-// TODO WGJA WIP: typedef unsigned short mode_t;
-// TODO WGJA WIP: typedef unsigned short umode_t;
-// TODO WGJA WIP: typedef unsigned short nlink_t;
+typedef unsigned short mode_t;
+typedef unsigned short umode_t;
+typedef unsigned short nlink_t;
 // TODO WGJA WIP: typedef int daddr_t;
-// TODO WGJA WIP: typedef long off_t;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /* bsd */
-// TODO WGJA WIP: typedef unsigned char u_char;
-// TODO WGJA WIP: typedef unsigned short u_short;
-// TODO WGJA WIP: typedef unsigned int u_int;
-// TODO WGJA WIP: typedef unsigned long u_long;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /* sysv */
-// TODO WGJA WIP: typedef unsigned char unchar;
-// TODO WGJA WIP: typedef unsigned short ushort;
-// TODO WGJA WIP: typedef unsigned int uint;
-// TODO WGJA WIP: typedef unsigned long ulong;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: typedef char *caddr_t;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: typedef unsigned char cc_t;
-// TODO WGJA WIP: typedef unsigned int speed_t;
-// TODO WGJA WIP: typedef unsigned long tcflag_t;
-// TODO WGJA WIP: 
+typedef long off_t;
+
+/* bsd */
+typedef unsigned char u_char;
+typedef unsigned short u_short;
+typedef unsigned int u_int;
+typedef unsigned long u_long;
+
+/* sysv */
+typedef unsigned char unchar;
+typedef unsigned short ushort;
+typedef unsigned int uint;
+typedef unsigned long ulong;
+
+typedef char *caddr_t;
+
+typedef unsigned char cc_t;
+typedef unsigned int speed_t;
+typedef unsigned long tcflag_t;
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * This allows for 256 file descriptors: if NR_OPEN is ever grown beyond that
 // TODO WGJA WIP:  * you'll have to change this too. But 256 fd's seem to be enough even for such

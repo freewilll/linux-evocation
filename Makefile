@@ -66,7 +66,8 @@ WARNING_CFLAGS=\
 	-Wno-sign-compare \
 	-Wno-return-type \
 	-Wno-unused-but-set-variable \
-	-Wno-narrowing
+	-Wno-narrowing \
+	-Wno-write-strings
 CFLAGS= -Wall $(WARNING_CFLAGS) -O6 -fomit-frame-pointer -x c++ -fno-stack-protector
 
 ifdef CONFIG_M486
@@ -101,7 +102,7 @@ DRIVERS		=kernel/blk_drv/blk_drv.a kernel/chr_drv/chr_drv.a \
 MATH		=kernel/FPU-emu/math.a
 LIBS		=lib/lib.a
 # TODO WGJA: Work in progress build
-SUBDIRS		=kernel mm fs ibcs lib
+SUBDIRS		=kernel mm fs ibcs ipc lib
 #SUBDIRS	=kernel mm fs net ipc ibcs lib
 
 KERNELHDRS	=/usr/src/linux/include
@@ -202,6 +203,7 @@ tools/zSystem:	wip.o boot/head.o init/main.o linuxsubdirs
 		ibcs/ibcs.o \
 		mm/mm.o \
 		fs/fs.o \
+		ipc/ipc.o \
 		$(LIBS) \
 		-o tools/zSystem > zSystem.map
 

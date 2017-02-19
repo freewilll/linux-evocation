@@ -27,7 +27,7 @@
 // TODO WGJA WIP: 
 #include <asm/system.h>
 #include <asm/io.h>
-// TODO WGJA WIP: #include <asm/segment.h>
+#include <asm/system.h>
 
 #define TIMER_IRQ 0
 
@@ -117,6 +117,7 @@ stack_struct stack_start = { & user_stack [PAGE_SIZE>>2] , KERNEL_DS };
  * The "confuse_gcc" goto is used only to get better assembly code..
  * Djikstra probably hates me.
  */
+
 extern "C" void schedule(void)
 {
 	int c;
@@ -159,6 +160,8 @@ confuse_gcc2:
 		for_each_task(p)
 			p->counter = (p->counter >> 1) + p->priority;
 	}
+	char *vidmem = (char *)0xb8000;
+	vidmem[78 * 2 + 1] ^= 0x80;  // TODO WGJA visual display of aliveness
 	switch_to(next);
 }
 
@@ -480,42 +483,42 @@ static void do_timer(struct pt_regs * regs)
 // TODO WGJA WIP: 	current->priority = newprio;
 // TODO WGJA WIP: 	return 0;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static void show_task(int nr,struct task_struct * p)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i, j;
-// TODO WGJA WIP: 	unsigned char * stack;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	printk("%d: pid=%d, state=%d, father=%d, child=%d, ",(p == current)?-nr:nr,p->pid,
-// TODO WGJA WIP: 		p->state, p->p_pptr->pid, p->p_cptr ? p->p_cptr->pid : -1);
-// TODO WGJA WIP: 	i = 0;
-// TODO WGJA WIP: 	j = PAGE_SIZE;
-// TODO WGJA WIP: 	if (!(stack = (unsigned char *) p->kernel_stack_page)) {
-// TODO WGJA WIP: 		stack = (unsigned char *) init_kernel_stack;
-// TODO WGJA WIP: 		j = sizeof(init_kernel_stack);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	while (i<j && !*(stack++))
-// TODO WGJA WIP: 		i++;
-// TODO WGJA WIP: 	printk("%d/%d chars free in kstack\n",i,j);
-// TODO WGJA WIP: 	printk("   PC=%08X.", *(1019 + (unsigned long *) p));
-// TODO WGJA WIP: 	if (p->p_ysptr || p->p_osptr) 
-// TODO WGJA WIP: 		printk("   Younger sib=%d, older sib=%d\n", 
-// TODO WGJA WIP: 			p->p_ysptr ? p->p_ysptr->pid : -1,
-// TODO WGJA WIP: 			p->p_osptr ? p->p_osptr->pid : -1);
-// TODO WGJA WIP: 	else
-// TODO WGJA WIP: 		printk("\n");
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void show_state(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	printk("Task-info:\n");
-// TODO WGJA WIP: 	for (i=0 ; i<NR_TASKS ; i++)
-// TODO WGJA WIP: 		if (task[i])
-// TODO WGJA WIP: 			show_task(i,task[i]);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+static void show_task(int nr,struct task_struct * p)
+{
+	int i, j;
+	unsigned char * stack;
+
+	printk("%d: pid=%d, state=%d, father=%d, child=%d, ",(p == current)?-nr:nr,p->pid,
+		p->state, p->p_pptr->pid, p->p_cptr ? p->p_cptr->pid : -1);
+	i = 0;
+	j = PAGE_SIZE;
+	if (!(stack = (unsigned char *) p->kernel_stack_page)) {
+		stack = (unsigned char *) init_kernel_stack;
+		j = sizeof(init_kernel_stack);
+	}
+	while (i<j && !*(stack++))
+		i++;
+	printk("%d/%d chars free in kstack\n",i,j);
+	printk("   PC=%08X.", *(1019 + (unsigned long *) p));
+	if (p->p_ysptr || p->p_osptr) 
+		printk("   Younger sib=%d, older sib=%d\n", 
+			p->p_ysptr ? p->p_ysptr->pid : -1,
+			p->p_osptr ? p->p_osptr->pid : -1);
+	else
+		printk("\n");
+}
+
+void show_state(void)
+{
+	int i;
+
+	printk("Task-info:\n");
+	for (i=0 ; i<NR_TASKS ; i++)
+		if (task[i])
+			show_task(i,task[i]);
+}
+
 void sched_init(void)
 {
 	int i;
@@ -541,8 +544,6 @@ void sched_init(void)
 	outb_p(0x34,0x43);		/* binary, mode 2, LSB/MSB, ch 0 */
 	outb_p(LATCH & 0xff , 0x40);	/* LSB */
 	outb(LATCH >> 8 , 0x40);	/* MSB */
-	
-	if (request_irq(TIMER_IRQ,(void (*)(int)) do_timer)!=0) {
+	if (request_irq(TIMER_IRQ,(void (*)(int)) do_timer)!=0)
 		panic("Could not allocate timer IRQ!");
-	}
 }

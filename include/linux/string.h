@@ -332,26 +332,26 @@ return __res;
 // TODO WGJA WIP: 	:"ax","cx","dx","di","memory");
 // TODO WGJA WIP: return __res;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern inline void * memcpy(void * to, const void * from, size_t n)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: __asm__("cld\n\t"
-// TODO WGJA WIP: 	"movl %%edx, %%ecx\n\t"
-// TODO WGJA WIP: 	"shrl $2,%%ecx\n\t"
-// TODO WGJA WIP: 	"rep ; movsl\n\t"
-// TODO WGJA WIP: 	"testb $1,%%dl\n\t"
-// TODO WGJA WIP: 	"je 1f\n\t"
-// TODO WGJA WIP: 	"movsb\n"
-// TODO WGJA WIP: 	"1:\ttestb $2,%%dl\n\t"
-// TODO WGJA WIP: 	"je 2f\n\t"
-// TODO WGJA WIP: 	"movsw\n"
-// TODO WGJA WIP: 	"2:\n"
-// TODO WGJA WIP: 	: /* no output */
-// TODO WGJA WIP: 	:"d" (n),"D" ((long) to),"S" ((long) from)
-// TODO WGJA WIP: 	: "cx","di","si","memory");
-// TODO WGJA WIP: return (to);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+extern inline void * memcpy(void * to, const void * from, size_t n)
+{
+__asm__("cld\n\t"
+	"movl %%edx, %%ecx\n\t"
+	"shrl $2,%%ecx\n\t"
+	"rep ; movsl\n\t"
+	"testb $1,%%dl\n\t"
+	"je 1f\n\t"
+	"movsb\n"
+	"1:\ttestb $2,%%dl\n\t"
+	"je 2f\n\t"
+	"movsw\n"
+	"2:\n"
+	: /* no output */
+	:"d" (n),"D" ((long) to),"S" ((long) from)
+	: "cx","memory");
+return (to);
+}
+
 // TODO WGJA WIP: extern inline void * memmove(void * dest,const void * src, size_t n)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: if (dest<src)

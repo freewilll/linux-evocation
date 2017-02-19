@@ -76,37 +76,37 @@ unsigned short * mem_map = (unsigned short *) NULL;
 // TODO WGJA WIP: 	task->blocked &= ~(1<<(SIGKILL-1));
 // TODO WGJA WIP: 	send_sig(SIGKILL,task,1);
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static void free_one_table(unsigned long * page_dir)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int j;
-// TODO WGJA WIP: 	unsigned long pg_table = *page_dir;
-// TODO WGJA WIP: 	unsigned long * page_table;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!pg_table)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	*page_dir = 0;
-// TODO WGJA WIP: 	if (pg_table >= high_memory || !(pg_table & PAGE_PRESENT)) {
-// TODO WGJA WIP: 		printk("Bad page table: [%08x]=%08x\n",page_dir,pg_table);
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (mem_map[MAP_NR(pg_table)] & MAP_PAGE_RESERVED)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	page_table = (unsigned long *) (pg_table & PAGE_MASK);
-// TODO WGJA WIP: 	for (j = 0 ; j < PTRS_PER_PAGE ; j++,page_table++) {
-// TODO WGJA WIP: 		unsigned long pg = *page_table;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 		if (!pg)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		*page_table = 0;
-// TODO WGJA WIP: 		if (pg & PAGE_PRESENT)
-// TODO WGJA WIP: 			free_page(PAGE_MASK & pg);
-// TODO WGJA WIP: 		else
-// TODO WGJA WIP: 			swap_free(pg);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	free_page(PAGE_MASK & pg_table);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+static void free_one_table(unsigned long * page_dir)
+{
+	int j;
+	unsigned long pg_table = *page_dir;
+	unsigned long * page_table;
+
+	if (!pg_table)
+		return;
+	*page_dir = 0;
+	if (pg_table >= high_memory || !(pg_table & PAGE_PRESENT)) {
+		printk("Bad page table: [%08x]=%08x\n",page_dir,pg_table);
+		return;
+	}
+	if (mem_map[MAP_NR(pg_table)] & MAP_PAGE_RESERVED)
+		return;
+	page_table = (unsigned long *) (pg_table & PAGE_MASK);
+	for (j = 0 ; j < PTRS_PER_PAGE ; j++,page_table++) {
+		unsigned long pg = *page_table;
+
+		if (!pg)
+			continue;
+		*page_table = 0;
+		if (pg & PAGE_PRESENT)
+			free_page(PAGE_MASK & pg);
+		else
+			swap_free(pg);
+	}
+	free_page(PAGE_MASK & pg_table);
+}
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * This function clears all user-level page tables of a process - this
 // TODO WGJA WIP:  * is needed by execve(), so that old pages aren't in the way. Note that
@@ -148,121 +148,121 @@ unsigned short * mem_map = (unsigned short *) NULL;
 // TODO WGJA WIP: 	invalidate();
 // TODO WGJA WIP: 	return;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This function frees up all page tables of a process when it exits.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: void free_page_tables(struct task_struct * tsk)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 	unsigned long pg_dir;
-// TODO WGJA WIP: 	unsigned long * page_dir;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!tsk)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	if (tsk == task[0]) {
-// TODO WGJA WIP: 		printk("task[0] (swapper) killed: unable to recover\n");
-// TODO WGJA WIP: 		panic("Trying to free up swapper memory space");
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	pg_dir = tsk->tss.cr3;
-// TODO WGJA WIP: 	if (!pg_dir || pg_dir == (unsigned long) swapper_pg_dir) {
-// TODO WGJA WIP: 		printk("Trying to free kernel page-directory: not good\n");
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	tsk->tss.cr3 = (unsigned long) swapper_pg_dir;
-// TODO WGJA WIP: 	if (tsk == current)
-// TODO WGJA WIP: 		__asm__ __volatile__("movl %0,%%cr3": :"a" (tsk->tss.cr3));
-// TODO WGJA WIP: 	if (mem_map[MAP_NR(pg_dir)] > 1) {
-// TODO WGJA WIP: 		free_page(pg_dir);
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	page_dir = (unsigned long *) pg_dir;
-// TODO WGJA WIP: 	for (i = 0 ; i < PTRS_PER_PAGE ; i++,page_dir++)
-// TODO WGJA WIP: 		free_one_table(page_dir);
-// TODO WGJA WIP: 	free_page(pg_dir);
-// TODO WGJA WIP: 	invalidate();
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * clone_page_tables() clones the page table for a process - both
-// TODO WGJA WIP:  * processes will have the exact same pages in memory. There are
-// TODO WGJA WIP:  * probably races in the memory management with cloning, but we'll
-// TODO WGJA WIP:  * see..
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: int clone_page_tables(struct task_struct * tsk)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long pg_dir;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	pg_dir = current->tss.cr3;
-// TODO WGJA WIP: 	mem_map[MAP_NR(pg_dir)]++;
-// TODO WGJA WIP: 	tsk->tss.cr3 = pg_dir;
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * copy_page_tables() just copies the whole process memory range:
-// TODO WGJA WIP:  * note the special handling of RESERVED (ie kernel) pages, which
-// TODO WGJA WIP:  * means that they are always shared by all processes.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: int copy_page_tables(struct task_struct * tsk)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 	unsigned long old_pg_dir, *old_page_dir;
-// TODO WGJA WIP: 	unsigned long new_pg_dir, *new_page_dir;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!(new_pg_dir = get_free_page(GFP_KERNEL)))
-// TODO WGJA WIP: 		return -ENOMEM;
-// TODO WGJA WIP: 	old_pg_dir = current->tss.cr3;
-// TODO WGJA WIP: 	tsk->tss.cr3 = new_pg_dir;
-// TODO WGJA WIP: 	old_page_dir = (unsigned long *) old_pg_dir;
-// TODO WGJA WIP: 	new_page_dir = (unsigned long *) new_pg_dir;
-// TODO WGJA WIP: 	for (i = 0 ; i < PTRS_PER_PAGE ; i++,old_page_dir++,new_page_dir++) {
-// TODO WGJA WIP: 		int j;
-// TODO WGJA WIP: 		unsigned long old_pg_table, *old_page_table;
-// TODO WGJA WIP: 		unsigned long new_pg_table, *new_page_table;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 		old_pg_table = *old_page_dir;
-// TODO WGJA WIP: 		if (!old_pg_table)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (old_pg_table >= high_memory || !(old_pg_table & PAGE_PRESENT)) {
-// TODO WGJA WIP: 			printk("copy_page_tables: bad page table: "
-// TODO WGJA WIP: 				"probable memory corruption");
-// TODO WGJA WIP: 			*old_page_dir = 0;
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (mem_map[MAP_NR(old_pg_table)] & MAP_PAGE_RESERVED) {
-// TODO WGJA WIP: 			*new_page_dir = old_pg_table;
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (!(new_pg_table = get_free_page(GFP_KERNEL))) {
-// TODO WGJA WIP: 			free_page_tables(tsk);
-// TODO WGJA WIP: 			return -ENOMEM;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		old_page_table = (unsigned long *) (PAGE_MASK & old_pg_table);
-// TODO WGJA WIP: 		new_page_table = (unsigned long *) (PAGE_MASK & new_pg_table);
-// TODO WGJA WIP: 		for (j = 0 ; j < PTRS_PER_PAGE ; j++,old_page_table++,new_page_table++) {
-// TODO WGJA WIP: 			unsigned long pg;
-// TODO WGJA WIP: 			pg = *old_page_table;
-// TODO WGJA WIP: 			if (!pg)
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 			if (!(pg & PAGE_PRESENT)) {
-// TODO WGJA WIP: 				*new_page_table = swap_duplicate(pg);
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 			if ((pg & (PAGE_RW | PAGE_COW)) == (PAGE_RW | PAGE_COW))
-// TODO WGJA WIP: 				pg &= ~PAGE_RW;
-// TODO WGJA WIP: 			*new_page_table = pg;
-// TODO WGJA WIP: 			if (mem_map[MAP_NR(pg)] & MAP_PAGE_RESERVED)
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 			*old_page_table = pg;
-// TODO WGJA WIP: 			mem_map[MAP_NR(pg)]++;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		*new_page_dir = new_pg_table | PAGE_TABLE;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	invalidate();
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+/*
+ * This function frees up all page tables of a process when it exits.
+ */
+void free_page_tables(struct task_struct * tsk)
+{
+	int i;
+	unsigned long pg_dir;
+	unsigned long * page_dir;
+
+	if (!tsk)
+		return;
+	if (tsk == task[0]) {
+		printk("task[0] (swapper) killed: unable to recover\n");
+		panic("Trying to free up swapper memory space");
+	}
+	pg_dir = tsk->tss.cr3;
+	if (!pg_dir || pg_dir == (unsigned long) swapper_pg_dir) {
+		printk("Trying to free kernel page-directory: not good\n");
+		return;
+	}
+	tsk->tss.cr3 = (unsigned long) swapper_pg_dir;
+	if (tsk == current)
+		__asm__ __volatile__("movl %0,%%cr3": :"a" (tsk->tss.cr3));
+	if (mem_map[MAP_NR(pg_dir)] > 1) {
+		free_page(pg_dir);
+		return;
+	}
+	page_dir = (unsigned long *) pg_dir;
+	for (i = 0 ; i < PTRS_PER_PAGE ; i++,page_dir++)
+		free_one_table(page_dir);
+	free_page(pg_dir);
+	invalidate();
+}
+
+/*
+ * clone_page_tables() clones the page table for a process - both
+ * processes will have the exact same pages in memory. There are
+ * probably races in the memory management with cloning, but we'll
+ * see..
+ */
+int clone_page_tables(struct task_struct * tsk)
+{
+	unsigned long pg_dir;
+
+	pg_dir = current->tss.cr3;
+	mem_map[MAP_NR(pg_dir)]++;
+	tsk->tss.cr3 = pg_dir;
+	return 0;
+}
+
+/*
+ * copy_page_tables() just copies the whole process memory range:
+ * note the special handling of RESERVED (ie kernel) pages, which
+ * means that they are always shared by all processes.
+ */
+int copy_page_tables(struct task_struct * tsk)
+{
+	int i;
+	unsigned long old_pg_dir, *old_page_dir;
+	unsigned long new_pg_dir, *new_page_dir;
+
+	if (!(new_pg_dir = get_free_page(GFP_KERNEL)))
+		return -ENOMEM;
+	old_pg_dir = current->tss.cr3;
+	tsk->tss.cr3 = new_pg_dir;
+	old_page_dir = (unsigned long *) old_pg_dir;
+	new_page_dir = (unsigned long *) new_pg_dir;
+	for (i = 0 ; i < PTRS_PER_PAGE ; i++,old_page_dir++,new_page_dir++) {
+		int j;
+		unsigned long old_pg_table, *old_page_table;
+		unsigned long new_pg_table, *new_page_table;
+
+		old_pg_table = *old_page_dir;
+		if (!old_pg_table)
+			continue;
+		if (old_pg_table >= high_memory || !(old_pg_table & PAGE_PRESENT)) {
+			printk("copy_page_tables: bad page table: "
+				"probable memory corruption");
+			*old_page_dir = 0;
+			continue;
+		}
+		if (mem_map[MAP_NR(old_pg_table)] & MAP_PAGE_RESERVED) {
+			*new_page_dir = old_pg_table;
+			continue;
+		}
+		if (!(new_pg_table = get_free_page(GFP_KERNEL))) {
+			free_page_tables(tsk);
+			return -ENOMEM;
+		}
+		old_page_table = (unsigned long *) (PAGE_MASK & old_pg_table);
+		new_page_table = (unsigned long *) (PAGE_MASK & new_pg_table);
+		for (j = 0 ; j < PTRS_PER_PAGE ; j++,old_page_table++,new_page_table++) {
+			unsigned long pg;
+			pg = *old_page_table;
+			if (!pg)
+				continue;
+			if (!(pg & PAGE_PRESENT)) {
+				*new_page_table = swap_duplicate(pg);
+				continue;
+			}
+			if ((pg & (PAGE_RW | PAGE_COW)) == (PAGE_RW | PAGE_COW))
+				pg &= ~PAGE_RW;
+			*new_page_table = pg;
+			if (mem_map[MAP_NR(pg)] & MAP_PAGE_RESERVED)
+				continue;
+			*old_page_table = pg;
+			mem_map[MAP_NR(pg)]++;
+		}
+		*new_page_dir = new_pg_table | PAGE_TABLE;
+	}
+	invalidate();
+	return 0;
+}
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * a more complete version of free_page_tables which performs with page
 // TODO WGJA WIP:  * granularity.

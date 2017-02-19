@@ -21,13 +21,13 @@
 #include <asm/system.h>
 #include <asm/segment.h>
 #include <asm/io.h>
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define get_seg_byte(seg,addr) ({ \
-// TODO WGJA WIP: register char __res; \
-// TODO WGJA WIP: __asm__("push %%fs;mov %%ax,%%fs;movb %%fs:%2,%%al;pop %%fs" \
-// TODO WGJA WIP: 	:"=a" (__res):"0" (seg),"m" (*(addr))); \
-// TODO WGJA WIP: __res;})
-// TODO WGJA WIP: 
+
+#define get_seg_byte(seg,addr) ({ \
+register char __res; \
+__asm__("push %%fs;mov %%ax,%%fs;movb %%fs:%2,%%al;pop %%fs" \
+	:"=a" (__res):"0" (seg),"m" (*(addr))); \
+__res;})
+
 // TODO WGJA WIP: #define get_seg_long(seg,addr) ({ \
 // TODO WGJA WIP: register unsigned long __res; \
 // TODO WGJA WIP: __asm__("push %%fs;mov %%ax,%%fs;movl %%fs:%2,%%eax;pop %%fs" \
@@ -60,28 +60,30 @@ extern "C" void coprocessor_error(void);
 extern "C" void reserved(void);
 extern "C" void alignment_check(void);
 
-// TODO WGJA WIP: /*static*/ void die_if_kernel(char * str, struct pt_regs * regs, long err)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if ((regs->eflags & VM_MASK) || ((0xffff & regs->cs) == USER_CS))
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	printk("%s: %04x\n", str, err & 0xffff);
-// TODO WGJA WIP: 	printk("EIP:    %04x:%p\nEFLAGS: %p\n", 0xffff & regs->cs,regs->eip,regs->eflags);
-// TODO WGJA WIP: 	printk("eax: %08x   ebx: %08x   ecx: %08x   edx: %08x\n",
-// TODO WGJA WIP: 		regs->eax, regs->ebx, regs->ecx, regs->edx);
-// TODO WGJA WIP: 	printk("esi: %08x   edi: %08x   ebp: %08x\n",
-// TODO WGJA WIP: 		regs->esi, regs->edi, regs->ebp);
-// TODO WGJA WIP: 	printk("ds: %04x   es: %04x   fs: %04x   gs: %04x\n",
-// TODO WGJA WIP: 		regs->ds, regs->es, regs->fs, regs->gs);
-// TODO WGJA WIP: 	store_TR(i);
-// TODO WGJA WIP: 	printk("Pid: %d, process nr: %d\n", current->pid, 0xffff & i);
-// TODO WGJA WIP: 	for(i=0;i<10;i++)
-// TODO WGJA WIP: 		printk("%02x ",0xff & get_seg_byte(regs->cs,(i+(char *)regs->eip)));
-// TODO WGJA WIP: 	printk("\n");
-// TODO WGJA WIP: 	do_exit(SIGSEGV);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+/*static*/ void die_if_kernel(char * str, struct pt_regs * regs, long err)
+{
+	int i;
+
+	if ((regs->eflags & VM_MASK) || ((0xffff & regs->cs) == USER_CS))
+		return;
+	printk("%s: %04x\n", str, err & 0xffff);
+	printk("EIP:    %04x:%p\nEFLAGS: %p\n", 0xffff & regs->cs,regs->eip,regs->eflags);
+	printk("eax: %08x   ebx: %08x   ecx: %08x   edx: %08x\n",
+		regs->eax, regs->ebx, regs->ecx, regs->edx);
+	printk("esi: %08x   edi: %08x   ebp: %08x\n",
+		regs->esi, regs->edi, regs->ebp);
+	printk("ds: %04x   es: %04x   fs: %04x   gs: %04x\n",
+		regs->ds, regs->es, regs->fs, regs->gs);
+	store_TR(i);
+	printk("Pid: %d, process nr: %d\n", current->pid, 0xffff & i);
+	for(i=0;i<10;i++)
+		printk("%02x ",0xff & get_seg_byte(regs->cs,(i+(char *)regs->eip)));
+	printk("\n");
+	// do_exit(SIGSEGV);  // TODO WGJA die_if_kernel
+	cli();
+
+}
+
 // TODO WGJA WIP: extern "C" void do_double_fault(struct pt_regs * regs, long error_code)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	send_sig(SIGSEGV, current, 1);
@@ -226,13 +228,55 @@ void math_error(void)
 // TODO WGJA WIP: }
 
 // TODO WGJA enable traps
-void unhandled_trap() {
-	printk("Unhandled trap. Giving up.\n");
-	for (;;);
+#define UNHT(n) void unhandled_trap_##n(struct pt_regs * regs, long error_code) { \
+	char *vidmem = (char *)0xb8000; vidmem[79 * 2] = 'T'; vidmem[79 * 2 + 1] = 0x40; for (;;); \
+	}
+#define STG(n) set_trap_gate(n,&unhandled_trap_##n);
+UNHT(0);
+UNHT(1);
+UNHT(2);
+UNHT(3);
+UNHT(4);
+UNHT(5);
+UNHT(6);
+UNHT(7);
+UNHT(8);
+UNHT(9);
+UNHT(10);
+UNHT(11);
+UNHT(12);
+UNHT(13);
+UNHT(14);
+UNHT(15);
+UNHT(16);
+UNHT(17);
+
+void unhandled_trap() { 
+	printk("Unhandled trap. Giving up.\n"); 
+	for (;;); 
 }
 
 void trap_init(void)
 {
+	STG(0);
+	STG(1);
+	STG(2);
+	STG(3);
+	STG(4);
+	STG(5);
+	STG(6);
+	STG(7);
+	STG(8);
+	STG(9);
+	STG(10);
+	STG(11);
+	STG(12);
+	STG(13);
+	STG(14);
+	STG(15);
+	STG(16);
+	STG(17);
+
 	int i;
 
 	// TODO WGJA enable traps
@@ -253,7 +297,7 @@ void trap_init(void)
 	// set_trap_gate(11,&segment_not_present);
 	// set_trap_gate(12,&stack_segment);
 	// set_trap_gate(13,&general_protection);
-	// set_trap_gate(14,&page_fault);
+	set_trap_gate(14,&page_fault);
 	// set_trap_gate(15,&reserved);
 	// set_trap_gate(16,&coprocessor_error);
 	// set_trap_gate(17,&alignment_check);

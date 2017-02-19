@@ -221,20 +221,20 @@ struct task_struct {
 #endif NEW_SWAP
 };
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Per process flags
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: #define PF_ALIGNWARN	0x00000001	/* Print alignment warning msgs */
-// TODO WGJA WIP: 					/* Not implemented yet, only for 486*/
-// TODO WGJA WIP: #define PF_PTRACED	0x00000010	/* set if ptrace (0) has been called. */
-// TODO WGJA WIP: #define PF_TRACESYS	0x00000020	/* tracing system calls */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * cloning flags:
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: #define CSIGNAL		0x000000ff	/* signal mask to be sent at exit */
-// TODO WGJA WIP: #define COPYVM		0x00000100	/* set if VM copy desired (like normal fork()) */
-// TODO WGJA WIP: #define COPYFD		0x00000200	/* set if fd's should be copied, not shared (NI) */
+/*
+ * Per process flags
+ */
+#define PF_ALIGNWARN	0x00000001	/* Print alignment warning msgs */
+					/* Not implemented yet, only for 486*/
+#define PF_PTRACED	0x00000010	/* set if ptrace (0) has been called. */
+#define PF_TRACESYS	0x00000020	/* tracing system calls */
+
+/*
+ * cloning flags:
+ */
+#define CSIGNAL		0x000000ff	/* signal mask to be sent at exit */
+#define COPYVM		0x00000100	/* set if VM copy desired (like normal fork()) */
+#define COPYFD		0x00000200	/* set if fd's should be copied, not shared (NI) */
 
 /*
  *  INIT_TASK is used to set up the first task table, touch at
@@ -294,12 +294,12 @@ extern int ignore_irq13;
 extern int wp_works_ok;
 
 // TODO WGJA WIP: #define CURRENT_TIME (startup_time+(jiffies+jiffies_offset)/HZ)
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern void sleep_on(struct wait_queue ** p);
-// TODO WGJA WIP: extern void interruptible_sleep_on(struct wait_queue ** p);
-// TODO WGJA WIP: extern void wake_up(struct wait_queue ** p);
-// TODO WGJA WIP: extern void wake_up_interruptible(struct wait_queue ** p);
-// TODO WGJA WIP: 
+
+extern void sleep_on(struct wait_queue ** p);
+extern void interruptible_sleep_on(struct wait_queue ** p);
+extern void wake_up(struct wait_queue ** p);
+extern void wake_up_interruptible(struct wait_queue ** p);
+
 // TODO WGJA WIP: extern void notify_parent(struct task_struct * tsk);
 extern int send_sig(unsigned long sig,struct task_struct * p,int priv);
 // TODO WGJA WIP: extern int in_group_p(gid_t grp);
@@ -327,12 +327,12 @@ extern int irqaction(unsigned int irq,struct sigaction * sa);
 #define _LDT(n) ((((unsigned long) n)<<4)+(FIRST_LDT_ENTRY<<3))
 #define load_TR(n) __asm__("ltr %%ax": /* no output */ :"a" (_TSS(n)))
 #define load_ldt(n) __asm__("lldt %%ax": /* no output */ :"a" (_LDT(n)))
-// TODO WGJA WIP: #define store_TR(n) \
-// TODO WGJA WIP: __asm__("str %%ax\n\t" \
-// TODO WGJA WIP: 	"subl %2,%%eax\n\t" \
-// TODO WGJA WIP: 	"shrl $4,%%eax" \
-// TODO WGJA WIP: 	:"=a" (n) \
-// TODO WGJA WIP: 	:"0" (0),"i" (FIRST_TSS_ENTRY<<3))
+#define store_TR(n) \
+__asm__("str %%ax\n\t" \
+	"subl %2,%%eax\n\t" \
+	"shrl $4,%%eax" \
+	:"=a" (n) \
+	:"0" (0),"i" (FIRST_TSS_ENTRY<<3))
 /*
  *	switch_to(n) should switch tasks to task nr n, first
  * checking that n isn't the current task, in which case it does nothing.
@@ -340,19 +340,21 @@ extern int irqaction(unsigned int irq,struct sigaction * sa);
  * tha math co-processor latest.
  */
 #define switch_to(tsk) \
-__asm__("cmpl %%ecx,current\n\t" \
+__asm__( \
+	"cmpl %%ecx,current\n\t" \
 	"je 1f\n\t" \
 	"cli\n\t" \
 	"xchgl %%ecx,current\n\t" \
-	"ljmp %0\n\t" \
+	"ljmp 0(%%ebx)\n\t" \
 	"sti\n\t" \
 	"cmpl %%ecx,last_task_used_math\n\t" \
 	"jne 1f\n\t" \
 	"clts\n" \
 	"1:" \
 	: /* no output */ \
-	:"m" (*(((char *)&tsk->tss.tr)-4)), \
-	 "c" (tsk))
+	:"c" (tsk), \
+	 "b" (((char *)&tsk->tss.tr)-4) \
+	:)
 
 // TODO WGJA WIP: #define _set_base(addr,base) \
 // TODO WGJA WIP: __asm__("movw %%dx,%0\n\t" \
@@ -489,32 +491,32 @@ __asm__("cmpl %%ecx,current\n\t" \
 // TODO WGJA WIP: 		:"=r" (__limit):"r" (segment));
 // TODO WGJA WIP: 	return __limit+1;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define REMOVE_LINKS(p) do { unsigned long flags; \
-// TODO WGJA WIP: 	save_flags(flags) ; cli(); \
-// TODO WGJA WIP: 	(p)->next_task->prev_task = (p)->prev_task; \
-// TODO WGJA WIP: 	(p)->prev_task->next_task = (p)->next_task; \
-// TODO WGJA WIP: 	restore_flags(flags); \
-// TODO WGJA WIP: 	if ((p)->p_osptr) \
-// TODO WGJA WIP: 		(p)->p_osptr->p_ysptr = (p)->p_ysptr; \
-// TODO WGJA WIP: 	if ((p)->p_ysptr) \
-// TODO WGJA WIP: 		(p)->p_ysptr->p_osptr = (p)->p_osptr; \
-// TODO WGJA WIP: 	else \
-// TODO WGJA WIP: 		(p)->p_pptr->p_cptr = (p)->p_osptr; \
-// TODO WGJA WIP: 	} while (0)
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define SET_LINKS(p) do { unsigned long flags; \
-// TODO WGJA WIP: 	save_flags(flags); cli(); \
-// TODO WGJA WIP: 	(p)->next_task = &init_task; \
-// TODO WGJA WIP: 	(p)->prev_task = init_task.prev_task; \
-// TODO WGJA WIP: 	init_task.prev_task->next_task = (p); \
-// TODO WGJA WIP: 	init_task.prev_task = (p); \
-// TODO WGJA WIP: 	restore_flags(flags); \
-// TODO WGJA WIP: 	(p)->p_ysptr = NULL; \
-// TODO WGJA WIP: 	if (((p)->p_osptr = (p)->p_pptr->p_cptr) != NULL) \
-// TODO WGJA WIP: 		(p)->p_osptr->p_ysptr = p; \
-// TODO WGJA WIP: 	(p)->p_pptr->p_cptr = p; \
-// TODO WGJA WIP: 	} while (0)
+
+#define REMOVE_LINKS(p) do { unsigned long flags; \
+	save_flags(flags) ; cli(); \
+	(p)->next_task->prev_task = (p)->prev_task; \
+	(p)->prev_task->next_task = (p)->next_task; \
+	restore_flags(flags); \
+	if ((p)->p_osptr) \
+		(p)->p_osptr->p_ysptr = (p)->p_ysptr; \
+	if ((p)->p_ysptr) \
+		(p)->p_ysptr->p_osptr = (p)->p_osptr; \
+	else \
+		(p)->p_pptr->p_cptr = (p)->p_osptr; \
+	} while (0)
+
+#define SET_LINKS(p) do { unsigned long flags; \
+	save_flags(flags); cli(); \
+	(p)->next_task = &init_task; \
+	(p)->prev_task = init_task.prev_task; \
+	init_task.prev_task->next_task = (p); \
+	init_task.prev_task = (p); \
+	restore_flags(flags); \
+	(p)->p_ysptr = (task_struct*) NULL; \
+	if (((p)->p_osptr = (p)->p_pptr->p_cptr) != NULL) \
+		(p)->p_osptr->p_ysptr = p; \
+	(p)->p_pptr->p_cptr = p; \
+	} while (0)
 
 #define for_each_task(p) \
 	for (p = &init_task ; (p = p->next_task) != &init_task ; )

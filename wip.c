@@ -1,6 +1,10 @@
 #include <linux/kernel.h>
 #include <linux/errno.h>
 #include <linux/mm.h>
+#include <linux/unistd.h>
+
+static inline _syscall0(int,fork)
+static inline _syscall0(int,idle)
 
 // TODO WGJA panic
 void panic(const char * s)
@@ -61,6 +65,40 @@ int shrink_buffers(unsigned int prio)
 	return 0;
 }
 
+static inline void * __memset_generic(void * s, char c,size_t count)
+{
+int d0, d1;
+__asm__ __volatile__(
+	"rep\n\t"
+	"stosb"
+	: "=&c" (d0), "=&D" (d1)
+	:"a" (c),"1" (s),"0" (count)
+	:"memory");
+return s;
+}
+
+
+void test_fork() {
+	int pid;
+	char *vidmem = (char *)0xb8000;
+	int i;
+
+	for (i=0; i < 10; i++) {
+		pid = fork();
+		if (pid < 0) {
+			vidmem[0] = '!';
+			for (;;);
+		}
+		if (pid == 0) {
+			printk("Forked pid=%d\n", i);
+			for (;;) {
+				printk("%d", i);
+				idle();
+			}
+		}
+	}
+}
+
 void test_page_map() 
 {
 	int i=0;
@@ -86,4 +124,37 @@ void test_kmalloc()
 		printk("Free pages %d, foo=%x\n", nr_free_pages, foo);
 		// kfree(foo);
 	}
+}
+
+// TODO WGJA get_empty_filp
+struct file * get_empty_filp(void)
+{
+	printk("TODO get_empty_filp\n");
+	for (;;);
+}
+
+// TODO WGJA iput
+void iput(struct inode * inode)
+{
+	printk("TODO iput\n");
+	for (;;);
+}
+
+// TODO WGJA do_page_fault
+extern "C" void do_page_fault(struct pt_regs *regs, unsigned long error_code)
+{
+	unsigned long address;
+	unsigned long user_esp = 0;
+	unsigned long stack_limit;
+	unsigned int bit;
+
+	char *vidmem = (char *)0xb8000;
+	vidmem[79 * 2] = 'P';
+	vidmem[79 * 2 + 1] = 0x40;
+
+	/* get the address */
+	__asm__("movl %%cr2,%0":"=r" (address));
+	printk("Unable to handle kernel paging request at address %08x\n",address);
+
+	for (;;);
 }

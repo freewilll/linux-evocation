@@ -7,7 +7,7 @@
  */
 
 #include <linux/limits.h>
-// TODO WGJA WIP: #include <linux/wait.h>
+#include <linux/wait.h>
 #include <linux/types.h>
 // TODO WGJA WIP: #include <linux/dirent.h>
 // TODO WGJA WIP: #include <linux/vfs.h>
@@ -162,70 +162,70 @@
 // TODO WGJA WIP: 	struct buffer_head * b_this_page;	/* circular list of buffers in one page */
 // TODO WGJA WIP: 	struct buffer_head * b_reqnext;		/* request queue */
 // TODO WGJA WIP: };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #include <linux/pipe_fs_i.h>
-// TODO WGJA WIP: #include <linux/minix_fs_i.h>
-// TODO WGJA WIP: #include <linux/ext_fs_i.h>
-// TODO WGJA WIP: #include <linux/ext2_fs_i.h>
-// TODO WGJA WIP: #include <linux/msdos_fs_i.h>
-// TODO WGJA WIP: #include <linux/iso_fs_i.h>
-// TODO WGJA WIP: #include <linux/nfs_fs_i.h>
-// TODO WGJA WIP: #include <linux/xia_fs_i.h>
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct inode {
-// TODO WGJA WIP: 	dev_t		i_dev;
-// TODO WGJA WIP: 	unsigned long	i_ino;
-// TODO WGJA WIP: 	umode_t		i_mode;
-// TODO WGJA WIP: 	nlink_t		i_nlink;
-// TODO WGJA WIP: 	uid_t		i_uid;
-// TODO WGJA WIP: 	gid_t		i_gid;
-// TODO WGJA WIP: 	dev_t		i_rdev;
-// TODO WGJA WIP: 	off_t		i_size;
-// TODO WGJA WIP: 	time_t		i_atime;
-// TODO WGJA WIP: 	time_t		i_mtime;
-// TODO WGJA WIP: 	time_t		i_ctime;
-// TODO WGJA WIP: 	unsigned long	i_blksize;
-// TODO WGJA WIP: 	unsigned long	i_blocks;
-// TODO WGJA WIP: 	struct inode_operations * i_op;
-// TODO WGJA WIP: 	struct super_block * i_sb;
-// TODO WGJA WIP: 	struct wait_queue * i_wait;
-// TODO WGJA WIP: 	struct file_lock * i_flock;
-// TODO WGJA WIP: 	struct vm_area_struct * i_mmap;
-// TODO WGJA WIP: 	struct inode * i_next, * i_prev;
-// TODO WGJA WIP: 	struct inode * i_hash_next, * i_hash_prev;
-// TODO WGJA WIP: 	struct inode * i_bound_to, * i_bound_by;
-// TODO WGJA WIP: 	unsigned short i_count;
-// TODO WGJA WIP: 	unsigned short i_flags;
-// TODO WGJA WIP: 	unsigned char i_lock;
-// TODO WGJA WIP: 	unsigned char i_dirt;
-// TODO WGJA WIP: 	unsigned char i_pipe;
-// TODO WGJA WIP: 	unsigned char i_mount;
-// TODO WGJA WIP: 	unsigned char i_seek;
-// TODO WGJA WIP: 	unsigned char i_update;
-// TODO WGJA WIP: 	union {
-// TODO WGJA WIP: 		struct pipe_inode_info pipe_i;
-// TODO WGJA WIP: 		struct minix_inode_info minix_i;
-// TODO WGJA WIP: 		struct ext_inode_info ext_i;
-// TODO WGJA WIP: 		struct ext2_inode_info ext2_i;
-// TODO WGJA WIP: 		struct msdos_inode_info msdos_i;
-// TODO WGJA WIP: 		struct iso_inode_info isofs_i;
-// TODO WGJA WIP: 		struct nfs_inode_info nfs_i;
-// TODO WGJA WIP: 		struct xiafs_inode_info xiafs_i;
-// TODO WGJA WIP: 	} u;
-// TODO WGJA WIP: };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct file {
-// TODO WGJA WIP: 	mode_t f_mode;
-// TODO WGJA WIP: 	dev_t f_rdev;			/* needed for /dev/tty */
-// TODO WGJA WIP: 	off_t f_pos;
-// TODO WGJA WIP: 	unsigned short f_flags;
-// TODO WGJA WIP: 	unsigned short f_count;
-// TODO WGJA WIP: 	unsigned short f_reada;
-// TODO WGJA WIP: 	struct file *f_next, *f_prev;
-// TODO WGJA WIP: 	struct inode * f_inode;
-// TODO WGJA WIP: 	struct file_operations * f_op;
-// TODO WGJA WIP: };
-// TODO WGJA WIP: 
+
+#include <linux/pipe_fs_i.h>
+#include <linux/minix_fs_i.h>
+#include <linux/ext_fs_i.h>
+#include <linux/ext2_fs_i.h>
+#include <linux/msdos_fs_i.h>
+#include <linux/iso_fs_i.h>
+#include <linux/nfs_fs_i.h>
+#include <linux/xia_fs_i.h>
+
+struct inode {
+	dev_t		i_dev;
+	unsigned long	i_ino;
+	umode_t		i_mode;
+	nlink_t		i_nlink;
+	uid_t		i_uid;
+	gid_t		i_gid;
+	dev_t		i_rdev;
+	off_t		i_size;
+	time_t		i_atime;
+	time_t		i_mtime;
+	time_t		i_ctime;
+	unsigned long	i_blksize;
+	unsigned long	i_blocks;
+	struct inode_operations * i_op;
+	struct super_block * i_sb;
+	struct wait_queue * i_wait;
+	struct file_lock * i_flock;
+	struct vm_area_struct * i_mmap;
+	struct inode * i_next, * i_prev;
+	struct inode * i_hash_next, * i_hash_prev;
+	struct inode * i_bound_to, * i_bound_by;
+	unsigned short i_count;
+	unsigned short i_flags;
+	unsigned char i_lock;
+	unsigned char i_dirt;
+	unsigned char i_pipe;
+	unsigned char i_mount;
+	unsigned char i_seek;
+	unsigned char i_update;
+	union {
+		struct pipe_inode_info pipe_i;
+		struct minix_inode_info minix_i;
+		struct ext_inode_info ext_i;
+		struct ext2_inode_info ext2_i;
+		struct msdos_inode_info msdos_i;
+		struct iso_inode_info isofs_i;
+		struct nfs_inode_info nfs_i;
+		struct xiafs_inode_info xiafs_i;
+	} u;
+};
+
+struct file {
+	mode_t f_mode;
+	dev_t f_rdev;			/* needed for /dev/tty */
+	off_t f_pos;
+	unsigned short f_flags;
+	unsigned short f_count;
+	unsigned short f_reada;
+	struct file *f_next, *f_prev;
+	struct inode * f_inode;
+	struct file_operations * f_op;
+};
+
 // TODO WGJA WIP: struct file_lock {
 // TODO WGJA WIP: 	struct file_lock *fl_next;	/* singly linked list */
 // TODO WGJA WIP: 	struct task_struct *fl_owner;	/* NULL if on free list, for sanity checks */
@@ -268,20 +268,20 @@
 // TODO WGJA WIP: 		struct xiafs_sb_info xiafs_sb;
 // TODO WGJA WIP: 	} u;
 // TODO WGJA WIP: };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct file_operations {
-// TODO WGJA WIP: 	int (*lseek) (struct inode *, struct file *, off_t, int);
-// TODO WGJA WIP: 	int (*read) (struct inode *, struct file *, char *, int);
-// TODO WGJA WIP: 	int (*write) (struct inode *, struct file *, char *, int);
-// TODO WGJA WIP: 	int (*readdir) (struct inode *, struct file *, struct dirent *, int);
-// TODO WGJA WIP: 	int (*select) (struct inode *, struct file *, int, select_table *);
-// TODO WGJA WIP: 	int (*ioctl) (struct inode *, struct file *, unsigned int, unsigned long);
-// TODO WGJA WIP: 	int (*mmap) (struct inode *, struct file *, unsigned long, size_t, int, unsigned long);
-// TODO WGJA WIP: 	int (*open) (struct inode *, struct file *);
-// TODO WGJA WIP: 	void (*release) (struct inode *, struct file *);
-// TODO WGJA WIP: 	int (*fsync) (struct inode *, struct file *);
-// TODO WGJA WIP: };
-// TODO WGJA WIP: 
+
+struct file_operations {
+	int (*lseek) (struct inode *, struct file *, off_t, int);
+	int (*read) (struct inode *, struct file *, char *, int);
+	int (*write) (struct inode *, struct file *, char *, int);
+	int (*readdir) (struct inode *, struct file *, struct dirent *, int);
+	int (*select) (struct inode *, struct file *, int, select_table *);
+	int (*ioctl) (struct inode *, struct file *, unsigned int, unsigned long);
+	int (*mmap) (struct inode *, struct file *, unsigned long, size_t, int, unsigned long);
+	int (*open) (struct inode *, struct file *);
+	void (*release) (struct inode *, struct file *);
+	int (*fsync) (struct inode *, struct file *);
+};
+
 // TODO WGJA WIP: struct inode_operations {
 // TODO WGJA WIP: 	struct file_operations * default_file_ops;
 // TODO WGJA WIP: 	int (*create) (struct inode *,const char *,int,int,struct inode **);
@@ -375,13 +375,13 @@ extern int shrink_buffers(unsigned int priority);
 // TODO WGJA WIP: extern int open_namei(const char * pathname, int flag, int mode,
 // TODO WGJA WIP: 	struct inode ** res_inode, struct inode * base);
 // TODO WGJA WIP: extern int do_mknod(const char * filename, int mode, dev_t dev);
-// TODO WGJA WIP: extern void iput(struct inode * inode);
+extern void iput(struct inode * inode);
 // TODO WGJA WIP: extern struct inode * iget(struct super_block * sb,int nr);
 // TODO WGJA WIP: extern struct inode * get_empty_inode(void);
 // TODO WGJA WIP: extern void insert_inode_hash(struct inode *);
 // TODO WGJA WIP: extern void clear_inode(struct inode *);
 // TODO WGJA WIP: extern struct inode * get_pipe_inode(void);
-// TODO WGJA WIP: extern struct file * get_empty_filp(void);
+extern struct file * get_empty_filp(void);
 // TODO WGJA WIP: extern struct buffer_head * get_hash_table(dev_t dev, int block, int size);
 // TODO WGJA WIP: extern struct buffer_head * getblk(dev_t dev, int block, int size);
 // TODO WGJA WIP: extern void ll_rw_block(int rw, int nr, struct buffer_head * bh[]);

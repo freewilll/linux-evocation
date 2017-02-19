@@ -5,33 +5,33 @@
 #include <linux/fs.h>
 #include <linux/kernel.h>
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Linux kernel virtual memory manager primitives.
-// TODO WGJA WIP:  * The idea being to have a "virtual" mm in the same way
-// TODO WGJA WIP:  * we have a virtual fs - giving a cleaner interface to the
-// TODO WGJA WIP:  * mm details, and allowing different kinds of memory mappings
-// TODO WGJA WIP:  * (from shared memory to executable loading to arbitrary
-// TODO WGJA WIP:  * mmap() functions).
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This struct defines a memory VMM memory area. There is one of these
-// TODO WGJA WIP:  * per VM-area/task.  A VM area is any part of the process virtual memory
-// TODO WGJA WIP:  * space that has a special rule for the page-fault handlers (ie a shared
-// TODO WGJA WIP:  * library, the executable area etc).
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: struct vm_area_struct {
-// TODO WGJA WIP: 	struct task_struct * vm_task;		/* VM area parameters */
-// TODO WGJA WIP: 	unsigned long vm_start;
-// TODO WGJA WIP: 	unsigned long vm_end;
-// TODO WGJA WIP: 	unsigned short vm_page_prot;
-// TODO WGJA WIP: 	struct vm_area_struct * vm_next;	/* linked list */
-// TODO WGJA WIP: 	struct vm_area_struct * vm_share;	/* linked list */
-// TODO WGJA WIP: 	struct inode * vm_inode;
-// TODO WGJA WIP: 	unsigned long vm_offset;
-// TODO WGJA WIP: 	struct vm_operations_struct * vm_ops;
-// TODO WGJA WIP: };
-// TODO WGJA WIP: 
+/*
+ * Linux kernel virtual memory manager primitives.
+ * The idea being to have a "virtual" mm in the same way
+ * we have a virtual fs - giving a cleaner interface to the
+ * mm details, and allowing different kinds of memory mappings
+ * (from shared memory to executable loading to arbitrary
+ * mmap() functions).
+ */
+
+/*
+ * This struct defines a memory VMM memory area. There is one of these
+ * per VM-area/task.  A VM area is any part of the process virtual memory
+ * space that has a special rule for the page-fault handlers (ie a shared
+ * library, the executable area etc).
+ */
+struct vm_area_struct {
+	struct task_struct * vm_task;		/* VM area parameters */
+	unsigned long vm_start;
+	unsigned long vm_end;
+	unsigned short vm_page_prot;
+	struct vm_area_struct * vm_next;	/* linked list */
+	struct vm_area_struct * vm_share;	/* linked list */
+	struct inode * vm_inode;
+	unsigned long vm_offset;
+	struct vm_operations_struct * vm_ops;
+};
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * These are the virtual MM functions - opening of an area, closing it (needed to
 // TODO WGJA WIP:  * keep files on disk up-to-date etc), pointer to the functions called when a
@@ -71,19 +71,23 @@ extern unsigned long secondary_page_list;
 // TODO WGJA WIP:  * overhead, just use __get_free_page() directly..
 // TODO WGJA WIP:  */
 extern unsigned long __get_free_page(int priority);
-// TODO WGJA WIP: extern inline unsigned long get_free_page(int priority)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long page;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	page = __get_free_page(priority);
-// TODO WGJA WIP: 	if (page)
-// TODO WGJA WIP: 		__asm__ __volatile__("rep ; stosl"
-// TODO WGJA WIP: 			: /* no outputs */ \
-// TODO WGJA WIP: 			:"a" (0),"c" (1024),"D" (page)
-// TODO WGJA WIP: 			:"di","cx");
-// TODO WGJA WIP: 	return page;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+extern inline unsigned long get_free_page(int priority)
+{
+	unsigned long page;
+
+	page = __get_free_page(priority);
+	int d0, d1;
+	if (page)
+		__asm__ __volatile__(
+			"rep\n\t"
+			"stosl"
+			: "=&c" (d0), "=&D" (d1)
+			:"a" (0),"1" (page),"0" (1024)
+			:"memory");
+
+	return page;
+}
+
 // TODO WGJA WIP: /* mmap.c */
 // TODO WGJA WIP: 
 // TODO WGJA WIP: /* memory.c */
@@ -91,10 +95,10 @@ extern unsigned long __get_free_page(int priority);
 extern void free_page(unsigned long addr);
 // TODO WGJA WIP: extern unsigned long put_dirty_page(struct task_struct * tsk,unsigned long page,
 // TODO WGJA WIP: 	unsigned long address);
-// TODO WGJA WIP: extern void free_page_tables(struct task_struct * tsk);
+extern void free_page_tables(struct task_struct * tsk);
 // TODO WGJA WIP: extern void clear_page_tables(struct task_struct * tsk);
-// TODO WGJA WIP: extern int copy_page_tables(struct task_struct * to);
-// TODO WGJA WIP: extern int clone_page_tables(struct task_struct * to);
+extern int copy_page_tables(struct task_struct * to);
+extern int clone_page_tables(struct task_struct * to);
 // TODO WGJA WIP: extern int unmap_page_range(unsigned long from, unsigned long size);
 // TODO WGJA WIP: extern int remap_page_range(unsigned long from, unsigned long to, unsigned long size, int mask);
 // TODO WGJA WIP: extern int zeromap_page_range(unsigned long from, unsigned long size, int mask);
@@ -110,11 +114,11 @@ extern void mem_init(unsigned long low_start_mem,
 // TODO WGJA WIP: extern void show_mem(void);
 // TODO WGJA WIP: extern void oom(struct task_struct * task);
 // TODO WGJA WIP: extern void si_meminfo(struct sysinfo * val);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /* swap.c */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern void swap_free(unsigned long page_nr);
-// TODO WGJA WIP: extern unsigned long swap_duplicate(unsigned long page_nr);
+
+/* swap.c */
+
+extern void swap_free(unsigned long page_nr);
+extern unsigned long swap_duplicate(unsigned long page_nr);
 // TODO WGJA WIP: extern void swap_in(unsigned long *table_ptr);
 // TODO WGJA WIP: extern void si_swapinfo(struct sysinfo * val);
 extern void rw_swap_page(int rw, unsigned long nr, char * buf);
@@ -159,8 +163,8 @@ extern unsigned short * mem_map;
 #define GFP_KERNEL	0x03
 
 
-// TODO WGJA WIP: /* vm_ops not present page codes */
-// TODO WGJA WIP: #define SHM_SWP_TYPE 0x41        
+/* vm_ops not present page codes */
+#define SHM_SWP_TYPE 0x41        
 // TODO WGJA WIP: extern void shm_no_page (ulong *);
 
 #endif

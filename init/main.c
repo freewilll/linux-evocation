@@ -32,6 +32,8 @@ extern char edata, end;
 extern "C" void lcall7(void);
 struct desc_struct default_ldt;
 
+extern void show_state(void);
+extern void test_fork();
 extern void test_page_map();
 extern void test_kmalloc();
 
@@ -48,7 +50,7 @@ extern void test_kmalloc();
  * some others too.
  */
 static inline _syscall0(int,idle)
-// TODO WGJA WIP: static inline _syscall0(int,fork)
+static inline _syscall0(int,fork)
 // TODO WGJA WIP: static inline _syscall0(int,pause)
 // TODO WGJA WIP: static inline _syscall1(int,setup,void *,BIOS)
 // TODO WGJA WIP: static inline _syscall0(int,sync)
@@ -341,12 +343,17 @@ static void keyboard_interrupt(int int_pt_regs)
 {
 	// If we don't read the scan code, they keyboard controller won't send another one
 	unsigned char scancode;
+	char *vidmem = (char *)0xb8000;
+	
 	if (!(inb_p(0x64) & 0x01)) {
 		printk("Keyboard interrupt - bad keyb read.\n");
 		goto end_kbd_intr;
 	}
 	scancode = inb(0x60);
 	printk("%c", scancode);
+	
+	vidmem[0] = scancode;
+
 	end_kbd_intr:
 	return;
 }
@@ -403,10 +410,9 @@ extern "C" void start_kernel(void)
 	printk("Moving to user mode\n");
 	move_to_user_mode();
 
-	printk("Going idle\n");
+	test_fork();
+
 	for (;;) {
-		// Visual test to ensure the kernel is working
-		printk(".");
 		idle();
 	}
 

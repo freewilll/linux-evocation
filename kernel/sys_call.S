@@ -84,7 +84,7 @@ ENOSYS = 38
 .globl _double_fault,_coprocessor_segment_overrun
 .globl _invalid_TSS,_segment_not_present,_stack_segment
 .globl _general_protection,_reserved
-.globl _alignment_check,_page_fault
+.globl _alignment_check,page_fault
 .globl ret_from_sys_call
 
 #define SAVE_ALL \
@@ -241,36 +241,36 @@ v86_signal_return:
 # TODO WGJA WIP: _divide_error:
 # TODO WGJA WIP: 	pushl $0		# no error code
 # TODO WGJA WIP: 	pushl $_do_divide_error
-# TODO WGJA WIP: .align 4,0x90
-# TODO WGJA WIP: error_code:
-# TODO WGJA WIP: 	push %fs
-# TODO WGJA WIP: 	push %es
-# TODO WGJA WIP: 	push %ds
-# TODO WGJA WIP: 	pushl %eax
-# TODO WGJA WIP: 	pushl %ebp
-# TODO WGJA WIP: 	pushl %edi
-# TODO WGJA WIP: 	pushl %esi
-# TODO WGJA WIP: 	pushl %edx
-# TODO WGJA WIP: 	pushl %ecx
-# TODO WGJA WIP: 	pushl %ebx
-# TODO WGJA WIP: 	cld
-# TODO WGJA WIP: 	movl $-1, %eax
-# TODO WGJA WIP: 	xchgl %eax, ORIG_EAX(%esp)	# orig_eax (get the error code. )
-# TODO WGJA WIP: 	xorl %ebx,%ebx			# zero ebx
-# TODO WGJA WIP: 	mov %gs,%bx			# get the lower order bits of gs
-# TODO WGJA WIP: 	xchgl %ebx, GS(%esp)		# get the address and save gs.
-# TODO WGJA WIP: 	pushl %eax			# push the error code
-# TODO WGJA WIP: 	lea 4(%esp),%edx
-# TODO WGJA WIP: 	pushl %edx
-# TODO WGJA WIP: 	movl $(KERNEL_DS),%edx
-# TODO WGJA WIP: 	mov %dx,%ds
-# TODO WGJA WIP: 	mov %dx,%es
-# TODO WGJA WIP: 	movl $(USER_DS),%edx
-# TODO WGJA WIP: 	mov %dx,%fs
-# TODO WGJA WIP: 	call *%ebx
-# TODO WGJA WIP: 	addl $8,%esp
-# TODO WGJA WIP: 	jmp ret_from_sys_call
-# TODO WGJA WIP: 
+.align 4,0x90
+error_code:
+	push %fs
+	push %es
+	push %ds
+	pushl %eax
+	pushl %ebp
+	pushl %edi
+	pushl %esi
+	pushl %edx
+	pushl %ecx
+	pushl %ebx
+	cld
+	movl $-1, %eax
+	xchgl %eax, ORIG_EAX(%esp)	# orig_eax (get the error code. )
+	xorl %ebx,%ebx			# zero ebx
+	mov %gs,%bx			# get the lower order bits of gs
+	xchgl %ebx, GS(%esp)		# get the address and save gs.
+	pushl %eax			# push the error code
+	lea 4(%esp),%edx
+	pushl %edx
+	movl $(KERNEL_DS),%edx
+	mov %dx,%ds
+	mov %dx,%es
+	movl $(USER_DS),%edx
+	mov %dx,%fs
+	call *%ebx
+	addl $8,%esp
+	jmp ret_from_sys_call
+
 # TODO WGJA WIP: .align 4
 # TODO WGJA WIP: _coprocessor_error:
 # TODO WGJA WIP: 	pushl $0
@@ -368,7 +368,7 @@ v86_signal_return:
 # TODO WGJA WIP: 	pushl $_do_alignment_check
 # TODO WGJA WIP: 	jmp error_code
 # TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _page_fault:
-# TODO WGJA WIP: 	pushl $_do_page_fault
-# TODO WGJA WIP: 	jmp error_code
+.align 4
+page_fault:
+	pushl $do_page_fault
+	jmp error_code

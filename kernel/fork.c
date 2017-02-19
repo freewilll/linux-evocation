@@ -19,6 +19,7 @@
 #include <linux/unistd.h>
 #include <linux/segment.h>
 #include <linux/ptrace.h>
+#include <linux/string.h>  // for memcpy
 
 #include <asm/segment.h>
 #include <asm/system.h>
@@ -77,7 +78,7 @@ static struct file * copy_fd(struct file * old_file)
 			if (error) {
 				iput(new_file->f_inode);
 				new_file->f_count = 0;
-				new_file = NULL;
+				new_file = (file *) NULL;
 			}
 		}
 	}
@@ -88,7 +89,7 @@ int dup_mmap(struct task_struct * tsk)
 {
 	struct vm_area_struct * mpnt, **p, *tmp;
 
-	tsk->mmap = NULL;
+	tsk->mmap = (vm_area_struct*) NULL;
 	p = &tsk->mmap;
 	for (mpnt = current->mmap ; mpnt ; mpnt = mpnt->vm_next) {
 		tmp = (struct vm_area_struct *) kmalloc(sizeof(struct vm_area_struct), GFP_KERNEL);
@@ -96,7 +97,7 @@ int dup_mmap(struct task_struct * tsk)
 			return -ENOMEM;
 		*tmp = *mpnt;
 		tmp->vm_task = tsk;
-		tmp->vm_next = NULL;
+		tmp->vm_next = (vm_area_struct*) NULL;
 		if (tmp->vm_inode)
 			tmp->vm_inode->i_count++;
 		*p = tmp;
@@ -134,7 +135,7 @@ extern "C" int sys_fork(struct pt_regs regs)
 	p->pid = last_pid;
 	p->swappable = 1;
 	p->p_pptr = p->p_opptr = current;
-	p->p_cptr = NULL;
+	p->p_cptr = (task_struct*) NULL;
 	SET_LINKS(p);
 	p->signal = 0;
 	p->it_real_value = p->it_virt_value = p->it_prof_value = 0;
@@ -184,7 +185,7 @@ extern "C" int sys_fork(struct pt_regs regs)
 		p->tss.io_bitmap[i] = ~0;
 	if (last_task_used_math == current)
 		__asm__("clts ; fnsave %0 ; frstor %0":"=m" (p->tss.i387));
-	p->semun = NULL; p->shm = NULL;
+	p->semun = (sem_undo*) NULL; p->shm = (shm_desc*) NULL;
 	if (copy_vm(p) || shm_fork(current, p))
 		goto bad_fork_cleanup;
 	if (clone_flags & COPYFD) {
@@ -213,7 +214,7 @@ extern "C" int sys_fork(struct pt_regs regs)
 	p->state = TASK_RUNNING;	/* do this last, just in case */
 	return p->pid;
 bad_fork_cleanup:
-	task[nr] = NULL;
+	task[nr] = (task_struct*) NULL;
 	REMOVE_LINKS(p);
 	free_page(p->kernel_stack_page);
 bad_fork_free:
