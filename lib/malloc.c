@@ -231,7 +231,7 @@ kmalloc(unsigned int len, int priority)
 		restore_flags(flags);
 		return NULL;
 	}
-		
+
 	bdesc->refcnt = 0;
 	bdesc->bucket_size = bdir->size;
 	bdesc->page = bdesc->freeptr = (void *) page;

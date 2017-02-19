@@ -60,12 +60,12 @@
 // TODO WGJA WIP: #define MAY_EXEC 1
 // TODO WGJA WIP: #define MAY_WRITE 2
 // TODO WGJA WIP: #define MAY_READ 4
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define READ 0
-// TODO WGJA WIP: #define WRITE 1
-// TODO WGJA WIP: #define READA 2		/* read-ahead - don't pause */
-// TODO WGJA WIP: #define WRITEA 3	/* "write-ahead" - silly, but somewhat useful */
-// TODO WGJA WIP: 
+
+#define READ 0
+#define WRITE 1
+#define READA 2		/* read-ahead - don't pause */
+#define WRITEA 3	/* "write-ahead" - silly, but somewhat useful */
+
 // TODO WGJA WIP: extern void buffer_init(void);
 // TODO WGJA WIP: extern unsigned long inode_init(unsigned long start, unsigned long end);
 // TODO WGJA WIP: extern unsigned long file_table_init(unsigned long start, unsigned long end);
@@ -353,7 +353,7 @@
 // TODO WGJA WIP: extern struct super_block super_blocks[NR_SUPER];
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern void grow_buffers(int size);
-// TODO WGJA WIP: extern int shrink_buffers(unsigned int priority);
+extern int shrink_buffers(unsigned int priority);
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern int nr_buffers;
 // TODO WGJA WIP: extern int buffermem;

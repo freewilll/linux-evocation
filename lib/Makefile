@@ -14,7 +14,7 @@
 	$(CC) $(CFLAGS) -c $<
 
 # TODO WGJA: Work in progress build
-OBJS  = ctype.o errno.o
+OBJS  = ctype.o errno.o malloc.o
 # OBJS  = ctype.o _exit.o open.o close.o errno.o write.o dup.o setsid.o \
 # 	execve.o wait.o string.o malloc.o
 

@@ -32,6 +32,9 @@ extern char edata, end;
 extern "C" void lcall7(void);
 struct desc_struct default_ldt;
 
+extern void test_page_map();
+extern void test_kmalloc();
+
 /*
  * we need this inline - forking from kernel space will result
  * in NO COPY ON WRITE (!!!), until an execve is executed. This
@@ -390,6 +393,8 @@ extern "C" void start_kernel(void)
 	// WGJA TODO devices
 
 	mem_init(low_memory_start,memory_start,memory_end);
+	// test_page_map();
+	// test_kmalloc();
 
 	// WGJA Add a temporary keyboard handler to be able to check aliveness
 	request_irq(KEYBOARD_IRQ, keyboard_interrupt);
@@ -400,6 +405,7 @@ extern "C" void start_kernel(void)
 
 	printk("Going idle\n");
 	for (;;) {
+		// Visual test to ensure the kernel is working
 		printk(".");
 		idle();
 	}

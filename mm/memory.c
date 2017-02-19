@@ -49,15 +49,15 @@ extern void sound_mem_init(void);
 int nr_swap_pages = 0;
 int nr_free_pages = 0;
 unsigned long free_page_list = 0;
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * The secondary free_page_list is used for malloc() etc things that
-// TODO WGJA WIP:  * may need pages during interrupts etc. Normal get_free_page() operations
-// TODO WGJA WIP:  * don't touch it, so it stays as a kind of "panic-list", that can be
-// TODO WGJA WIP:  * accessed when all other mm tricks have failed.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: int nr_secondary_pages = 0;
-// TODO WGJA WIP: unsigned long secondary_page_list = 0;
-// TODO WGJA WIP: 
+/*
+ * The secondary free_page_list is used for malloc() etc things that
+ * may need pages during interrupts etc. Normal get_free_page() operations
+ * don't touch it, so it stays as a kind of "panic-list", that can be
+ * accessed when all other mm tricks have failed.
+ */
+int nr_secondary_pages = 0;
+unsigned long secondary_page_list = 0;
+
 // TODO WGJA WIP: #define copy_page(from,to) \
 // TODO WGJA WIP: __asm__("cld ; rep ; movsl": :"S" (from),"D" (to),"c" (1024):"cx","di","si")
 

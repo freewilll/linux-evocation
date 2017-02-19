@@ -57,20 +57,20 @@
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern volatile short free_page_ptr; /* used by malloc and tcp/ip. */
 // TODO WGJA WIP: 
-// TODO WGJA WIP: extern int nr_swap_pages;
+extern int nr_swap_pages;
 extern int nr_free_pages;
 extern unsigned long free_page_list;
-// TODO WGJA WIP: extern int nr_secondary_pages;
-// TODO WGJA WIP: extern unsigned long secondary_page_list;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define MAX_SECONDARY_PAGES 10
-// TODO WGJA WIP: 
+extern int nr_secondary_pages;
+extern unsigned long secondary_page_list;
+
+#define MAX_SECONDARY_PAGES 10
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * This is timing-critical - most of the time in getting a new page
 // TODO WGJA WIP:  * goes to clearing the page. If you want a page without the clearing
 // TODO WGJA WIP:  * overhead, just use __get_free_page() directly..
 // TODO WGJA WIP:  */
-// TODO WGJA WIP: extern unsigned long __get_free_page(int priority);
+extern unsigned long __get_free_page(int priority);
 // TODO WGJA WIP: extern inline unsigned long get_free_page(int priority)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	unsigned long page;
@@ -88,7 +88,7 @@ extern unsigned long free_page_list;
 // TODO WGJA WIP: 
 // TODO WGJA WIP: /* memory.c */
 // TODO WGJA WIP: 
-// TODO WGJA WIP: extern void free_page(unsigned long addr);
+extern void free_page(unsigned long addr);
 // TODO WGJA WIP: extern unsigned long put_dirty_page(struct task_struct * tsk,unsigned long page,
 // TODO WGJA WIP: 	unsigned long address);
 // TODO WGJA WIP: extern void free_page_tables(struct task_struct * tsk);
@@ -117,7 +117,7 @@ extern void mem_init(unsigned long low_start_mem,
 // TODO WGJA WIP: extern unsigned long swap_duplicate(unsigned long page_nr);
 // TODO WGJA WIP: extern void swap_in(unsigned long *table_ptr);
 // TODO WGJA WIP: extern void si_swapinfo(struct sysinfo * val);
-// TODO WGJA WIP: extern void rw_swap_page(int rw, unsigned long nr, char * buf);
+extern void rw_swap_page(int rw, unsigned long nr, char * buf);
 // TODO WGJA WIP: 
 // TODO WGJA WIP: /* mmap.c */
 // TODO WGJA WIP: extern int do_mmap(struct file * file, unsigned long addr, unsigned long len,
@@ -125,8 +125,8 @@ extern void mem_init(unsigned long low_start_mem,
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #define read_swap_page(nr,buf) \
 // TODO WGJA WIP: 	rw_swap_page(READ,(nr),(buf))
-// TODO WGJA WIP: #define write_swap_page(nr,buf) \
-// TODO WGJA WIP: 	rw_swap_page(WRITE,(nr),(buf))
+#define write_swap_page(nr,buf) \
+	rw_swap_page(WRITE,(nr),(buf))
 
 #define invalidate() \
 __asm__ __volatile__("movl %%cr3,%%eax\n\tmovl %%eax,%%cr3": : :"ax")
@@ -153,12 +153,12 @@ extern unsigned short * mem_map;
 #define PAGE_READONLY	(PAGE_PRESENT | PAGE_USER | PAGE_ACCESSED)
 #define PAGE_TABLE	(PAGE_PRESENT | PAGE_RW | PAGE_USER | PAGE_ACCESSED)
 
-// TODO WGJA WIP: #define GFP_BUFFER	0x00
-// TODO WGJA WIP: #define GFP_ATOMIC	0x01
-// TODO WGJA WIP: #define GFP_USER	0x02
-// TODO WGJA WIP: #define GFP_KERNEL	0x03
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 
+#define GFP_BUFFER	0x00
+#define GFP_ATOMIC	0x01
+#define GFP_USER	0x02
+#define GFP_KERNEL	0x03
+
+
 // TODO WGJA WIP: /* vm_ops not present page codes */
 // TODO WGJA WIP: #define SHM_SWP_TYPE 0x41        
 // TODO WGJA WIP: extern void shm_no_page (ulong *);
