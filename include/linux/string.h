@@ -335,6 +335,7 @@ return __res;
 
 extern inline void * memcpy(void * to, const void * from, size_t n)
 {
+int d0, d1;
 __asm__("cld\n\t"
 	"movl %%edx, %%ecx\n\t"
 	"shrl $2,%%ecx\n\t"
@@ -346,9 +347,10 @@ __asm__("cld\n\t"
 	"je 2f\n\t"
 	"movsw\n"
 	"2:\n"
-	: /* no output */
+	: "=&D" (d0), "=&S" (d1)
 	:"d" (n),"D" ((long) to),"S" ((long) from)
 	: "cx","memory");
+
 return (to);
 }
 
@@ -406,11 +408,13 @@ return (to);
 
 extern inline void * memset(void * s,char c,size_t count)
 {
-__asm__ __volatile__("cld\n\t"
+int d0, d1;
+__asm__ __volatile__(
+	"cld\n\t"
 	"rep\n\t"
 	"stosb"
-	: /* no output */
-	:"a" (c),"D" (s),"c" (count)
+	: "=&c" (d0), "=&D" (d1)
+	:"a" (c),"1" (s),"0" (count)
 	:"memory");
 return s;
 }
