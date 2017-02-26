@@ -2,6 +2,8 @@
 #include <linux/errno.h>
 #include <linux/mm.h>
 #include <linux/unistd.h>
+#include <string.h>
+#include <linux/sched.h>
 
 static inline _syscall0(int,fork)
 static inline _syscall0(int,idle)
@@ -99,6 +101,43 @@ void test_fork() {
 	}
 }
 
+void __attribute__ ((noinline)) do_nothing(char* s, ...) {
+	char *vidmem = (char *)0xb8000;
+	vidmem[79*2] = 'A';
+}
+
+void test_fork_memory() {
+	unsigned int i = 0;
+	int pid;
+	char *vidmem = (char *)0xb8000;
+
+	printk("need_resched=%d\n", need_resched);
+	need_resched = 0;  // Force task 0 to run first in qemu slow case
+
+	if (pid = fork()) {
+		i++;
+		vidmem[0] = i + 48;
+		vidmem[2] = pid + 48;
+	}
+	else {
+		vidmem[160 + 0] = i + 48;
+		vidmem[160 + 2] = pid + 48;
+	}
+
+	printk("pid=%d i=%d\n", pid, i);
+	do_nothing("", i, pid);
+
+	vidmem[320 + pid * 2] = 48 + i;
+	do_nothing("", i, &i);
+	vidmem[480 + pid * 2] = 48 + i;
+
+	int esp, ebp;
+	asm("\t movl %%esp,%0" : "=r"(esp));
+	printk("pid=%d, esp=%#x\n", pid, esp);
+
+	for(;;) idle();
+}
+
 void test_page_map() 
 {
 	int i=0;
@@ -157,4 +196,21 @@ extern "C" void do_page_fault(struct pt_regs *regs, unsigned long error_code)
 	printk("Unable to handle kernel paging request at address %08x\n",address);
 
 	for (;;);
+}
+
+void test_memset() {
+	char* foo = "testing fkjlfdas jklfdsajklf dasjklfdaskjldfsa kjl fadsjklfd sakljfdsa kljfd sajklf ads";
+	int c;
+	c = 20;
+	memset((void*) foo, 32, c);
+	printk("%d\n", c);
+	printk("%s\n", foo);
+	// printk("%#x\n", &foo);
+}
+
+void test_memcpy() {
+	char* to = "testing fkjlfdas jklfdsajklf dasjklfdaskjldfsa kjl fadsjklfd sakljfdsa kljfd sajklf ads";
+	char* from = "xxxxxxxxxxxxxxxxxxxx";
+	memcpy(to, from, 5);
+	printk("%s\n", to);
 }

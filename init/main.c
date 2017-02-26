@@ -34,6 +34,9 @@ struct desc_struct default_ldt;
 
 extern void show_state(void);
 extern void test_fork();
+extern void test_fork_memory();
+extern void test_memset();
+extern void test_memcpy();
 extern void test_page_map();
 extern void test_kmalloc();
 
@@ -410,8 +413,12 @@ extern "C" void start_kernel(void)
 	printk("Moving to user mode\n");
 	move_to_user_mode();
 
-	test_fork();
+	// test_fork();
+	// test_fork_memory();
+	// test_memset();
+	// test_memcpy();
 
+	printk("Falling through to an idle loop\n");
 	for (;;) {
 		idle();
 	}
