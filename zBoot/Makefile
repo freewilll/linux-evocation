@@ -2,7 +2,7 @@
 HEAD = head.o
 SYSTEM = ../tools/zSystem
 
-OBJCOPY = objcopy -O binary -R .note -R .comment -S
+OBJCOPY = $(CROSS_COMPILE)objcopy -O binary -R .note -R .comment -S
 
 zOBJECTS = $(HEAD) inflate.o unzip.o misc.o string.o
 

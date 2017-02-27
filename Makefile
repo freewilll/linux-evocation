@@ -7,6 +7,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 	  else if [ -x /bin/bash ]; then echo /bin/bash; \
 	  else echo sh; fi ; fi)
 
+SHELL = /bin/bash
+
 #
 # Make "config" the default target if there is no configuration file or
 # "depend" the target if there is no top-level dependency information.
@@ -84,15 +86,16 @@ endif
 AS86	=as86 -0 -a
 LD86	=ld86 -0
 
-AS		=as
-LD		=ld
+CROSS_COMPILE 	?=
+AS		=$(CROSS_COMPILE)as
+LD		=$(CROSS_COMPILE)ld
 HOSTCC		=gcc -I$(HPATH)
-CC		=gcc -D__KERNEL__ -I$(HPATH)
+CC		=$(CROSS_COMPILE)gcc -D__KERNEL__ -I$(HPATH)
 MAKE		=make
-CPP		=$(CC) -E
-AR		=ar
-STRIP		=strip
-OBJCOPY		=objcopy -O binary -R .note -R .comment -S
+CPP		=$(CC) -E -Wno-extra-tokens
+AR		=$(CROSS_COMPILE)ar
+STRIP		=$(CROSS_COMPILE)strip
+OBJCOPY		=$(CROSS_COMPILE)objcopy -O binary -R .note -R .comment -S
 
 ARCHIVES	=kernel/kernel.o mm/mm.o fs/fs.o net/net.o ipc/ipc.o
 FILESYSTEMS	=fs/filesystems.a
@@ -143,8 +146,7 @@ tools/version.h: $(CONFIGURE) Makefile
 	@echo \#define LINUX_COMPILE_DOMAIN \"`domainname`\" >> tools/version.h
 
 tools/build: $(CONFIGURE) tools/build.c
-	$(HOSTCC) $(CFLAGS) \
-	-o tools/build tools/build.c
+	$(HOSTCC) -o tools/build tools/build.c
 
 boot/head.o: $(CONFIGURE) boot/head.s
 
