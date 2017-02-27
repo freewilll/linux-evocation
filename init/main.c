@@ -39,6 +39,7 @@ extern void test_memset();
 extern void test_memcpy();
 extern void test_page_map();
 extern void test_kmalloc();
+extern void init_test_keyboard();
 
 /*
  * we need this inline - forking from kernel space will result
@@ -341,28 +342,6 @@ static void parse_options(char *line)
 // TODO WGJA WIP: }
 // TODO WGJA WIP: 
 
-// WGJA Add a temporary keyboard handler to be able to check aliveness
-#define KEYBOARD_IRQ 1
-static void keyboard_interrupt(int int_pt_regs)
-{
-	// If we don't read the scan code, they keyboard controller won't send another one
-	unsigned char scancode;
-	char *vidmem = (char *)0xb8000;
-	
-	if (!(inb_p(0x64) & 0x01)) {
-		printk("Keyboard interrupt - bad keyb read.\n");
-		goto end_kbd_intr;
-	}
-	scancode = inb(0x60);
-	printk("%c", scancode);
-	
-	vidmem[0] = scancode;
-
-	end_kbd_intr:
-	return;
-}
-
-
 extern "C" void start_kernel(void)
 {
 	// For easy work in progress early kernel debugging
@@ -407,9 +386,8 @@ extern "C" void start_kernel(void)
 	mem_init(low_memory_start,memory_start,memory_end);
 	// test_page_map();
 	// test_kmalloc();
+	init_test_keyboard();
 
-	// WGJA Add a temporary keyboard handler to be able to check aliveness
-	request_irq(KEYBOARD_IRQ, keyboard_interrupt);
 	sti();
 
 	printk("Moving to user mode\n");

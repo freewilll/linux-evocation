@@ -2,8 +2,9 @@
 #include <linux/errno.h>
 #include <linux/mm.h>
 #include <linux/unistd.h>
-#include <string.h>
+#include <linux/string.h>
 #include <linux/sched.h>
+#include <asm/io.h>
 
 static inline _syscall0(int,fork)
 static inline _syscall0(int,idle)
@@ -213,4 +214,32 @@ void test_memcpy() {
 	char* from = "xxxxxxxxxxxxxxxxxxxx";
 	memcpy(to, from, 5);
 	printk("%s\n", to);
+}
+
+// WGJA Add a temporary keyboard handler to be able to check aliveness
+#define KEYBOARD_IRQ 1
+static void keyboard_interrupt(int int_pt_regs)
+{
+	// If we don't read the scan code, they keyboard controller won't send another one
+	unsigned char scancode;
+	char *vidmem = (char *)0xb8000;
+
+	if (!(inb_p(0x64) & 0x01)) {
+		printk("Keyboard interrupt - bad keyb read.\n");
+		goto end_kbd_intr;
+	}
+	scancode = inb(0x60);
+	printk("%c", scancode);
+
+	vidmem[0] = scancode;
+
+	end_kbd_intr:
+	return;
+}
+
+void init_test_keyboard()
+{
+	// WGJA Add a temporary keyboard handler to be able to check aliveness
+	request_irq(KEYBOARD_IRQ, keyboard_interrupt);
+
 }
