@@ -120,9 +120,9 @@
 // TODO WGJA WIP: 		}
 // TODO WGJA WIP: 	return -EINVAL;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #else /* not CONFIG_SYSVIPC */
-// TODO WGJA WIP: 
+
+#else /* not CONFIG_SYSVIPC */
+
 // TODO WGJA WIP: extern "C" int sys_ipc (uint call, int first, int second, int third, void *ptr) 
 // TODO WGJA WIP: {
 // TODO WGJA WIP:     return -ENOSYS;

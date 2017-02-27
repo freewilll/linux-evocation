@@ -5,13 +5,13 @@
 *
 * General setup
 *
-bool 'Kernel math emulation' CONFIG_MATH_EMULATION y
-bool 'Normal harddisk support' CONFIG_BLK_DEV_HD y
+bool 'Kernel math emulation' CONFIG_MATH_EMULATION n
+bool 'Normal harddisk support' CONFIG_BLK_DEV_HD n
 bool 'XT harddisk support' CONFIG_BLK_DEV_XD n
-bool 'TCP/IP networking' CONFIG_INET y
+bool 'TCP/IP networking' CONFIG_INET n
 bool 'Limit memory to low 16MB' CONFIG_MAX_16M n
-bool 'System V IPC' CONFIG_SYSVIPC y
-bool 'Use -m486 flag for 486-specific optimizations' CONFIG_M486 y
+bool 'System V IPC' CONFIG_SYSVIPC n
+bool 'Use -m486 flag for 486-specific optimizations' CONFIG_M486 n
 *
 * SCSI support
 *
@@ -40,7 +40,7 @@ fi
 *
 * Network device support
 *
-bool 'Network device support?' CONFIG_ETHERCARDS y
+bool 'Network device support?' CONFIG_ETHERCARDS n
 if [ "$CONFIG_ETHERCARDS" = "n" ]
 :
 : Skipping ethercard configuration options...
@@ -66,24 +66,24 @@ bool 'Mitsumi CDROM driver support' CONFIG_MCD n
 *
 * Filesystems
 *
-bool 'Standard (minix) fs support' CONFIG_MINIX_FS y
+bool 'Standard (minix) fs support' CONFIG_MINIX_FS n
 bool 'Extended fs support' CONFIG_EXT_FS n
 bool 'Second extended fs support' CONFIG_EXT2_FS n
 bool 'xiafs filesystem support' CONFIG_XIA_FS n
-bool 'msdos fs support' CONFIG_MSDOS_FS y
-bool '/proc filesystem support' CONFIG_PROC_FS y
-bool 'NFS filesystem support' CONFIG_NFS_FS y
+bool 'msdos fs support' CONFIG_MSDOS_FS n
+bool '/proc filesystem support' CONFIG_PROC_FS n
+bool 'NFS filesystem support' CONFIG_NFS_FS n
 bool 'ISO9660 cdrom filesystem support' CONFIG_ISO9660_FS n
 *
 *  character devices
 *
-bool 'Keyboard meta-key sends ESC-prefix' CONFIG_KBD_META y
-bool 'Keyboard Num Lock on by default' CONFIG_KBD_NUML y
+bool 'Keyboard meta-key sends ESC-prefix' CONFIG_KBD_META n
+bool 'Keyboard Num Lock on by default' CONFIG_KBD_NUML n
 bool 'Logitech busmouse support' CONFIG_BUSMOUSE n
 bool 'PS/2 mouse (aka "auxiliary device") support' CONFIG_PSMOUSE n
 bool 'Microsoft busmouse support' CONFIG_MS_BUSMOUSE n
 bool 'ATIXL busmouse support' CONFIG_ATIXL_BUSMOUSE n
-bool 'Selection (cut and paste for virtual consoles)' CONFIG_SELECTION y
+bool 'Selection (cut and paste for virtual consoles)' CONFIG_SELECTION n
 bool 'QIC-02 tape support' CONFIG_TAPE_QIC02 n
 *
 * Sound
