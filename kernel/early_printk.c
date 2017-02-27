@@ -7,7 +7,7 @@
 #include <glob.h>
 
 extern char empty_zero_page[PAGE_SIZE];
-extern int vsprintf(char *,const char *,va_list);
+extern "C" int vsprintf(char *,const char *,va_list);
 
 #define PARAM	empty_zero_page
 #define SCREEN_INFO (*(struct screen_info *) (PARAM+0))

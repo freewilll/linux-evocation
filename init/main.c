@@ -75,7 +75,7 @@ static inline _syscall0(int,fork)
 // TODO WGJA WIP: 
 void init_early_printk();
 extern char empty_zero_page[PAGE_SIZE];
-extern int vsprintf(char *,const char *,va_list);
+extern "C" int vsprintf(char *,const char *,va_list);
 // TODO WGJA WIP: extern void init(void);
 extern void init_IRQ(void);
 // TODO WGJA WIP: extern long blk_dev_init(long,long);
