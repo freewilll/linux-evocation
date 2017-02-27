@@ -28,3 +28,5 @@ tools/build
 *.s
 *.a
 .fseventsd
+.DocumentRevisions-V100
+.TemporaryItems
