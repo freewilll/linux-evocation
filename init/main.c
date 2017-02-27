@@ -21,7 +21,7 @@
 #include <linux/string.h>
 #include <linux/timer.h>
 #include <linux/fs.h>
-// TODO WGJA WIP: #include <linux/ctype.h>
+#include <linux/ctype.h>
 // TODO WGJA WIP: #include <linux/delay.h>
 // TODO WGJA WIP: #include <linux/utsname.h>
 // TODO WGJA WIP: 
@@ -84,7 +84,7 @@ extern void init_IRQ(void);
 // TODO WGJA WIP: extern void sock_init(void);
 // TODO WGJA WIP: extern long rd_init(long mem_start, int length);
 // TODO WGJA WIP: extern long kernel_mktime(struct mktime * time);
-// TODO WGJA WIP: extern unsigned long simple_strtoul(const char *,char **,unsigned int);
+extern unsigned long simple_strtoul(const char *,char **,unsigned int);
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern void hd_setup(char *str, int *ints);
 // TODO WGJA WIP: extern void bmouse_setup(char *str, int *ints);
@@ -161,14 +161,14 @@ static unsigned long memory_start = 0;	/* After mem_init, stores the */
 static unsigned long memory_end = 0;
 static unsigned long low_memory_start = 0;
 
-// TODO WGJA WIP: static char * argv_init[MAX_INIT_ARGS+2] = { "init", NULL, };
-// TODO WGJA WIP: static char * envp_init[MAX_INIT_ENVS+2] = { "HOME=/", "TERM=console", NULL, };
+static char * argv_init[MAX_INIT_ARGS+2] = { "init", (char*) NULL, };
+static char * envp_init[MAX_INIT_ENVS+2] = { "HOME=/", "TERM=console", (char*) NULL, };
+
+// TODO WGJA WIP: static char * argv_rc[] = { "/bin/sh", (char*) NULL };
+// TODO WGJA WIP: static char * envp_rc[] = { "HOME=/", "TERM=console", (char*) NULL };
 // TODO WGJA WIP: 
-// TODO WGJA WIP: static char * argv_rc[] = { "/bin/sh", NULL };
-// TODO WGJA WIP: static char * envp_rc[] = { "HOME=/", "TERM=console", NULL };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static char * argv[] = { "-/bin/sh",NULL };
-// TODO WGJA WIP: static char * envp[] = { "HOME=/usr/root", "TERM=console", NULL };
+// TODO WGJA WIP: static char * argv[] = { "-/bin/sh", (char*) NULL };
+// TODO WGJA WIP: static char * envp[] = { "HOME=/usr/root", "TERM=console", (char*) NULL };
 
 struct drive_info_struct { char dummy[32]; } drive_info;
 struct screen_info screen_info;
@@ -181,24 +181,25 @@ static char fpu_error = 0;
 
 static char command_line[80] = { 0, };
 
-// TODO WGJA WIP: char *get_options(char *str, int *ints) 
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	char *cur = str;
-// TODO WGJA WIP: 	int i=1;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	while (cur && isdigit(*cur) && i <= 10) {
-// TODO WGJA WIP: 		ints[i++] = simple_strtoul(cur,NULL,0);
-// TODO WGJA WIP: 		if ((cur = strchr(cur,',')) != NULL)
-// TODO WGJA WIP: 			cur++;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	ints[0] = i-1;
-// TODO WGJA WIP: 	return(cur);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct {
-// TODO WGJA WIP: 	char *str;
-// TODO WGJA WIP: 	void (*setup_func)(char *, int *);
-// TODO WGJA WIP: } bootsetups[] = {
+char *get_options(char *str, int *ints) 
+{
+	char *cur = str;
+	int i=1;
+
+	while (cur && isdigit(*cur) && i <= 10) {
+		ints[i++] = simple_strtoul(cur,(char**) NULL,0);
+		if ((cur = strchr(cur,',')) != (char*) NULL)
+			cur++;
+	}
+	ints[0] = i-1;
+	return(cur);
+}
+
+struct bootsetup_struct {
+	char *str;
+	void (*setup_func)(char *, int *);
+};
+bootsetup_struct bootsetups[] = {
 // TODO WGJA WIP: #ifdef CONFIG_INET
 // TODO WGJA WIP: 	{ "ether=", eth_setup },
 // TODO WGJA WIP: #endif
@@ -208,25 +209,25 @@ static char command_line[80] = { 0, };
 // TODO WGJA WIP: #ifdef CONFIG_BUSMOUSE
 // TODO WGJA WIP: 	{ "bmouse=", bmouse_setup },
 // TODO WGJA WIP: #endif
-// TODO WGJA WIP: 	{ 0, 0 }
-// TODO WGJA WIP: };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: int checksetup(char *line)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i = 0;
-// TODO WGJA WIP: 	int ints[11];
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	while (bootsetups[i].str) {
-// TODO WGJA WIP: 		int n = strlen(bootsetups[i].str);
-// TODO WGJA WIP: 		if (!strncmp(line,bootsetups[i].str,n)) {
-// TODO WGJA WIP: 			bootsetups[i].setup_func(get_options(line+n,ints), ints);
-// TODO WGJA WIP: 			return(0);
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		i++;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return(1);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+	{ 0, 0 }
+};
+
+int checksetup(char *line)
+{
+	int i = 0;
+	int ints[11];
+
+	while (bootsetups[i].str) {
+		int n = strlen(bootsetups[i].str);
+		if (!strncmp(line,bootsetups[i].str,n)) {
+			bootsetups[i].setup_func(get_options(line+n,ints), ints);
+			return(0);
+		}
+		i++;
+	}
+	return(1);
+}
+
 // TODO WGJA WIP: unsigned long loops_per_sec = 1;
 // TODO WGJA WIP: 
 // TODO WGJA WIP: static void calibrate_delay(void)
@@ -253,81 +254,81 @@ static char command_line[80] = { 0, };
 // TODO WGJA WIP: 	}
 // TODO WGJA WIP: 	printk("failed\n");
 // TODO WGJA WIP: }
-	// TODO WGJA WIP: 
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This is a simple kernel command line parsing function: it parses
-// TODO WGJA WIP:  * the command line, and fills in the arguments/environment to init
-// TODO WGJA WIP:  * as appropriate. Any cmd-line option is taken to be an environment
-// TODO WGJA WIP:  * variable if it contains the character '='.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * This routine also checks for options meant for the kernel - currently
-// TODO WGJA WIP:  * only the "root=XXXX" option is recognized. These options are not given
-// TODO WGJA WIP:  * to init - they are for internal kernel use only.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: static void parse_options(char *line)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	char *next;
-// TODO WGJA WIP: 	char *devnames[] = { "hda", "hdb", "sda", "sdb", "sdc", "sdd", "sde", "fd", NULL };
-// TODO WGJA WIP: 	int devnums[]    = { 0x300, 0x340, 0x800, 0x810, 0x820, 0x830, 0x840, 0x200, 0};
-// TODO WGJA WIP: 	int args, envs;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!*line)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	args = 0;
-// TODO WGJA WIP: 	envs = 1;	/* TERM is set to 'console' by default */
-// TODO WGJA WIP: 	next = line;
-// TODO WGJA WIP: 	while ((line = next) != NULL) {
-// TODO WGJA WIP: 		if ((next = strchr(line,' ')) != NULL)
-// TODO WGJA WIP: 			*next++ = 0;
-// TODO WGJA WIP: 		/*
-// TODO WGJA WIP: 		 * check for kernel options first..
-// TODO WGJA WIP: 		 */
-// TODO WGJA WIP: 		if (!strncmp(line,"root=",5)) {
-// TODO WGJA WIP: 			int n;
-// TODO WGJA WIP: 			line += 5;
-// TODO WGJA WIP: 			if (strncmp(line,"/dev/",5)) {
-// TODO WGJA WIP: 				ROOT_DEV = simple_strtoul(line,NULL,16);
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 			line += 5;
-// TODO WGJA WIP: 			for (n = 0 ; devnames[n] ; n++) {
-// TODO WGJA WIP: 				int len = strlen(devnames[n]);
-// TODO WGJA WIP: 				if (!strncmp(line,devnames[n],len)) {
-// TODO WGJA WIP: 					ROOT_DEV = devnums[n]+simple_strtoul(line+len,NULL,16);
-// TODO WGJA WIP: 					break;
-// TODO WGJA WIP: 				}
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 		} else if (!strcmp(line,"ro"))
-// TODO WGJA WIP: 			root_mountflags |= MS_RDONLY;
-// TODO WGJA WIP: 		else if (!strcmp(line,"rw"))
-// TODO WGJA WIP: 			root_mountflags &= ~MS_RDONLY;
-// TODO WGJA WIP: 		else if (!strcmp(line,"no387")) {
-// TODO WGJA WIP: 			hard_math = 0;
-// TODO WGJA WIP: 			__asm__("movl %%cr0,%%eax\n\t"
-// TODO WGJA WIP: 				"orl $0xE,%%eax\n\t"
-// TODO WGJA WIP: 				"movl %%eax,%%cr0\n\t" : : : "ax");
-// TODO WGJA WIP: 		} else
-// TODO WGJA WIP: 			checksetup(line);
-// TODO WGJA WIP: 		/*
-// TODO WGJA WIP: 		 * Then check if it's an environment variable or
-// TODO WGJA WIP: 		 * an option.
-// TODO WGJA WIP: 		 */	
-// TODO WGJA WIP: 		if (strchr(line,'=')) {
-// TODO WGJA WIP: 			if (envs >= MAX_INIT_ENVS)
-// TODO WGJA WIP: 				break;
-// TODO WGJA WIP: 			envp_init[++envs] = line;
-// TODO WGJA WIP: 		} else {
-// TODO WGJA WIP: 			if (args >= MAX_INIT_ARGS)
-// TODO WGJA WIP: 				break;
-// TODO WGJA WIP: 			argv_init[++args] = line;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	argv_init[args+1] = NULL;
-// TODO WGJA WIP: 	envp_init[envs+1] = NULL;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+
+/*
+ * This is a simple kernel command line parsing function: it parses
+ * the command line, and fills in the arguments/environment to init
+ * as appropriate. Any cmd-line option is taken to be an environment
+ * variable if it contains the character '='.
+ *
+ *
+ * This routine also checks for options meant for the kernel - currently
+ * only the "root=XXXX" option is recognized. These options are not given
+ * to init - they are for internal kernel use only.
+ */
+static void parse_options(char *line)
+{
+	char *next;
+	char *devnames[] = { "hda", "hdb", "sda", "sdb", "sdc", "sdd", "sde", "fd", (char*) NULL };
+	int devnums[]    = { 0x300, 0x340, 0x800, 0x810, 0x820, 0x830, 0x840, 0x200, 0};
+	int args, envs;
+
+	if (!*line)
+		return;
+	args = 0;
+	envs = 1;	/* TERM is set to 'console' by default */
+	next = line;
+	while ((line = next) != NULL) {
+		if ((next = strchr(line,' ')) != NULL)
+			*next++ = 0;
+		/*
+		 * check for kernel options first..
+		 */
+		if (!strncmp(line,"root=",5)) {
+			int n;
+			line += 5;
+			if (strncmp(line,"/dev/",5)) {
+				ROOT_DEV = simple_strtoul(line,(char**)NULL,16);
+				continue;
+			}
+			line += 5;
+			for (n = 0 ; devnames[n] ; n++) {
+				int len = strlen(devnames[n]);
+				if (!strncmp(line,devnames[n],len)) {
+					ROOT_DEV = devnums[n]+simple_strtoul(line+len,(char**)NULL,16);
+					break;
+				}
+			}
+		} else if (!strcmp(line,"ro"))
+			root_mountflags |= MS_RDONLY;
+		else if (!strcmp(line,"rw"))
+			root_mountflags &= ~MS_RDONLY;
+		else if (!strcmp(line,"no387")) {
+			hard_math = 0;
+			__asm__("movl %%cr0,%%eax\n\t"
+				"orl $0xE,%%eax\n\t"
+				"movl %%eax,%%cr0\n\t" : : : "ax");
+		} else
+			checksetup(line);
+		/*
+		 * Then check if it's an environment variable or
+		 * an option.
+		 */	
+		if (strchr(line,'=')) {
+			if (envs >= MAX_INIT_ENVS)
+				break;
+			envp_init[++envs] = line;
+		} else {
+			if (args >= MAX_INIT_ARGS)
+				break;
+			argv_init[++args] = line;
+		}
+	}
+	argv_init[args+1] = (char*) NULL;
+	envp_init[envs+1] = (char*) NULL;
+}
+
 // TODO WGJA WIP: static void copro_timeout(void)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	fpu_error = 1;
@@ -396,9 +397,10 @@ extern "C" void start_kernel(void)
 	low_memory_start = PAGE_ALIGN(low_memory_start);
 	memory_start = paging_init(memory_start,memory_end);
 
-	trap_init();	// TODO WGJA enable traps
+	trap_init();
 	init_IRQ();
 	sched_init();
+	parse_options(command_line);
 
 	// WGJA TODO devices
 
@@ -423,7 +425,6 @@ extern "C" void start_kernel(void)
 		idle();
 	}
 
-// TODO WGJA WIP: 	parse_options(command_line);
 // TODO WGJA WIP: #ifdef CONFIG_PROFILE
 // TODO WGJA WIP: 	prof_buffer = (unsigned long *) memory_start;
 // TODO WGJA WIP: 	prof_len = (unsigned long) &end;
