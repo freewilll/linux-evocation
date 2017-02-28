@@ -80,7 +80,7 @@ extern "C" int vsprintf(char *,const char *,va_list);
 // TODO WGJA WIP: extern void init(void);
 extern void init_IRQ(void);
 // TODO WGJA WIP: extern long blk_dev_init(long,long);
-// TODO WGJA WIP: extern long chr_dev_init(long,long);
+extern long chr_dev_init(long,long);
 // TODO WGJA WIP: extern void floppy_init(void);
 // TODO WGJA WIP: extern void sock_init(void);
 // TODO WGJA WIP: extern long rd_init(long mem_start, int length);
@@ -380,6 +380,13 @@ extern "C" void start_kernel(void)
 	init_IRQ();
 	sched_init();
 	parse_options(command_line);
+#ifdef CONFIG_PROFILE
+	prof_buffer = (unsigned long *) memory_start;
+	prof_len = (unsigned long) &end;
+	prof_len >>= 2;
+	memory_start += prof_len * sizeof(unsigned long);
+#endif
+	memory_start = chr_dev_init(memory_start,memory_end);
 
 	// WGJA TODO devices
 
@@ -403,12 +410,6 @@ extern "C" void start_kernel(void)
 		idle();
 	}
 
-// TODO WGJA WIP: #ifdef CONFIG_PROFILE
-// TODO WGJA WIP: 	prof_buffer = (unsigned long *) memory_start;
-// TODO WGJA WIP: 	prof_len = (unsigned long) &end;
-// TODO WGJA WIP: 	prof_len >>= 2;
-// TODO WGJA WIP: 	memory_start += prof_len * sizeof(unsigned long);
-// TODO WGJA WIP: #endif
 // TODO WGJA WIP: 	memory_start = chr_dev_init(memory_start,memory_end);
 // TODO WGJA WIP: 	memory_start = blk_dev_init(memory_start,memory_end);
 // TODO WGJA WIP: #ifdef CONFIG_SCSI

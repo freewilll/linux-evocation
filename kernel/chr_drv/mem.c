@@ -1,3 +1,4 @@
+#pragma GCC diagnostic ignored "-fpermissive"
 /*
  *  linux/kernel/chr_drv/mem.c
  *
@@ -8,9 +9,9 @@
 #include <linux/errno.h>
 #include <linux/sched.h>
 #include <linux/kernel.h>
-#include <linux/tty.h>
-#include <linux/mouse.h>
-#include <linux/tpqic02.h>
+// TODO WGJA WIP: #include <linux/tty.h>
+// TODO WGJA WIP: #include <linux/mouse.h>
+// TODO WGJA WIP: #include <linux/tpqic02.h>
 
 #include <linux/user.h>
 #include <linux/a.out.h>
@@ -19,7 +20,7 @@
 #include <asm/segment.h>
 #include <asm/io.h>
 
-extern long soundcard_init(long mem_start);
+// TODO WGJA WIP: extern long soundcard_init(long mem_start);
 
 static int read_ram(struct inode * inode, struct file * file,char * buf, int count)
 {
@@ -126,17 +127,17 @@ static int write_mem(struct inode * inode, struct file * file,char * buf, int co
 	return count;
 }
 
-static int mmap_mem(struct inode * inode, struct file * file,
-	unsigned long addr, size_t len, int prot, unsigned long off)
-{
-	if (off & 0xfff || off + len < off)
-		return -ENXIO;
-
-	if (remap_page_range(addr, off, len, prot))
-		return -EAGAIN;
-	
-	return 0;
-}
+// TODO WGJA WIP: static int mmap_mem(struct inode * inode, struct file * file,
+// TODO WGJA WIP: 	unsigned long addr, size_t len, int prot, unsigned long off)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	if (off & 0xfff || off + len < off)
+// TODO WGJA WIP: 		return -ENXIO;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (remap_page_range(addr, off, len, prot))
+// TODO WGJA WIP: 		return -EAGAIN;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	return 0;
+// TODO WGJA WIP: }
 
 static int read_port(struct inode * inode,struct file * file,char * buf, int count)
 {
@@ -192,15 +193,15 @@ static int write_zero(struct inode * inode,struct file * file,char * buf, int co
 	return count;
 }
 
-static int mmap_zero(struct inode * inode, struct file * file,
-	unsigned long addr, size_t len, int prot, unsigned long off)
-{
-	if (prot & PAGE_RW)
-		return -EINVAL;
-	if (zeromap_page_range(addr, len, prot))
-		return -EAGAIN;
-	return 0;
-}
+// TODO WGJA WIP: static int mmap_zero(struct inode * inode, struct file * file,
+// TODO WGJA WIP: 	unsigned long addr, size_t len, int prot, unsigned long off)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	if (prot & PAGE_RW)
+// TODO WGJA WIP: 		return -EINVAL;
+// TODO WGJA WIP: 	if (zeromap_page_range(addr, len, prot))
+// TODO WGJA WIP: 		return -EAGAIN;
+// TODO WGJA WIP: 	return 0;
+// TODO WGJA WIP: }
 
 /*
  * The memory devices use the full 32 bits of the offset, and so we cannot
@@ -251,7 +252,7 @@ static struct file_operations mem_fops = {
 	NULL,		/* mem_readdir */
 	NULL,		/* mem_select */
 	NULL,		/* mem_ioctl */
-	mmap_mem,
+	NULL,		// TODO WGJA mmap_mem,
 	NULL,		/* no special open code */
 	NULL,		/* no special release code */
 	NULL		/* fsync */
@@ -264,7 +265,7 @@ static struct file_operations kmem_fops = {
 	NULL,		/* kmem_readdir */
 	NULL,		/* kmem_select */
 	NULL,		/* kmem_ioctl */
-	mmap_kmem,
+	NULL,		// TODO WGJA mmap_kmem,
 	NULL,		/* no special open code */
 	NULL,		/* no special release code */
 	NULL		/* fsync */
@@ -303,7 +304,7 @@ static struct file_operations zero_fops = {
 	NULL,		/* zero_readdir */
 	NULL,		/* zero_select */
 	NULL,		/* zero_ioctl */
-	mmap_zero,
+	NULL,		// TODO WGJA mmap_zero,
 	NULL,		/* no special open code */
 	NULL		/* no special release code */
 };
@@ -370,10 +371,10 @@ long chr_dev_init(long mem_start, long mem_end)
 {
 	if (register_chrdev(1,"mem",&memory_fops))
 		printk("unable to get major 1 for memory devs\n");
-	mem_start = tty_init(mem_start);
-	mem_start = lp_init(mem_start);
-	mem_start = mouse_init(mem_start);
-	mem_start = soundcard_init(mem_start);
+// TODO WGJA WIP: 	mem_start = tty_init(mem_start);
+// TODO WGJA WIP: 	mem_start = lp_init(mem_start);
+// TODO WGJA WIP: 	mem_start = mouse_init(mem_start);
+// TODO WGJA WIP: 	mem_start = soundcard_init(mem_start);
 #if CONFIG_TAPE_QIC02
 	mem_start = tape_qic02_init(mem_start);
 #endif

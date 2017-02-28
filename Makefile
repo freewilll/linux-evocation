@@ -69,7 +69,8 @@ WARNING_CFLAGS=\
 	-Wno-return-type \
 	-Wno-unused-but-set-variable \
 	-Wno-narrowing \
-	-Wno-write-strings
+	-Wno-write-strings \
+	-fpermissive
 CFLAGS= -Wall $(WARNING_CFLAGS) -O6 -fomit-frame-pointer -x c++ -fno-stack-protector -nostdinc
 
 ifdef CONFIG_M486
@@ -207,6 +208,7 @@ tools/zSystem:	wip.o boot/head.o init/main.o linuxsubdirs
 		fs/fs.o \
 		ipc/ipc.o \
 		$(LIBS) \
+		kernel/chr_drv/chr_drv.a \
 		-o tools/zSystem > zSystem.map
 
 # TODO WGJA: Work in progress build

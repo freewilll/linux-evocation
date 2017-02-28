@@ -31,30 +31,30 @@
 // TODO WGJA WIP: #define NR_FILE_LOCKS 64
 // TODO WGJA WIP: #define BLOCK_SIZE 1024
 // TODO WGJA WIP: #define BLOCK_SIZE_BITS 10
-// TODO WGJA WIP: #define MAX_CHRDEV 32
+#define MAX_CHRDEV 32
 // TODO WGJA WIP: #define MAX_BLKDEV 32
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /* devices are as follows: (same as minix, so we can use the minix
-// TODO WGJA WIP:  * file system. These are major numbers.)
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  *  0 - unnamed (minor 0 = true nodev)
-// TODO WGJA WIP:  *  1 - /dev/mem
-// TODO WGJA WIP:  *  2 - /dev/fd
-// TODO WGJA WIP:  *  3 - /dev/hd
-// TODO WGJA WIP:  *  4 - /dev/ttyx
-// TODO WGJA WIP:  *  5 - /dev/tty
-// TODO WGJA WIP:  *  6 - /dev/lp
-// TODO WGJA WIP:  *  7 -
-// TODO WGJA WIP:  *  8 - /dev/sd
-// TODO WGJA WIP:  *  9 - /dev/st
-// TODO WGJA WIP:  * 10 - mice
-// TODO WGJA WIP:  * 11 - scsi cdrom
-// TODO WGJA WIP:  * 12 -
-// TODO WGJA WIP:  * 13 -
-// TODO WGJA WIP:  * 14 - sound card (?)
-// TODO WGJA WIP:  * 15 -
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: 
+
+/* devices are as follows: (same as minix, so we can use the minix
+ * file system. These are major numbers.)
+ *
+ *  0 - unnamed (minor 0 = true nodev)
+ *  1 - /dev/mem
+ *  2 - /dev/fd
+ *  3 - /dev/hd
+ *  4 - /dev/ttyx
+ *  5 - /dev/tty
+ *  6 - /dev/lp
+ *  7 -
+ *  8 - /dev/sd
+ *  9 - /dev/st
+ * 10 - mice
+ * 11 - scsi cdrom
+ * 12 -
+ * 13 -
+ * 14 - sound card (?)
+ * 15 -
+ */
+
 // TODO WGJA WIP: #define UNNAMED_MAJOR 0
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #define MAY_EXEC 1
@@ -69,10 +69,10 @@
 // TODO WGJA WIP: extern void buffer_init(void);
 // TODO WGJA WIP: extern unsigned long inode_init(unsigned long start, unsigned long end);
 // TODO WGJA WIP: extern unsigned long file_table_init(unsigned long start, unsigned long end);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define MAJOR(a) (((unsigned)(a))>>8)
-// TODO WGJA WIP: #define MINOR(a) ((a)&0xff)
-// TODO WGJA WIP: 
+
+#define MAJOR(a) (((unsigned)(a))>>8)
+#define MINOR(a) ((a)&0xff)
+
 // TODO WGJA WIP: #ifndef NULL
 // TODO WGJA WIP: #define NULL ((void *) 0)
 // TODO WGJA WIP: #endif
@@ -329,8 +329,8 @@ struct file_operations {
 // TODO WGJA WIP: extern int blkdev_open(struct inode * inode, struct file * filp);
 // TODO WGJA WIP: extern struct file_operations def_blk_fops;
 // TODO WGJA WIP: extern struct inode_operations blkdev_inode_operations;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern int register_chrdev(unsigned int, const char *, struct file_operations *);
+
+extern int register_chrdev(unsigned int, const char *, struct file_operations *);
 // TODO WGJA WIP: extern int chrdev_open(struct inode * inode, struct file * filp);
 // TODO WGJA WIP: extern struct file_operations def_chr_fops;
 // TODO WGJA WIP: extern struct inode_operations chrdev_inode_operations;

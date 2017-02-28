@@ -16,12 +16,15 @@
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-SUBDIRS= sound
+# TODO WGJA: Work in progress build
+# SUBDIRS= sound
+SUBDIRS=
 
-OBJS  = tty_io.o console.o keyboard.o serial.o \
-	tty_ioctl.o pty.o lp.o vt.o mem.o mouse.o \
-	busmouse.o psaux.o msbusmouse.o atixlmouse.o \
-	tpqic02.o defkeymap.o
+OBJS = mem.o
+# OBJS  = tty_io.o console.o keyboard.o serial.o \
+# 	tty_ioctl.o pty.o lp.o vt.o mem.o mouse.o \
+# 	busmouse.o psaux.o msbusmouse.o atixlmouse.o \
+# 	tpqic02.o defkeymap.o
 
 all:	chr_drv.a subdirs
 

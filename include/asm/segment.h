@@ -107,38 +107,40 @@ __asm__ ("movl %0,%%fs:%1": /* no outputs */ :"ir" (val),"m" (*addr));
 
 static inline void memcpy_tofs(void * to, const void * from, unsigned long n)
 {
-__asm__("cld\n\t"
-	"push %%es\n\t"
-	"push %%fs\n\t"
-	"pop %%es\n\t"
-	"testb $1,%%cl\n\t"
-	"je 1f\n\t"
-	"movsb\n"
-	"1:\ttestb $2,%%cl\n\t"
-	"je 2f\n\t"
-	"movsw\n"
-	"2:\tshrl $2,%%ecx\n\t"
-	"rep ; movsl\n\t"
-	"pop %%es"
-	: /* no outputs */
-	:"c" (n),"D" ((long) to),"S" ((long) from)
-	:"cx","di","si");
+// TODO memcpy_tofs
+// __asm__("cld\n\t"
+// 	"push %%es\n\t"
+// 	"push %%fs\n\t"
+// 	"pop %%es\n\t"
+// 	"testb $1,%%cl\n\t"
+// 	"je 1f\n\t"
+// 	"movsb\n"
+// 	"1:\ttestb $2,%%cl\n\t"
+// 	"je 2f\n\t"
+// 	"movsw\n"
+// 	"2:\tshrl $2,%%ecx\n\t"
+// 	"rep ; movsl\n\t"
+// 	"pop %%es"
+// 	: /* no outputs */
+// 	:"c" (n),"D" ((long) to),"S" ((long) from)
+// 	:"cx","di","si");
 }
 
 static inline void memcpy_fromfs(void * to, const void * from, unsigned long n)
 {
-__asm__("cld\n\t"
-	"testb $1,%%cl\n\t"
-	"je 1f\n\t"
-	"fs ; movsb\n"
-	"1:\ttestb $2,%%cl\n\t"
-	"je 2f\n\t"
-	"fs ; movsw\n"
-	"2:\tshrl $2,%%ecx\n\t"
-	"rep ; fs ; movsl"
-	: /* no outputs */
-	:"c" (n),"D" ((long) to),"S" ((long) from)
-	:"cx","di","si");
+// TODO memcpy_fromfs
+// __asm__("cld\n\t"
+// 	"testb $1,%%cl\n\t"
+// 	"je 1f\n\t"
+// 	"fs ; movsb\n"
+// 	"1:\ttestb $2,%%cl\n\t"
+// 	"je 2f\n\t"
+// 	"fs ; movsw\n"
+// 	"2:\tshrl $2,%%ecx\n\t"
+// 	"rep ; fs ; movsl"
+// 	: /* no outputs */
+// 	:"c" (n),"D" ((long) to),"S" ((long) from)
+// 	:"cx","di","si");
 }
 
 /*
