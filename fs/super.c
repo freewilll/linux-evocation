@@ -10,7 +10,7 @@
 #include <linux/config.h>
 #include <linux/sched.h>
 #include <linux/kernel.h>
-// TODO WGJA WIP: #include <linux/stat.h>
+#include <linux/stat.h>
 #include <linux/errno.h>
 #include <linux/string.h>
 // TODO WGJA WIP: #include <linux/locks.h>

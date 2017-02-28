@@ -40,6 +40,7 @@ extern void test_memcpy();
 extern void test_page_map();
 extern void test_kmalloc();
 extern void init_test_keyboard();
+extern void test_dev_zero();
 
 /*
  * we need this inline - forking from kernel space will result
@@ -400,6 +401,7 @@ extern "C" void start_kernel(void)
 	printk("Moving to user mode\n");
 	move_to_user_mode();
 
+	test_dev_zero();
 	// test_fork();
 	// test_fork_memory();
 	// test_memset();

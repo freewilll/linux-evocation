@@ -15,7 +15,7 @@
 #include <linux/kernel.h>
 #include <linux/errno.h>
 #include <linux/string.h>
-// TODO WGJA WIP: #include <linux/stat.h>
+#include <linux/stat.h>
 
 #include <asm/system.h> /* for cli()/sti() */
 #include <asm/bitops.h>

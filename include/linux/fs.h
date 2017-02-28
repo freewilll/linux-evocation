@@ -24,7 +24,7 @@
 // TODO WGJA WIP: #define NR_OPEN 256
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #define NR_INODE 2048	/* this should be bigger than NR_FILE */
-// TODO WGJA WIP: #define NR_FILE 1024	/* this can well be larger on a larger system */
+#define NR_FILE 1024	/* this can well be larger on a larger system */
 // TODO WGJA WIP: #define NR_SUPER 32
 // TODO WGJA WIP: #define NR_HASH 997
 // TODO WGJA WIP: #define NR_IHASH 131
@@ -56,10 +56,10 @@
  */
 
 // TODO WGJA WIP: #define UNNAMED_MAJOR 0
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define MAY_EXEC 1
-// TODO WGJA WIP: #define MAY_WRITE 2
-// TODO WGJA WIP: #define MAY_READ 4
+
+#define MAY_EXEC 1
+#define MAY_WRITE 2
+#define MAY_READ 4
 
 #define READ 0
 #define WRITE 1
@@ -102,21 +102,21 @@
 // TODO WGJA WIP:  */
 // TODO WGJA WIP: #define MS_MGC_VAL 0xC0ED0000 /* magic flag number to indicate "new" flags */
 // TODO WGJA WIP: #define MS_MGC_MSK 0xffff0000 /* magic flag number mask */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Note that read-only etc flags are inode-specific: setting some file-system
-// TODO WGJA WIP:  * flags just means all the inodes inherit those flags by default. It might be
-// TODO WGJA WIP:  * possible to overrride it sevelctively if you really wanted to with some
-// TODO WGJA WIP:  * ioctl() that is not currently implemented.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Exception: MS_RDONLY is always applied to the entire file system.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: #define IS_RDONLY(inode) (((inode)->i_sb) && ((inode)->i_sb->s_flags & MS_RDONLY))
-// TODO WGJA WIP: #define IS_NOSUID(inode) ((inode)->i_flags & MS_NOSUID)
-// TODO WGJA WIP: #define IS_NODEV(inode) ((inode)->i_flags & MS_NODEV)
-// TODO WGJA WIP: #define IS_NOEXEC(inode) ((inode)->i_flags & MS_NOEXEC)
-// TODO WGJA WIP: #define IS_SYNC(inode) ((inode)->i_flags & MS_SYNC)
-// TODO WGJA WIP: 
+
+/*
+ * Note that read-only etc flags are inode-specific: setting some file-system
+ * flags just means all the inodes inherit those flags by default. It might be
+ * possible to overrride it sevelctively if you really wanted to with some
+ * ioctl() that is not currently implemented.
+ *
+ * Exception: MS_RDONLY is always applied to the entire file system.
+ */
+#define IS_RDONLY(inode) (((inode)->i_sb) && ((inode)->i_sb->s_flags & MS_RDONLY))
+#define IS_NOSUID(inode) ((inode)->i_flags & MS_NOSUID)
+#define IS_NODEV(inode) ((inode)->i_flags & MS_NODEV)
+#define IS_NOEXEC(inode) ((inode)->i_flags & MS_NOEXEC)
+#define IS_SYNC(inode) ((inode)->i_flags & MS_SYNC)
+
 // TODO WGJA WIP: /* the read-only stuff doesn't really belong here, but any other place is
 // TODO WGJA WIP:    probably as bad and I don't want to create yet another include file. */
 // TODO WGJA WIP: 
@@ -137,7 +137,7 @@
 // TODO WGJA WIP: 
 // TODO WGJA WIP: /* these flags tell notify_change what is being changed */
 // TODO WGJA WIP: 
-// TODO WGJA WIP: #define NOTIFY_SIZE	1
+#define NOTIFY_SIZE	1
 // TODO WGJA WIP: #define NOTIFY_MODE	2
 // TODO WGJA WIP: #define NOTIFY_TIME	4
 // TODO WGJA WIP: #define NOTIFY_UIDGID	8
@@ -243,22 +243,22 @@ struct file {
 // TODO WGJA WIP: #include <linux/iso_fs_sb.h>
 // TODO WGJA WIP: #include <linux/nfs_fs_sb.h>
 // TODO WGJA WIP: #include <linux/xia_fs_sb.h>
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct super_block {
-// TODO WGJA WIP: 	dev_t s_dev;
-// TODO WGJA WIP: 	unsigned long s_blocksize;
-// TODO WGJA WIP: 	unsigned char s_blocksize_bits;
-// TODO WGJA WIP: 	unsigned char s_lock;
-// TODO WGJA WIP: 	unsigned char s_rd_only;
-// TODO WGJA WIP: 	unsigned char s_dirt;
-// TODO WGJA WIP: 	struct super_operations *s_op;
-// TODO WGJA WIP: 	unsigned long s_flags;
-// TODO WGJA WIP: 	unsigned long s_magic;
-// TODO WGJA WIP: 	unsigned long s_time;
-// TODO WGJA WIP: 	struct inode * s_covered;
-// TODO WGJA WIP: 	struct inode * s_mounted;
-// TODO WGJA WIP: 	struct wait_queue * s_wait;
-// TODO WGJA WIP: 	union {
+
+struct super_block {
+	dev_t s_dev;
+	unsigned long s_blocksize;
+	unsigned char s_blocksize_bits;
+	unsigned char s_lock;
+	unsigned char s_rd_only;
+	unsigned char s_dirt;
+	struct super_operations *s_op;
+	unsigned long s_flags;
+	unsigned long s_magic;
+	unsigned long s_time;
+	struct inode * s_covered;
+	struct inode * s_mounted;
+	struct wait_queue * s_wait;
+	union {
 // TODO WGJA WIP: 		struct minix_sb_info minix_sb;
 // TODO WGJA WIP: 		struct ext_sb_info ext_sb;
 // TODO WGJA WIP: 		struct ext2_sb_info ext2_sb;
@@ -266,8 +266,8 @@ struct file {
 // TODO WGJA WIP: 		struct isofs_sb_info isofs_sb;
 // TODO WGJA WIP: 		struct nfs_sb_info nfs_sb;
 // TODO WGJA WIP: 		struct xiafs_sb_info xiafs_sb;
-// TODO WGJA WIP: 	} u;
-// TODO WGJA WIP: };
+	} u;
+};
 
 struct file_operations {
 	int (*lseek) (struct inode *, struct file *, off_t, int);
@@ -282,35 +282,35 @@ struct file_operations {
 	int (*fsync) (struct inode *, struct file *);
 };
 
-// TODO WGJA WIP: struct inode_operations {
-// TODO WGJA WIP: 	struct file_operations * default_file_ops;
-// TODO WGJA WIP: 	int (*create) (struct inode *,const char *,int,int,struct inode **);
-// TODO WGJA WIP: 	int (*lookup) (struct inode *,const char *,int,struct inode **);
-// TODO WGJA WIP: 	int (*link) (struct inode *,struct inode *,const char *,int);
-// TODO WGJA WIP: 	int (*unlink) (struct inode *,const char *,int);
-// TODO WGJA WIP: 	int (*symlink) (struct inode *,const char *,int,const char *);
-// TODO WGJA WIP: 	int (*mkdir) (struct inode *,const char *,int,int);
-// TODO WGJA WIP: 	int (*rmdir) (struct inode *,const char *,int);
-// TODO WGJA WIP: 	int (*mknod) (struct inode *,const char *,int,int,int);
-// TODO WGJA WIP: 	int (*rename) (struct inode *,const char *,int,struct inode *,const char *,int);
-// TODO WGJA WIP: 	int (*readlink) (struct inode *,char *,int);
-// TODO WGJA WIP: 	int (*follow_link) (struct inode *,struct inode *,int,int,struct inode **);
-// TODO WGJA WIP: 	int (*bmap) (struct inode *,int);
-// TODO WGJA WIP: 	void (*truncate) (struct inode *);
-// TODO WGJA WIP: 	int (*permission) (struct inode *, int);
-// TODO WGJA WIP: };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct super_operations {
-// TODO WGJA WIP: 	void (*read_inode) (struct inode *);
-// TODO WGJA WIP: 	int (*notify_change) (int flags, struct inode *);
-// TODO WGJA WIP: 	void (*write_inode) (struct inode *);
-// TODO WGJA WIP: 	void (*put_inode) (struct inode *);
-// TODO WGJA WIP: 	void (*put_super) (struct super_block *);
-// TODO WGJA WIP: 	void (*write_super) (struct super_block *);
-// TODO WGJA WIP: 	void (*statfs) (struct super_block *, struct statfs *);
-// TODO WGJA WIP: 	int (*remount_fs) (struct super_block *, int *);
-// TODO WGJA WIP: };
-// TODO WGJA WIP: 
+struct inode_operations {
+	struct file_operations * default_file_ops;
+	int (*create) (struct inode *,const char *,int,int,struct inode **);
+	int (*lookup) (struct inode *,const char *,int,struct inode **);
+	int (*link) (struct inode *,struct inode *,const char *,int);
+	int (*unlink) (struct inode *,const char *,int);
+	int (*symlink) (struct inode *,const char *,int,const char *);
+	int (*mkdir) (struct inode *,const char *,int,int);
+	int (*rmdir) (struct inode *,const char *,int);
+	int (*mknod) (struct inode *,const char *,int,int,int);
+	int (*rename) (struct inode *,const char *,int,struct inode *,const char *,int);
+	int (*readlink) (struct inode *,char *,int);
+	int (*follow_link) (struct inode *,struct inode *,int,int,struct inode **);
+	int (*bmap) (struct inode *,int);
+	void (*truncate) (struct inode *);
+	int (*permission) (struct inode *, int);
+};
+
+struct super_operations {
+	void (*read_inode) (struct inode *);
+	int (*notify_change) (int flags, struct inode *);
+	void (*write_inode) (struct inode *);
+	void (*put_inode) (struct inode *);
+	void (*put_super) (struct super_block *);
+	void (*write_super) (struct super_block *);
+	void (*statfs) (struct super_block *, struct statfs *);
+	int (*remount_fs) (struct super_block *, int *);
+};
+
 // TODO WGJA WIP: struct file_system_type {
 // TODO WGJA WIP: 	struct super_block *(*read_super) (struct super_block *, void *, int);
 // TODO WGJA WIP: 	char *name;
@@ -319,12 +319,12 @@ struct file_operations {
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #ifdef __KERNEL__
 // TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_open(const char *, int, int);
+extern "C" int sys_open(const char *, int, int);
 // TODO WGJA WIP: extern "C" int sys_close(unsigned int);		/* yes, it's really unsigned */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern int getname(const char * filename, char **result);
-// TODO WGJA WIP: extern void putname(char * name);
-// TODO WGJA WIP: 
+
+extern int getname(const char * filename, char **result);
+extern void putname(char * name);
+
 // TODO WGJA WIP: extern int register_blkdev(unsigned int, const char *, struct file_operations *);
 // TODO WGJA WIP: extern int blkdev_open(struct inode * inode, struct file * filp);
 // TODO WGJA WIP: extern struct file_operations def_blk_fops;
@@ -368,12 +368,12 @@ extern int shrink_buffers(unsigned int priority);
 // TODO WGJA WIP: extern int fsync_dev(dev_t dev);
 // TODO WGJA WIP: extern void sync_supers(dev_t dev);
 // TODO WGJA WIP: extern int bmap(struct inode * inode,int block);
-// TODO WGJA WIP: extern int notify_change(int flags, struct inode * inode);
+extern int notify_change(int flags, struct inode * inode);
 // TODO WGJA WIP: extern int namei(const char * pathname, struct inode ** res_inode);
 // TODO WGJA WIP: extern int lnamei(const char * pathname, struct inode ** res_inode);
 // TODO WGJA WIP: extern int permission(struct inode * inode,int mask);
-// TODO WGJA WIP: extern int open_namei(const char * pathname, int flag, int mode,
-// TODO WGJA WIP: 	struct inode ** res_inode, struct inode * base);
+extern int open_namei(const char * pathname, int flag, int mode,
+	struct inode ** res_inode, struct inode * base);
 // TODO WGJA WIP: extern int do_mknod(const char * filename, int mode, dev_t dev);
 extern void iput(struct inode * inode);
 // TODO WGJA WIP: extern struct inode * iget(struct super_block * sb,int nr);

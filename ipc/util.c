@@ -10,7 +10,7 @@
 // TODO WGJA WIP: #include <linux/sem.h>
 // TODO WGJA WIP: #include <linux/msg.h>
 // TODO WGJA WIP: #include <linux/shm.h>
-// TODO WGJA WIP: #include <linux/stat.h>
+#include <linux/stat.h>
 // TODO WGJA WIP: 
 // TODO WGJA WIP: void ipc_init (void);
 // TODO WGJA WIP: extern "C" int sys_ipc (uint call, int first, int second, int third, void *ptr); 

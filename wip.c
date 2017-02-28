@@ -5,9 +5,11 @@
 #include <linux/string.h>
 #include <linux/sched.h>
 #include <asm/io.h>
+#include <linux/fcntl.h>
 
 static inline _syscall0(int,fork)
 static inline _syscall0(int,idle)
+static inline _syscall3(int,open,const char *,file,int,flag,int,mode)
 
 // TODO WGJA panic
 void panic(const char * s)
@@ -166,13 +168,6 @@ void test_kmalloc()
 	}
 }
 
-// TODO WGJA get_empty_filp
-struct file * get_empty_filp(void)
-{
-	printk("TODO get_empty_filp\n");
-	for (;;);
-}
-
 // TODO WGJA iput
 void iput(struct inode * inode)
 {
@@ -242,4 +237,17 @@ void init_test_keyboard()
 	// WGJA Add a temporary keyboard handler to be able to check aliveness
 	request_irq(KEYBOARD_IRQ, keyboard_interrupt);
 
+}
+
+void test_dev_zero()
+{
+	int fh;
+	fh = open("/dev/zero", O_RDWR, 0);
+	printk("fh=%d\n", fh);
+}
+
+// TODO WGJA notify_change
+int notify_change(int flags, struct inode * inode)
+{
+	return 0;
 }

@@ -1,12 +1,13 @@
+#pragma GCC diagnostic ignored "-fpermissive"
 /*
  *  linux/fs/open.c
  *
  *  Copyright (C) 1991, 1992  Linus Torvalds
  */
 
-#include <linux/vfs.h>
+// TODO WGJA WIP: #include <linux/vfs.h>
 #include <linux/types.h>
-#include <linux/utime.h>
+// TODO WGJA WIP: #include <linux/utime.h>
 #include <linux/errno.h>
 #include <linux/fcntl.h>
 #include <linux/stat.h>
@@ -14,327 +15,327 @@
 #include <linux/sched.h>
 #include <linux/kernel.h>
 #include <linux/signal.h>
-#include <linux/tty.h>
+// TODO WGJA WIP: #include <linux/tty.h>
 #include <linux/time.h>
 
 #include <asm/segment.h>
 
-extern void fcntl_remove_locks(struct task_struct *, struct file *);
-
-extern "C" int sys_ustat(int dev, struct ustat * ubuf)
-{
-	return -ENOSYS;
-}
-
-extern "C" int sys_statfs(const char * path, struct statfs * buf)
-{
-	struct inode * inode;
-	int error;
-
-	error = verify_area(VERIFY_WRITE, buf, sizeof(struct statfs));
-	if (error)
-		return error;
-	error = namei(path,&inode);
-	if (error)
-		return error;
-	if (!inode->i_sb->s_op->statfs) {
-		iput(inode);
-		return -ENOSYS;
-	}
-	inode->i_sb->s_op->statfs(inode->i_sb, buf);
-	iput(inode);
-	return 0;
-}
-
-extern "C" int sys_fstatfs(unsigned int fd, struct statfs * buf)
-{
-	struct inode * inode;
-	struct file * file;
-	int error;
-
-	error = verify_area(VERIFY_WRITE, buf, sizeof(struct statfs));
-	if (error)
-		return error;
-	if (fd >= NR_OPEN || !(file = current->filp[fd]))
-		return -EBADF;
-	if (!(inode = file->f_inode))
-		return -ENOENT;
-	if (!inode->i_sb->s_op->statfs)
-		return -ENOSYS;
-	inode->i_sb->s_op->statfs(inode->i_sb, buf);
-	return 0;
-}
-
-extern "C" int sys_truncate(const char * path, unsigned int length)
-{
-	struct inode * inode;
-	int error;
-
-	error = namei(path,&inode);
-	if (error)
-		return error;
-	if (S_ISDIR(inode->i_mode) || !permission(inode,MAY_WRITE)) {
-		iput(inode);
-		return -EACCES;
-	}
-	if (IS_RDONLY(inode)) {
-		iput(inode);
-		return -EROFS;
-	}
-	inode->i_size = length;
-	if (inode->i_op && inode->i_op->truncate)
-		inode->i_op->truncate(inode);
-	inode->i_atime = inode->i_mtime = CURRENT_TIME;
-	inode->i_dirt = 1;
-	error = notify_change(NOTIFY_SIZE, inode);
-	iput(inode);
-	return error;
-}
-
-extern "C" int sys_ftruncate(unsigned int fd, unsigned int length)
-{
-	struct inode * inode;
-	struct file * file;
-
-	if (fd >= NR_OPEN || !(file = current->filp[fd]))
-		return -EBADF;
-	if (!(inode = file->f_inode))
-		return -ENOENT;
-	if (S_ISDIR(inode->i_mode) || !(file->f_mode & 2))
-		return -EACCES;
-	inode->i_size = length;
-	if (inode->i_op && inode->i_op->truncate)
-		inode->i_op->truncate(inode);
-	inode->i_atime = inode->i_mtime = CURRENT_TIME;
-	inode->i_dirt = 1;
-	return notify_change(NOTIFY_SIZE, inode);
-}
-
-/* If times==NULL, set access and modification to current time,
- * must be owner or have write permission.
- * Else, update from *times, must be owner or super user.
- */
-extern "C" int sys_utime(char * filename, struct utimbuf * times)
-{
-	struct inode * inode;
-	long actime,modtime;
-	int error;
-
-	error = namei(filename,&inode);
-	if (error)
-		return error;
-	if (IS_RDONLY(inode)) {
-		iput(inode);
-		return -EROFS;
-	}
-	if (times) {
-		if ((current->euid != inode->i_uid) && !suser()) {
-			iput(inode);
-			return -EPERM;
-		}
-		actime = get_fs_long((unsigned long *) &times->actime);
-		modtime = get_fs_long((unsigned long *) &times->modtime);
-		inode->i_ctime = CURRENT_TIME;
-	} else {
-		if ((current->euid != inode->i_uid) &&
-		    !permission(inode,MAY_WRITE)) {
-			iput(inode);
-			return -EACCES;
-		}
-		actime = modtime = inode->i_ctime = CURRENT_TIME;
-	}
-	inode->i_atime = actime;
-	inode->i_mtime = modtime;
-	inode->i_dirt = 1;
-	error = notify_change(NOTIFY_TIME, inode);
-	iput(inode);
-	return error;
-}
-
-/*
- * XXX we should use the real ids for checking _all_ components of the
- * path.  Now we only use them for the final component of the path.
- */
-extern "C" int sys_access(const char * filename,int mode)
-{
-	struct inode * inode;
-	int res, i_mode;
-
-	if (mode != (mode & S_IRWXO))	/* where's F_OK, X_OK, W_OK, R_OK? */
-		return -EINVAL;
-	res = namei(filename,&inode);
-	if (res)
-		return res;
-	i_mode = inode->i_mode;
-	res = i_mode & S_IRWXUGO;
-	if (current->uid == inode->i_uid)
-		res >>= 6;		/* needs cleaning? */
-	else if (in_group_p(inode->i_gid))
-		res >>= 3;		/* needs cleaning? */
-	iput(inode);
-	if ((res & mode) == mode)
-		return 0;
-	/*
-	 * XXX we are doing this test last because we really should be
-	 * swapping the effective with the real user id (temporarily),
-	 * and then calling suser() routine.  If we do call the
-	 * suser() routine, it needs to be called last. 
-	 *
-	 * XXX nope.  suser() is inappropriate and swapping the ids while
-	 * decomposing the path would be racy.
-	 */
-	if ((!current->uid) &&
-	    (S_ISDIR(i_mode) || !(mode & S_IXOTH) || (i_mode & S_IXUGO)))
-		return 0;
-	return -EACCES;
-}
-
-extern "C" int sys_chdir(const char * filename)
-{
-	struct inode * inode;
-	int error;
-
-	error = namei(filename,&inode);
-	if (error)
-		return error;
-	if (!S_ISDIR(inode->i_mode)) {
-		iput(inode);
-		return -ENOTDIR;
-	}
-	if (!permission(inode,MAY_EXEC)) {
-		iput(inode);
-		return -EACCES;
-	}
-	iput(current->pwd);
-	current->pwd = inode;
-	return (0);
-}
-
-extern "C" int sys_chroot(const char * filename)
-{
-	struct inode * inode;
-	int error;
-
-	error = namei(filename,&inode);
-	if (error)
-		return error;
-	if (!S_ISDIR(inode->i_mode)) {
-		iput(inode);
-		return -ENOTDIR;
-	}
-	if (!suser()) {
-		iput(inode);
-		return -EPERM;
-	}
-	iput(current->root);
-	current->root = inode;
-	return (0);
-}
-
-extern "C" int sys_fchmod(unsigned int fd, mode_t mode)
-{
-	struct inode * inode;
-	struct file * file;
-
-	if (fd >= NR_OPEN || !(file = current->filp[fd]))
-		return -EBADF;
-	if (!(inode = file->f_inode))
-		return -ENOENT;
-	if ((current->euid != inode->i_uid) && !suser())
-		return -EPERM;
-	if (IS_RDONLY(inode))
-		return -EROFS;
-	inode->i_mode = (mode & S_IALLUGO) | (inode->i_mode & ~S_IALLUGO);
-	if (!suser() && !in_group_p(inode->i_gid))
-		inode->i_mode &= ~S_ISGID;
-	inode->i_ctime = CURRENT_TIME;
-	inode->i_dirt = 1;
-	return notify_change(NOTIFY_MODE, inode);
-}
-
-extern "C" int sys_chmod(const char * filename, mode_t mode)
-{
-	struct inode * inode;
-	int error;
-
-	error = namei(filename,&inode);
-	if (error)
-		return error;
-	if ((current->euid != inode->i_uid) && !suser()) {
-		iput(inode);
-		return -EPERM;
-	}
-	if (IS_RDONLY(inode)) {
-		iput(inode);
-		return -EROFS;
-	}
-	inode->i_mode = (mode & S_IALLUGO) | (inode->i_mode & ~S_IALLUGO);
-	if (!suser() && !in_group_p(inode->i_gid))
-		inode->i_mode &= ~S_ISGID;
-	inode->i_ctime = CURRENT_TIME;
-	inode->i_dirt = 1;
-	error = notify_change(NOTIFY_MODE, inode);
-	iput(inode);
-	return error;
-}
-
-extern "C" int sys_fchown(unsigned int fd, uid_t user, gid_t group)
-{
-	struct inode * inode;
-	struct file * file;
-
-	if (fd >= NR_OPEN || !(file = current->filp[fd]))
-		return -EBADF;
-	if (!(inode = file->f_inode))
-		return -ENOENT;
-	if (IS_RDONLY(inode))
-		return -EROFS;
-	if (user == (uid_t) -1)
-		user = inode->i_uid;
-	if (group == (gid_t) -1)
-		group = inode->i_gid;
-	if ((current->euid == inode->i_uid && user == inode->i_uid &&
-	     (in_group_p(group) || group == inode->i_gid)) ||
-	    suser()) {
-		inode->i_uid = user;
-		inode->i_gid = group;
-		inode->i_ctime = CURRENT_TIME;
-		inode->i_dirt = 1;
-		return notify_change(NOTIFY_UIDGID, inode);
-	}
-	return -EPERM;
-}
-
-extern "C" int sys_chown(const char * filename, uid_t user, gid_t group)
-{
-	struct inode * inode;
-	int error;
-
-	error = lnamei(filename,&inode);
-	if (error)
-		return error;
-	if (IS_RDONLY(inode)) {
-		iput(inode);
-		return -EROFS;
-	}
-	if (user == (uid_t) -1)
-		user = inode->i_uid;
-	if (group == (gid_t) -1)
-		group = inode->i_gid;
-	if ((current->euid == inode->i_uid && user == inode->i_uid &&
-	     (in_group_p(group) || group == inode->i_gid)) ||
-	    suser()) {
-		inode->i_uid = user;
-		inode->i_gid = group;
-		inode->i_ctime = CURRENT_TIME;
-		inode->i_dirt = 1;
-		error = notify_change(NOTIFY_UIDGID, inode);
-		iput(inode);
-		return error;
-	}
-	iput(inode);
-	return -EPERM;
-}
+// TODO WGJA WIP: extern void fcntl_remove_locks(struct task_struct *, struct file *);
+// TODO WGJA WIP: 
+// TODO WGJA WIP: extern "C" int sys_ustat(int dev, struct ustat * ubuf)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	return -ENOSYS;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: extern "C" int sys_statfs(const char * path, struct statfs * buf)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct inode * inode;
+// TODO WGJA WIP: 	int error;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	error = verify_area(VERIFY_WRITE, buf, sizeof(struct statfs));
+// TODO WGJA WIP: 	if (error)
+// TODO WGJA WIP: 		return error;
+// TODO WGJA WIP: 	error = namei(path,&inode);
+// TODO WGJA WIP: 	if (error)
+// TODO WGJA WIP: 		return error;
+// TODO WGJA WIP: 	if (!inode->i_sb->s_op->statfs) {
+// TODO WGJA WIP: 		iput(inode);
+// TODO WGJA WIP: 		return -ENOSYS;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	inode->i_sb->s_op->statfs(inode->i_sb, buf);
+// TODO WGJA WIP: 	iput(inode);
+// TODO WGJA WIP: 	return 0;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: extern "C" int sys_fstatfs(unsigned int fd, struct statfs * buf)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct inode * inode;
+// TODO WGJA WIP: 	struct file * file;
+// TODO WGJA WIP: 	int error;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	error = verify_area(VERIFY_WRITE, buf, sizeof(struct statfs));
+// TODO WGJA WIP: 	if (error)
+// TODO WGJA WIP: 		return error;
+// TODO WGJA WIP: 	if (fd >= NR_OPEN || !(file = current->filp[fd]))
+// TODO WGJA WIP: 		return -EBADF;
+// TODO WGJA WIP: 	if (!(inode = file->f_inode))
+// TODO WGJA WIP: 		return -ENOENT;
+// TODO WGJA WIP: 	if (!inode->i_sb->s_op->statfs)
+// TODO WGJA WIP: 		return -ENOSYS;
+// TODO WGJA WIP: 	inode->i_sb->s_op->statfs(inode->i_sb, buf);
+// TODO WGJA WIP: 	return 0;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: extern "C" int sys_truncate(const char * path, unsigned int length)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct inode * inode;
+// TODO WGJA WIP: 	int error;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	error = namei(path,&inode);
+// TODO WGJA WIP: 	if (error)
+// TODO WGJA WIP: 		return error;
+// TODO WGJA WIP: 	if (S_ISDIR(inode->i_mode) || !permission(inode,MAY_WRITE)) {
+// TODO WGJA WIP: 		iput(inode);
+// TODO WGJA WIP: 		return -EACCES;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (IS_RDONLY(inode)) {
+// TODO WGJA WIP: 		iput(inode);
+// TODO WGJA WIP: 		return -EROFS;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	inode->i_size = length;
+// TODO WGJA WIP: 	if (inode->i_op && inode->i_op->truncate)
+// TODO WGJA WIP: 		inode->i_op->truncate(inode);
+// TODO WGJA WIP: 	inode->i_atime = inode->i_mtime = CURRENT_TIME;
+// TODO WGJA WIP: 	inode->i_dirt = 1;
+// TODO WGJA WIP: 	error = notify_change(NOTIFY_SIZE, inode);
+// TODO WGJA WIP: 	iput(inode);
+// TODO WGJA WIP: 	return error;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: extern "C" int sys_ftruncate(unsigned int fd, unsigned int length)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct inode * inode;
+// TODO WGJA WIP: 	struct file * file;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (fd >= NR_OPEN || !(file = current->filp[fd]))
+// TODO WGJA WIP: 		return -EBADF;
+// TODO WGJA WIP: 	if (!(inode = file->f_inode))
+// TODO WGJA WIP: 		return -ENOENT;
+// TODO WGJA WIP: 	if (S_ISDIR(inode->i_mode) || !(file->f_mode & 2))
+// TODO WGJA WIP: 		return -EACCES;
+// TODO WGJA WIP: 	inode->i_size = length;
+// TODO WGJA WIP: 	if (inode->i_op && inode->i_op->truncate)
+// TODO WGJA WIP: 		inode->i_op->truncate(inode);
+// TODO WGJA WIP: 	inode->i_atime = inode->i_mtime = CURRENT_TIME;
+// TODO WGJA WIP: 	inode->i_dirt = 1;
+// TODO WGJA WIP: 	return notify_change(NOTIFY_SIZE, inode);
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /* If times==NULL, set access and modification to current time,
+// TODO WGJA WIP:  * must be owner or have write permission.
+// TODO WGJA WIP:  * Else, update from *times, must be owner or super user.
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: extern "C" int sys_utime(char * filename, struct utimbuf * times)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct inode * inode;
+// TODO WGJA WIP: 	long actime,modtime;
+// TODO WGJA WIP: 	int error;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	error = namei(filename,&inode);
+// TODO WGJA WIP: 	if (error)
+// TODO WGJA WIP: 		return error;
+// TODO WGJA WIP: 	if (IS_RDONLY(inode)) {
+// TODO WGJA WIP: 		iput(inode);
+// TODO WGJA WIP: 		return -EROFS;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (times) {
+// TODO WGJA WIP: 		if ((current->euid != inode->i_uid) && !suser()) {
+// TODO WGJA WIP: 			iput(inode);
+// TODO WGJA WIP: 			return -EPERM;
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 		actime = get_fs_long((unsigned long *) &times->actime);
+// TODO WGJA WIP: 		modtime = get_fs_long((unsigned long *) &times->modtime);
+// TODO WGJA WIP: 		inode->i_ctime = CURRENT_TIME;
+// TODO WGJA WIP: 	} else {
+// TODO WGJA WIP: 		if ((current->euid != inode->i_uid) &&
+// TODO WGJA WIP: 		    !permission(inode,MAY_WRITE)) {
+// TODO WGJA WIP: 			iput(inode);
+// TODO WGJA WIP: 			return -EACCES;
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 		actime = modtime = inode->i_ctime = CURRENT_TIME;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	inode->i_atime = actime;
+// TODO WGJA WIP: 	inode->i_mtime = modtime;
+// TODO WGJA WIP: 	inode->i_dirt = 1;
+// TODO WGJA WIP: 	error = notify_change(NOTIFY_TIME, inode);
+// TODO WGJA WIP: 	iput(inode);
+// TODO WGJA WIP: 	return error;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * XXX we should use the real ids for checking _all_ components of the
+// TODO WGJA WIP:  * path.  Now we only use them for the final component of the path.
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: extern "C" int sys_access(const char * filename,int mode)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct inode * inode;
+// TODO WGJA WIP: 	int res, i_mode;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (mode != (mode & S_IRWXO))	/* where's F_OK, X_OK, W_OK, R_OK? */
+// TODO WGJA WIP: 		return -EINVAL;
+// TODO WGJA WIP: 	res = namei(filename,&inode);
+// TODO WGJA WIP: 	if (res)
+// TODO WGJA WIP: 		return res;
+// TODO WGJA WIP: 	i_mode = inode->i_mode;
+// TODO WGJA WIP: 	res = i_mode & S_IRWXUGO;
+// TODO WGJA WIP: 	if (current->uid == inode->i_uid)
+// TODO WGJA WIP: 		res >>= 6;		/* needs cleaning? */
+// TODO WGJA WIP: 	else if (in_group_p(inode->i_gid))
+// TODO WGJA WIP: 		res >>= 3;		/* needs cleaning? */
+// TODO WGJA WIP: 	iput(inode);
+// TODO WGJA WIP: 	if ((res & mode) == mode)
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	/*
+// TODO WGJA WIP: 	 * XXX we are doing this test last because we really should be
+// TODO WGJA WIP: 	 * swapping the effective with the real user id (temporarily),
+// TODO WGJA WIP: 	 * and then calling suser() routine.  If we do call the
+// TODO WGJA WIP: 	 * suser() routine, it needs to be called last. 
+// TODO WGJA WIP: 	 *
+// TODO WGJA WIP: 	 * XXX nope.  suser() is inappropriate and swapping the ids while
+// TODO WGJA WIP: 	 * decomposing the path would be racy.
+// TODO WGJA WIP: 	 */
+// TODO WGJA WIP: 	if ((!current->uid) &&
+// TODO WGJA WIP: 	    (S_ISDIR(i_mode) || !(mode & S_IXOTH) || (i_mode & S_IXUGO)))
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	return -EACCES;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: extern "C" int sys_chdir(const char * filename)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct inode * inode;
+// TODO WGJA WIP: 	int error;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	error = namei(filename,&inode);
+// TODO WGJA WIP: 	if (error)
+// TODO WGJA WIP: 		return error;
+// TODO WGJA WIP: 	if (!S_ISDIR(inode->i_mode)) {
+// TODO WGJA WIP: 		iput(inode);
+// TODO WGJA WIP: 		return -ENOTDIR;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (!permission(inode,MAY_EXEC)) {
+// TODO WGJA WIP: 		iput(inode);
+// TODO WGJA WIP: 		return -EACCES;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	iput(current->pwd);
+// TODO WGJA WIP: 	current->pwd = inode;
+// TODO WGJA WIP: 	return (0);
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: extern "C" int sys_chroot(const char * filename)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct inode * inode;
+// TODO WGJA WIP: 	int error;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	error = namei(filename,&inode);
+// TODO WGJA WIP: 	if (error)
+// TODO WGJA WIP: 		return error;
+// TODO WGJA WIP: 	if (!S_ISDIR(inode->i_mode)) {
+// TODO WGJA WIP: 		iput(inode);
+// TODO WGJA WIP: 		return -ENOTDIR;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (!suser()) {
+// TODO WGJA WIP: 		iput(inode);
+// TODO WGJA WIP: 		return -EPERM;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	iput(current->root);
+// TODO WGJA WIP: 	current->root = inode;
+// TODO WGJA WIP: 	return (0);
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: extern "C" int sys_fchmod(unsigned int fd, mode_t mode)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct inode * inode;
+// TODO WGJA WIP: 	struct file * file;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (fd >= NR_OPEN || !(file = current->filp[fd]))
+// TODO WGJA WIP: 		return -EBADF;
+// TODO WGJA WIP: 	if (!(inode = file->f_inode))
+// TODO WGJA WIP: 		return -ENOENT;
+// TODO WGJA WIP: 	if ((current->euid != inode->i_uid) && !suser())
+// TODO WGJA WIP: 		return -EPERM;
+// TODO WGJA WIP: 	if (IS_RDONLY(inode))
+// TODO WGJA WIP: 		return -EROFS;
+// TODO WGJA WIP: 	inode->i_mode = (mode & S_IALLUGO) | (inode->i_mode & ~S_IALLUGO);
+// TODO WGJA WIP: 	if (!suser() && !in_group_p(inode->i_gid))
+// TODO WGJA WIP: 		inode->i_mode &= ~S_ISGID;
+// TODO WGJA WIP: 	inode->i_ctime = CURRENT_TIME;
+// TODO WGJA WIP: 	inode->i_dirt = 1;
+// TODO WGJA WIP: 	return notify_change(NOTIFY_MODE, inode);
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: extern "C" int sys_chmod(const char * filename, mode_t mode)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct inode * inode;
+// TODO WGJA WIP: 	int error;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	error = namei(filename,&inode);
+// TODO WGJA WIP: 	if (error)
+// TODO WGJA WIP: 		return error;
+// TODO WGJA WIP: 	if ((current->euid != inode->i_uid) && !suser()) {
+// TODO WGJA WIP: 		iput(inode);
+// TODO WGJA WIP: 		return -EPERM;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (IS_RDONLY(inode)) {
+// TODO WGJA WIP: 		iput(inode);
+// TODO WGJA WIP: 		return -EROFS;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	inode->i_mode = (mode & S_IALLUGO) | (inode->i_mode & ~S_IALLUGO);
+// TODO WGJA WIP: 	if (!suser() && !in_group_p(inode->i_gid))
+// TODO WGJA WIP: 		inode->i_mode &= ~S_ISGID;
+// TODO WGJA WIP: 	inode->i_ctime = CURRENT_TIME;
+// TODO WGJA WIP: 	inode->i_dirt = 1;
+// TODO WGJA WIP: 	error = notify_change(NOTIFY_MODE, inode);
+// TODO WGJA WIP: 	iput(inode);
+// TODO WGJA WIP: 	return error;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: extern "C" int sys_fchown(unsigned int fd, uid_t user, gid_t group)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct inode * inode;
+// TODO WGJA WIP: 	struct file * file;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (fd >= NR_OPEN || !(file = current->filp[fd]))
+// TODO WGJA WIP: 		return -EBADF;
+// TODO WGJA WIP: 	if (!(inode = file->f_inode))
+// TODO WGJA WIP: 		return -ENOENT;
+// TODO WGJA WIP: 	if (IS_RDONLY(inode))
+// TODO WGJA WIP: 		return -EROFS;
+// TODO WGJA WIP: 	if (user == (uid_t) -1)
+// TODO WGJA WIP: 		user = inode->i_uid;
+// TODO WGJA WIP: 	if (group == (gid_t) -1)
+// TODO WGJA WIP: 		group = inode->i_gid;
+// TODO WGJA WIP: 	if ((current->euid == inode->i_uid && user == inode->i_uid &&
+// TODO WGJA WIP: 	     (in_group_p(group) || group == inode->i_gid)) ||
+// TODO WGJA WIP: 	    suser()) {
+// TODO WGJA WIP: 		inode->i_uid = user;
+// TODO WGJA WIP: 		inode->i_gid = group;
+// TODO WGJA WIP: 		inode->i_ctime = CURRENT_TIME;
+// TODO WGJA WIP: 		inode->i_dirt = 1;
+// TODO WGJA WIP: 		return notify_change(NOTIFY_UIDGID, inode);
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	return -EPERM;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: extern "C" int sys_chown(const char * filename, uid_t user, gid_t group)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct inode * inode;
+// TODO WGJA WIP: 	int error;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	error = lnamei(filename,&inode);
+// TODO WGJA WIP: 	if (error)
+// TODO WGJA WIP: 		return error;
+// TODO WGJA WIP: 	if (IS_RDONLY(inode)) {
+// TODO WGJA WIP: 		iput(inode);
+// TODO WGJA WIP: 		return -EROFS;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (user == (uid_t) -1)
+// TODO WGJA WIP: 		user = inode->i_uid;
+// TODO WGJA WIP: 	if (group == (gid_t) -1)
+// TODO WGJA WIP: 		group = inode->i_gid;
+// TODO WGJA WIP: 	if ((current->euid == inode->i_uid && user == inode->i_uid &&
+// TODO WGJA WIP: 	     (in_group_p(group) || group == inode->i_gid)) ||
+// TODO WGJA WIP: 	    suser()) {
+// TODO WGJA WIP: 		inode->i_uid = user;
+// TODO WGJA WIP: 		inode->i_gid = group;
+// TODO WGJA WIP: 		inode->i_ctime = CURRENT_TIME;
+// TODO WGJA WIP: 		inode->i_dirt = 1;
+// TODO WGJA WIP: 		error = notify_change(NOTIFY_UIDGID, inode);
+// TODO WGJA WIP: 		iput(inode);
+// TODO WGJA WIP: 		return error;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	iput(inode);
+// TODO WGJA WIP: 	return -EPERM;
+// TODO WGJA WIP: }
 
 /*
  * Note that while the flag value (low two bits) for sys_open means:
@@ -355,7 +356,7 @@ int do_open(const char * filename,int flags,int mode)
 	struct inode * inode;
 	struct file * f;
 	int flag,error,fd;
-
+	
 	for(fd=0 ; fd<NR_OPEN ; fd++)
 		if (!current->filp[fd])
 			break;
@@ -422,61 +423,61 @@ extern "C" int sys_open(const char * filename,int flags,int mode)
 	return error;
 }
 
-extern "C" int sys_creat(const char * pathname, int mode)
-{
-	return sys_open(pathname, O_CREAT | O_WRONLY | O_TRUNC, mode);
-}
-
-int close_fp(struct file *filp)
-{
-	struct inode *inode;
-
-	if (filp->f_count == 0) {
-		printk("VFS: Close: file count is 0\n");
-		return 0;
-	}
-	inode = filp->f_inode;
-	if (inode && S_ISREG(inode->i_mode))
-		fcntl_remove_locks(current, filp);
-	if (filp->f_count > 1) {
-		filp->f_count--;
-		return 0;
-	}
-	if (filp->f_op && filp->f_op->release)
-		filp->f_op->release(inode,filp);
-	filp->f_count--;
-	filp->f_inode = NULL;
-	iput(inode);
-	return 0;
-}
-
-extern "C" int sys_close(unsigned int fd)
-{	
-	struct file * filp;
-
-	if (fd >= NR_OPEN)
-		return -EBADF;
-	FD_CLR(fd, &current->close_on_exec);
-	if (!(filp = current->filp[fd]))
-		return -EBADF;
-	current->filp[fd] = NULL;
-	return (close_fp (filp));
-}
-
-/*
- * This routine simulates a hangup on the tty, to arrange that users
- * are given clean terminals at login time.
- */
-extern "C" int sys_vhangup(void)
-{
-	struct tty_struct *tty;
-
-	if (!suser())
-		return -EPERM;
-	/* See if there is a controlling tty. */
-	if (current->tty < 0)
-		return 0;
-	tty = TTY_TABLE(MINOR(current->tty));
-	tty_vhangup(tty);
-	return 0;
-}
+// TODO WGJA WIP: extern "C" int sys_creat(const char * pathname, int mode)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	return sys_open(pathname, O_CREAT | O_WRONLY | O_TRUNC, mode);
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: int close_fp(struct file *filp)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct inode *inode;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (filp->f_count == 0) {
+// TODO WGJA WIP: 		printk("VFS: Close: file count is 0\n");
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	inode = filp->f_inode;
+// TODO WGJA WIP: 	if (inode && S_ISREG(inode->i_mode))
+// TODO WGJA WIP: 		fcntl_remove_locks(current, filp);
+// TODO WGJA WIP: 	if (filp->f_count > 1) {
+// TODO WGJA WIP: 		filp->f_count--;
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (filp->f_op && filp->f_op->release)
+// TODO WGJA WIP: 		filp->f_op->release(inode,filp);
+// TODO WGJA WIP: 	filp->f_count--;
+// TODO WGJA WIP: 	filp->f_inode = NULL;
+// TODO WGJA WIP: 	iput(inode);
+// TODO WGJA WIP: 	return 0;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: extern "C" int sys_close(unsigned int fd)
+// TODO WGJA WIP: {	
+// TODO WGJA WIP: 	struct file * filp;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (fd >= NR_OPEN)
+// TODO WGJA WIP: 		return -EBADF;
+// TODO WGJA WIP: 	FD_CLR(fd, &current->close_on_exec);
+// TODO WGJA WIP: 	if (!(filp = current->filp[fd]))
+// TODO WGJA WIP: 		return -EBADF;
+// TODO WGJA WIP: 	current->filp[fd] = NULL;
+// TODO WGJA WIP: 	return (close_fp (filp));
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * This routine simulates a hangup on the tty, to arrange that users
+// TODO WGJA WIP:  * are given clean terminals at login time.
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: extern "C" int sys_vhangup(void)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct tty_struct *tty;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (!suser())
+// TODO WGJA WIP: 		return -EPERM;
+// TODO WGJA WIP: 	/* See if there is a controlling tty. */
+// TODO WGJA WIP: 	if (current->tty < 0)
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	tty = TTY_TABLE(MINOR(current->tty));
+// TODO WGJA WIP: 	tty_vhangup(tty);
+// TODO WGJA WIP: 	return 0;
+// TODO WGJA WIP: }

@@ -11,8 +11,8 @@
 #include <linux/sched.h>
 // TODO WGJA WIP: #include <linux/ext_fs.h>
 // TODO WGJA WIP: #include <linux/tty.h>
-// TODO WGJA WIP: #include <linux/stat.h>
-// TODO WGJA WIP: #include <linux/fcntl.h>
+#include <linux/stat.h>
+#include <linux/fcntl.h>
 #include <linux/errno.h>
 
 struct file_operations * chrdev_fops[MAX_CHRDEV] = {

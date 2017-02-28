@@ -96,11 +96,11 @@ typedef struct fd_set {
 // TODO WGJA WIP: 		__asm__ __volatile__("btsl %1,%0": \
 // TODO WGJA WIP: 			"=m" (*(fd_set *) (fdsetp)):"r" ((int) (fd)))
 // TODO WGJA WIP: 
-// TODO WGJA WIP: #undef	__FD_CLR
-// TODO WGJA WIP: #define __FD_CLR(fd,fdsetp) \
-// TODO WGJA WIP: 		__asm__ __volatile__("btrl %1,%0": \
-// TODO WGJA WIP: 			"=m" (*(fd_set *) (fdsetp)):"r" ((int) (fd)))
-// TODO WGJA WIP: 
+#undef	__FD_CLR
+#define __FD_CLR(fd,fdsetp) \
+		__asm__ __volatile__("btrl %1,%0": \
+			"=m" (*(fd_set *) (fdsetp)):"r" ((int) (fd)))
+
 // TODO WGJA WIP: #undef	__FD_ISSET
 // TODO WGJA WIP: #define __FD_ISSET(fd,fdsetp) (__extension__ ({ \
 // TODO WGJA WIP: 		unsigned char __result; \

@@ -53,10 +53,10 @@
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #define CT_TO_SECS(x)	((x) / HZ)
 // TODO WGJA WIP: #define CT_TO_USECS(x)	(((x) % HZ) * 1000000/HZ)
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define FIRST_TASK task[0]
-// TODO WGJA WIP: #define LAST_TASK task[NR_TASKS-1]
-// TODO WGJA WIP: 
+
+#define FIRST_TASK task[0]
+#define LAST_TASK task[NR_TASKS-1]
+
 #include <linux/head.h>
 #include <linux/fs.h>
 #include <linux/mm.h>
@@ -302,7 +302,7 @@ extern void wake_up_interruptible(struct wait_queue ** p);
 
 // TODO WGJA WIP: extern void notify_parent(struct task_struct * tsk);
 extern int send_sig(unsigned long sig,struct task_struct * p,int priv);
-// TODO WGJA WIP: extern int in_group_p(gid_t grp);
+extern int in_group_p(gid_t grp);
 
 extern int request_irq(unsigned int irq,void (*handler)(int));
 extern void free_irq(unsigned int irq);
