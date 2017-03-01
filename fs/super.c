@@ -1,3 +1,4 @@
+#pragma GCC diagnostic ignored "-fpermissive"
 /*
  *  linux/fs/super.c
  *
@@ -13,8 +14,8 @@
 #include <linux/stat.h>
 #include <linux/errno.h>
 #include <linux/string.h>
-// TODO WGJA WIP: #include <linux/locks.h>
-// TODO WGJA WIP: 
+#include <linux/locks.h>
+
 #include <asm/system.h>
 #include <asm/segment.h>
 
@@ -31,9 +32,9 @@
 // TODO WGJA WIP: extern void fcntl_init_locks(void);
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern int root_mountflags;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct super_block super_blocks[NR_SUPER];
-// TODO WGJA WIP: 
+
+struct super_block super_blocks[NR_SUPER];
+
 // TODO WGJA WIP: static int do_remount_sb(struct super_block *sb, int flags);
 
 /* this is initialized in init/main.c */
@@ -50,41 +51,41 @@ dev_t ROOT_DEV = 0;
 // TODO WGJA WIP: 			return(&file_systems[a]);
 // TODO WGJA WIP: 	return NULL;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void __wait_on_super(struct super_block * sb)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct wait_queue wait = { current, NULL };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	add_wait_queue(&sb->s_wait, &wait);
-// TODO WGJA WIP: repeat:
-// TODO WGJA WIP: 	current->state = TASK_UNINTERRUPTIBLE;
-// TODO WGJA WIP: 	if (sb->s_lock) {
-// TODO WGJA WIP: 		schedule();
-// TODO WGJA WIP: 		goto repeat;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	remove_wait_queue(&sb->s_wait, &wait);
-// TODO WGJA WIP: 	current->state = TASK_RUNNING;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void sync_supers(dev_t dev)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct super_block * sb;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	for (sb = super_blocks + 0 ; sb < super_blocks + NR_SUPER ; sb++) {
-// TODO WGJA WIP: 		if (!sb->s_dev)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (dev && sb->s_dev != dev)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		wait_on_super(sb);
-// TODO WGJA WIP: 		if (!sb->s_dev || !sb->s_dirt)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (dev && (dev != sb->s_dev))
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (sb->s_op && sb->s_op->write_super)
-// TODO WGJA WIP: 			sb->s_op->write_super(sb);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+void __wait_on_super(struct super_block * sb)
+{
+	struct wait_queue wait = { current, NULL };
+
+	add_wait_queue(&sb->s_wait, &wait);
+repeat:
+	current->state = TASK_UNINTERRUPTIBLE;
+	if (sb->s_lock) {
+		schedule();
+		goto repeat;
+	}
+	remove_wait_queue(&sb->s_wait, &wait);
+	current->state = TASK_RUNNING;
+}
+
+void sync_supers(dev_t dev)
+{
+	struct super_block * sb;
+
+	for (sb = super_blocks + 0 ; sb < super_blocks + NR_SUPER ; sb++) {
+		if (!sb->s_dev)
+			continue;
+		if (dev && sb->s_dev != dev)
+			continue;
+		wait_on_super(sb);
+		if (!sb->s_dev || !sb->s_dirt)
+			continue;
+		if (dev && (dev != sb->s_dev))
+			continue;
+		if (sb->s_op && sb->s_op->write_super)
+			sb->s_op->write_super(sb);
+	}
+}
+
 // TODO WGJA WIP: static struct super_block * get_super(dev_t dev)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	struct super_block * s;

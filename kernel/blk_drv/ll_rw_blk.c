@@ -1,3 +1,4 @@
+#pragma GCC diagnostic ignored "-fpermissive"
 /*
  *  linux/kernel/blk_dev/ll_rw.c
  *
@@ -83,16 +84,16 @@ int is_read_only(int dev)
 	return ro_bits[major][minor >> 5] & (1 << (minor & 31));
 }
 
-void set_device_ro(int dev,int flag)
-{
-	int minor,major;
-
-	major = MAJOR(dev);
-	minor = MINOR(dev);
-	if (major < 0 || major >= MAX_BLKDEV) return;
-	if (flag) ro_bits[major][minor >> 5] |= 1 << (minor & 31);
-	else ro_bits[major][minor >> 5] &= ~(1 << (minor & 31));
-}
+// TODO WGJA WIP: void set_device_ro(int dev,int flag)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	int minor,major;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	major = MAJOR(dev);
+// TODO WGJA WIP: 	minor = MINOR(dev);
+// TODO WGJA WIP: 	if (major < 0 || major >= MAX_BLKDEV) return;
+// TODO WGJA WIP: 	if (flag) ro_bits[major][minor >> 5] |= 1 << (minor & 31);
+// TODO WGJA WIP: 	else ro_bits[major][minor >> 5] &= ~(1 << (minor & 31));
+// TODO WGJA WIP: }
 
 /*
  * add-request adds a request to the linked list.
@@ -243,47 +244,47 @@ found:
 	add_request(major+blk_dev,req);
 }
 
-void ll_rw_page(int rw, int dev, int page, char * buffer)
-{
-	struct request * req;
-	unsigned int major = MAJOR(dev);
-
-	if (major >= MAX_BLKDEV || !(blk_dev[major].request_fn)) {
-		printk("Trying to read nonexistent block-device %04x (%d)\n",dev,page*8);
-		return;
-	}
-	if (rw!=READ && rw!=WRITE)
-		panic("Bad block dev command, must be R/W");
-	if (rw == WRITE && is_read_only(dev)) {
-		printk("Can't page to read-only device 0x%X\n",dev);
-		return;
-	}
-	cli();
-repeat:
-	req = request+NR_REQUEST;
-	while (--req >= request)
-		if (req->dev<0)
-			break;
-	if (req < request) {
-		sleep_on(&wait_for_request);
-		goto repeat;
-	}
-	sti();
-/* fill up the request-info, and add it to the queue */
-	req->dev = dev;
-	req->cmd = rw;
-	req->errors = 0;
-	req->sector = page<<3;
-	req->nr_sectors = 8;
-	req->current_nr_sectors = 8;
-	req->buffer = buffer;
-	req->waiting = current;
-	req->bh = NULL;
-	req->next = NULL;
-	current->state = TASK_SWAPPING;
-	add_request(major+blk_dev,req);
-	schedule();
-}
+// TODO WGJA WIP: void ll_rw_page(int rw, int dev, int page, char * buffer)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct request * req;
+// TODO WGJA WIP: 	unsigned int major = MAJOR(dev);
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (major >= MAX_BLKDEV || !(blk_dev[major].request_fn)) {
+// TODO WGJA WIP: 		printk("Trying to read nonexistent block-device %04x (%d)\n",dev,page*8);
+// TODO WGJA WIP: 		return;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (rw!=READ && rw!=WRITE)
+// TODO WGJA WIP: 		panic("Bad block dev command, must be R/W");
+// TODO WGJA WIP: 	if (rw == WRITE && is_read_only(dev)) {
+// TODO WGJA WIP: 		printk("Can't page to read-only device 0x%X\n",dev);
+// TODO WGJA WIP: 		return;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	cli();
+// TODO WGJA WIP: repeat:
+// TODO WGJA WIP: 	req = request+NR_REQUEST;
+// TODO WGJA WIP: 	while (--req >= request)
+// TODO WGJA WIP: 		if (req->dev<0)
+// TODO WGJA WIP: 			break;
+// TODO WGJA WIP: 	if (req < request) {
+// TODO WGJA WIP: 		sleep_on(&wait_for_request);
+// TODO WGJA WIP: 		goto repeat;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	sti();
+// TODO WGJA WIP: /* fill up the request-info, and add it to the queue */
+// TODO WGJA WIP: 	req->dev = dev;
+// TODO WGJA WIP: 	req->cmd = rw;
+// TODO WGJA WIP: 	req->errors = 0;
+// TODO WGJA WIP: 	req->sector = page<<3;
+// TODO WGJA WIP: 	req->nr_sectors = 8;
+// TODO WGJA WIP: 	req->current_nr_sectors = 8;
+// TODO WGJA WIP: 	req->buffer = buffer;
+// TODO WGJA WIP: 	req->waiting = current;
+// TODO WGJA WIP: 	req->bh = NULL;
+// TODO WGJA WIP: 	req->next = NULL;
+// TODO WGJA WIP: 	current->state = TASK_SWAPPING;
+// TODO WGJA WIP: 	add_request(major+blk_dev,req);
+// TODO WGJA WIP: 	schedule();
+// TODO WGJA WIP: }
 
 /* This function can be used to request a number of buffers from a block
    device. Currently the only restriction is that all buffers must belong to
@@ -320,12 +321,12 @@ void ll_rw_block(int rw, int nr, struct buffer_head * bh[])
 	  correct_size = BLOCK_SIZE;
 	  if(blksize_size[major] && blksize_size[major][MINOR(bh[j]->b_dev)])
 	    correct_size = blksize_size[major][MINOR(bh[j]->b_dev)];
-	  
+
 	  if(bh[j]->b_size != correct_size) {
-	    
+
 	    printk("ll_rw_block: only %d-char blocks implemented (%d)\n",
 		   correct_size, bh[j]->b_size);
-	    
+
 	    for (i=0;i<nr; i++)
 	      if (bh[i]) bh[i]->b_dirt = bh[i]->b_uptodate = 0;
 	    return;
@@ -365,56 +366,56 @@ void ll_rw_block(int rw, int nr, struct buffer_head * bh[])
 	};
 }
 
-void ll_rw_swap_file(int rw, int dev, unsigned int *b, int nb, char *buf)
-{
-	int i;
-	int buffersize;
-	struct request * req;
-	unsigned int major = MAJOR(dev);
-
-	if (major >= MAX_BLKDEV || !(blk_dev[major].request_fn)) {
-		printk("ll_rw_swap_file: trying to swap nonexistent block-device\n");
-		return;
-	}
-
-	if (rw!=READ && rw!=WRITE) {
-		printk("ll_rw_swap: bad block dev command, must be R/W");
-		return;
-	}
-	if (rw == WRITE && is_read_only(dev)) {
-		printk("Can't swap to read-only device 0x%X\n",dev);
-		return;
-	}
-	
-	buffersize = PAGE_SIZE / nb;
-
-	for (i=0; i<nb; i++, buf += buffersize)
-	{
-repeat:
-		req = request+NR_REQUEST;
-		while (--req >= request)
-			if (req->dev<0)
-				break;
-		if (req < request) {
-			sleep_on(&wait_for_request);
-			goto repeat;
-		}
-
-		req->dev = dev;
-		req->cmd = rw;
-		req->errors = 0;
-		req->sector = (b[i] * buffersize) >> 9;
-		req->nr_sectors = buffersize >> 9;
-		req->current_nr_sectors = buffersize >> 9;
-		req->buffer = buf;
-		req->waiting = current;
-		req->bh = NULL;
-		req->next = NULL;
-		current->state = TASK_UNINTERRUPTIBLE;
-		add_request(major+blk_dev,req);
-		schedule();
-	}
-}
+// TODO WGJA WIP: void ll_rw_swap_file(int rw, int dev, unsigned int *b, int nb, char *buf)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	int i;
+// TODO WGJA WIP: 	int buffersize;
+// TODO WGJA WIP: 	struct request * req;
+// TODO WGJA WIP: 	unsigned int major = MAJOR(dev);
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (major >= MAX_BLKDEV || !(blk_dev[major].request_fn)) {
+// TODO WGJA WIP: 		printk("ll_rw_swap_file: trying to swap nonexistent block-device\n");
+// TODO WGJA WIP: 		return;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (rw!=READ && rw!=WRITE) {
+// TODO WGJA WIP: 		printk("ll_rw_swap: bad block dev command, must be R/W");
+// TODO WGJA WIP: 		return;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (rw == WRITE && is_read_only(dev)) {
+// TODO WGJA WIP: 		printk("Can't swap to read-only device 0x%X\n",dev);
+// TODO WGJA WIP: 		return;
+// TODO WGJA WIP: 	}
+	// TODO WGJA WIP: 
+// TODO WGJA WIP: 	buffersize = PAGE_SIZE / nb;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	for (i=0; i<nb; i++, buf += buffersize)
+// TODO WGJA WIP: 	{
+// TODO WGJA WIP: repeat:
+// TODO WGJA WIP: 		req = request+NR_REQUEST;
+// TODO WGJA WIP: 		while (--req >= request)
+// TODO WGJA WIP: 			if (req->dev<0)
+// TODO WGJA WIP: 				break;
+// TODO WGJA WIP: 		if (req < request) {
+// TODO WGJA WIP: 			sleep_on(&wait_for_request);
+// TODO WGJA WIP: 			goto repeat;
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 		req->dev = dev;
+// TODO WGJA WIP: 		req->cmd = rw;
+// TODO WGJA WIP: 		req->errors = 0;
+// TODO WGJA WIP: 		req->sector = (b[i] * buffersize) >> 9;
+// TODO WGJA WIP: 		req->nr_sectors = buffersize >> 9;
+// TODO WGJA WIP: 		req->current_nr_sectors = buffersize >> 9;
+// TODO WGJA WIP: 		req->buffer = buf;
+// TODO WGJA WIP: 		req->waiting = current;
+// TODO WGJA WIP: 		req->bh = NULL;
+// TODO WGJA WIP: 		req->next = NULL;
+// TODO WGJA WIP: 		current->state = TASK_UNINTERRUPTIBLE;
+// TODO WGJA WIP: 		add_request(major+blk_dev,req);
+// TODO WGJA WIP: 		schedule();
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: }
 
 long blk_dev_init(long mem_start, long mem_end)
 {

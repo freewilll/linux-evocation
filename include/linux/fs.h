@@ -11,28 +11,28 @@
 #include <linux/types.h>
 // TODO WGJA WIP: #include <linux/dirent.h>
 // TODO WGJA WIP: #include <linux/vfs.h>
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * It's silly to have NR_OPEN bigger than NR_FILE, but I'll fix
-// TODO WGJA WIP:  * that later. Anyway, now the file code is no longer dependent
-// TODO WGJA WIP:  * on bitmaps in unsigned longs, but uses the new fd_set structure..
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Some programs (notably those using select()) may have to be 
-// TODO WGJA WIP:  * recompiled to take full advantage of the new limits..
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: #undef NR_OPEN
-// TODO WGJA WIP: #define NR_OPEN 256
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define NR_INODE 2048	/* this should be bigger than NR_FILE */
+
+/*
+ * It's silly to have NR_OPEN bigger than NR_FILE, but I'll fix
+ * that later. Anyway, now the file code is no longer dependent
+ * on bitmaps in unsigned longs, but uses the new fd_set structure..
+ *
+ * Some programs (notably those using select()) may have to be 
+ * recompiled to take full advantage of the new limits..
+ */
+#undef NR_OPEN
+#define NR_OPEN 256
+
+#define NR_INODE 2048	/* this should be bigger than NR_FILE */
 #define NR_FILE 1024	/* this can well be larger on a larger system */
-// TODO WGJA WIP: #define NR_SUPER 32
-// TODO WGJA WIP: #define NR_HASH 997
-// TODO WGJA WIP: #define NR_IHASH 131
-// TODO WGJA WIP: #define NR_FILE_LOCKS 64
-// TODO WGJA WIP: #define BLOCK_SIZE 1024
-// TODO WGJA WIP: #define BLOCK_SIZE_BITS 10
+#define NR_SUPER 32
+#define NR_HASH 997
+#define NR_IHASH 131
+#define NR_FILE_LOCKS 64
+#define BLOCK_SIZE 1024
+#define BLOCK_SIZE_BITS 10
 #define MAX_CHRDEV 32
-// TODO WGJA WIP: #define MAX_BLKDEV 32
+#define MAX_BLKDEV 32
 
 /* devices are as follows: (same as minix, so we can use the minix
  * file system. These are major numbers.)
@@ -143,25 +143,25 @@
 // TODO WGJA WIP: #define NOTIFY_UIDGID	8
 // TODO WGJA WIP: 
 // TODO WGJA WIP: typedef char buffer_block[BLOCK_SIZE];
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct buffer_head {
-// TODO WGJA WIP: 	char * b_data;			/* pointer to data block (1024 bytes) */
-// TODO WGJA WIP: 	unsigned long b_size;		/* block size */
-// TODO WGJA WIP: 	unsigned long b_blocknr;	/* block number */
-// TODO WGJA WIP: 	dev_t b_dev;			/* device (0 = free) */
-// TODO WGJA WIP: 	unsigned short b_count;		/* users using this block */
-// TODO WGJA WIP: 	unsigned char b_uptodate;
-// TODO WGJA WIP: 	unsigned char b_dirt;		/* 0-clean,1-dirty */
-// TODO WGJA WIP: 	unsigned char b_lock;		/* 0 - ok, 1 -locked */
-// TODO WGJA WIP: 	unsigned char b_req;		/* 0 if the buffer has been invalidated */
-// TODO WGJA WIP: 	struct wait_queue * b_wait;
-// TODO WGJA WIP: 	struct buffer_head * b_prev;		/* doubly linked list of hash-queue */
-// TODO WGJA WIP: 	struct buffer_head * b_next;
-// TODO WGJA WIP: 	struct buffer_head * b_prev_free;	/* doubly linked list of buffers */
-// TODO WGJA WIP: 	struct buffer_head * b_next_free;
-// TODO WGJA WIP: 	struct buffer_head * b_this_page;	/* circular list of buffers in one page */
-// TODO WGJA WIP: 	struct buffer_head * b_reqnext;		/* request queue */
-// TODO WGJA WIP: };
+
+struct buffer_head {
+	char * b_data;			/* pointer to data block (1024 bytes) */
+	unsigned long b_size;		/* block size */
+	unsigned long b_blocknr;	/* block number */
+	dev_t b_dev;			/* device (0 = free) */
+	unsigned short b_count;		/* users using this block */
+	unsigned char b_uptodate;
+	unsigned char b_dirt;		/* 0-clean,1-dirty */
+	unsigned char b_lock;		/* 0 - ok, 1 -locked */
+	unsigned char b_req;		/* 0 if the buffer has been invalidated */
+	struct wait_queue * b_wait;
+	struct buffer_head * b_prev;		/* doubly linked list of hash-queue */
+	struct buffer_head * b_next;
+	struct buffer_head * b_prev_free;	/* doubly linked list of buffers */
+	struct buffer_head * b_next_free;
+	struct buffer_head * b_this_page;	/* circular list of buffers in one page */
+	struct buffer_head * b_reqnext;		/* request queue */
+};
 
 #include <linux/pipe_fs_i.h>
 #include <linux/minix_fs_i.h>
@@ -325,7 +325,7 @@ extern "C" int sys_open(const char *, int, int);
 extern int getname(const char * filename, char **result);
 extern void putname(char * name);
 
-// TODO WGJA WIP: extern int register_blkdev(unsigned int, const char *, struct file_operations *);
+extern int register_blkdev(unsigned int, const char *, struct file_operations *);
 // TODO WGJA WIP: extern int blkdev_open(struct inode * inode, struct file * filp);
 // TODO WGJA WIP: extern struct file_operations def_blk_fops;
 // TODO WGJA WIP: extern struct inode_operations blkdev_inode_operations;
@@ -351,8 +351,8 @@ extern int register_chrdev(unsigned int, const char *, struct file_operations *)
 // TODO WGJA WIP: extern struct file *first_file;
 // TODO WGJA WIP: extern int nr_files;
 // TODO WGJA WIP: extern struct super_block super_blocks[NR_SUPER];
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern void grow_buffers(int size);
+
+extern void grow_buffers(int size);
 extern int shrink_buffers(unsigned int priority);
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern int nr_buffers;
@@ -363,10 +363,10 @@ extern int shrink_buffers(unsigned int priority);
 // TODO WGJA WIP: extern void invalidate_inodes(dev_t dev);
 // TODO WGJA WIP: extern void invalidate_buffers(dev_t dev);
 // TODO WGJA WIP: extern int floppy_change(struct buffer_head * first_block);
-// TODO WGJA WIP: extern void sync_inodes(dev_t dev);
+extern void sync_inodes(dev_t dev);
 // TODO WGJA WIP: extern void sync_dev(dev_t dev);
-// TODO WGJA WIP: extern int fsync_dev(dev_t dev);
-// TODO WGJA WIP: extern void sync_supers(dev_t dev);
+extern int fsync_dev(dev_t dev);
+extern void sync_supers(dev_t dev);
 // TODO WGJA WIP: extern int bmap(struct inode * inode,int block);
 extern int notify_change(int flags, struct inode * inode);
 // TODO WGJA WIP: extern int namei(const char * pathname, struct inode ** res_inode);
@@ -383,30 +383,30 @@ extern void iput(struct inode * inode);
 // TODO WGJA WIP: extern struct inode * get_pipe_inode(void);
 extern struct file * get_empty_filp(void);
 // TODO WGJA WIP: extern struct buffer_head * get_hash_table(dev_t dev, int block, int size);
-// TODO WGJA WIP: extern struct buffer_head * getblk(dev_t dev, int block, int size);
-// TODO WGJA WIP: extern void ll_rw_block(int rw, int nr, struct buffer_head * bh[]);
+extern struct buffer_head * getblk(dev_t dev, int block, int size);
+extern void ll_rw_block(int rw, int nr, struct buffer_head * bh[]);
 // TODO WGJA WIP: extern void ll_rw_page(int rw, int dev, int nr, char * buffer);
 // TODO WGJA WIP: extern void ll_rw_swap_file(int rw, int dev, unsigned int *b, int nb, char *buffer);
-// TODO WGJA WIP: extern void brelse(struct buffer_head * buf);
+extern void brelse(struct buffer_head * buf);
 // TODO WGJA WIP: extern void set_blocksize(dev_t dev, int size);
-// TODO WGJA WIP: extern struct buffer_head * bread(dev_t dev, int block, int size);
+extern struct buffer_head * bread(dev_t dev, int block, int size);
 // TODO WGJA WIP: extern unsigned long bread_page(unsigned long addr,dev_t dev,int b[],int size,int prot);
-// TODO WGJA WIP: extern struct buffer_head * breada(dev_t dev,int block,...);
+extern struct buffer_head * breada(dev_t dev,int block,...);
 // TODO WGJA WIP: extern void put_super(dev_t dev);
 extern dev_t ROOT_DEV;
 
-// TODO WGJA WIP: extern void mount_root(void);
-// TODO WGJA WIP: 
+extern void mount_root(void);
+
 // TODO WGJA WIP: extern int char_read(struct inode *, struct file *, char *, int);
-// TODO WGJA WIP: extern int block_read(struct inode *, struct file *, char *, int);
-// TODO WGJA WIP: extern int read_ahead[];
-// TODO WGJA WIP: 
+extern int block_read(struct inode *, struct file *, char *, int);
+extern int read_ahead[];
+
 // TODO WGJA WIP: extern int char_write(struct inode *, struct file *, char *, int);
-// TODO WGJA WIP: extern int block_write(struct inode *, struct file *, char *, int);
+extern int block_write(struct inode *, struct file *, char *, int);
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern int generic_mmap(struct inode *, struct file *, unsigned long, size_t, int, unsigned long);
 // TODO WGJA WIP: 
-// TODO WGJA WIP: extern int block_fsync(struct inode *, struct file *);
+extern int block_fsync(struct inode *, struct file *);
 // TODO WGJA WIP: extern int file_fsync(struct inode *, struct file *);
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #endif /* __KERNEL__ */

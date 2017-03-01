@@ -7,7 +7,7 @@
 extern "C" {
 
 extern int sys_todo();
-// TODO WGJA WIP: extern int sys_setup();
+extern int sys_setup();
 // TODO WGJA WIP: extern int sys_exit();
 extern int sys_fork();
 // TODO WGJA WIP: extern int sys_read();
@@ -150,7 +150,7 @@ typedef int (*fn_ptr)();
 
 // TODO WGJA syscalls
 fn_ptr sys_call_table[] = {
-  sys_todo, 			// #define __NR_setup		  0
+  sys_setup, 			// #define __NR_setup		  0
   sys_todo, 			// #define __NR_exit		  1
   sys_fork, 			// #define __NR_fork		  2      Done
   sys_todo, 			// #define __NR_read		  3

@@ -383,74 +383,74 @@ __asm__( \
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #define set_base(ldt,base) _set_base( ((char *)&(ldt)) , base )
 // TODO WGJA WIP: #define set_limit(ldt,limit) _set_limit( ((char *)&(ldt)) , (limit-1)>>12 )
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * The wait-queues are circular lists, and you have to be *very* sure
-// TODO WGJA WIP:  * to keep them correct. Use only these two functions to add/remove
-// TODO WGJA WIP:  * entries in the queues.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: extern inline void add_wait_queue(struct wait_queue ** p, struct wait_queue * wait)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long flags;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #ifdef DEBUG
-// TODO WGJA WIP: 	if (wait->next) {
-// TODO WGJA WIP: 		unsigned long pc;
-// TODO WGJA WIP: 		__asm__ __volatile__("call 1f\n"
-// TODO WGJA WIP: 			"1:\tpopl %0":"=r" (pc));
-// TODO WGJA WIP: 		printk("add_wait_queue (%08x): wait->next = %08x\n",pc,wait->next);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 	save_flags(flags);
-// TODO WGJA WIP: 	cli();
-// TODO WGJA WIP: 	if (!*p) {
-// TODO WGJA WIP: 		wait->next = wait;
-// TODO WGJA WIP: 		*p = wait;
-// TODO WGJA WIP: 	} else {
-// TODO WGJA WIP: 		wait->next = (*p)->next;
-// TODO WGJA WIP: 		(*p)->next = wait;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	restore_flags(flags);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern inline void remove_wait_queue(struct wait_queue ** p, struct wait_queue * wait)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long flags;
-// TODO WGJA WIP: 	struct wait_queue * tmp;
-// TODO WGJA WIP: #ifdef DEBUG
-// TODO WGJA WIP: 	unsigned long ok = 0;
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	save_flags(flags);
-// TODO WGJA WIP: 	cli();
-// TODO WGJA WIP: 	if ((*p == wait) &&
-// TODO WGJA WIP: #ifdef DEBUG
-// TODO WGJA WIP: 	    (ok = 1) &&
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 	    ((*p = wait->next) == wait)) {
-// TODO WGJA WIP: 		*p = (wait_queue *)NULL;
-// TODO WGJA WIP: 	} else {
-// TODO WGJA WIP: 		tmp = wait;
-// TODO WGJA WIP: 		while (tmp->next != wait) {
-// TODO WGJA WIP: 			tmp = tmp->next;
-// TODO WGJA WIP: #ifdef DEBUG
-// TODO WGJA WIP: 			if (tmp == *p)
-// TODO WGJA WIP: 				ok = 1;
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		tmp->next = wait->next;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	wait->next = (wait_queue *)NULL;
-// TODO WGJA WIP: 	restore_flags(flags);
-// TODO WGJA WIP: #ifdef DEBUG
-// TODO WGJA WIP: 	if (!ok) {
-// TODO WGJA WIP: 		printk("removed wait_queue not on list.\n");
-// TODO WGJA WIP: 		printk("list = %08x, queue = %08x\n",p,wait);
-// TODO WGJA WIP: 		__asm__("call 1f\n1:\tpopl %0":"=r" (ok));
-// TODO WGJA WIP: 		printk("eip = %08x\n",ok);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: }
+
+/*
+ * The wait-queues are circular lists, and you have to be *very* sure
+ * to keep them correct. Use only these two functions to add/remove
+ * entries in the queues.
+ */
+extern inline void add_wait_queue(struct wait_queue ** p, struct wait_queue * wait)
+{
+	unsigned long flags;
+
+#ifdef DEBUG
+	if (wait->next) {
+		unsigned long pc;
+		__asm__ __volatile__("call 1f\n"
+			"1:\tpopl %0":"=r" (pc));
+		printk("add_wait_queue (%08x): wait->next = %08x\n",pc,wait->next);
+	}
+#endif
+	save_flags(flags);
+	cli();
+	if (!*p) {
+		wait->next = wait;
+		*p = wait;
+	} else {
+		wait->next = (*p)->next;
+		(*p)->next = wait;
+	}
+	restore_flags(flags);
+}
+
+extern inline void remove_wait_queue(struct wait_queue ** p, struct wait_queue * wait)
+{
+	unsigned long flags;
+	struct wait_queue * tmp;
+#ifdef DEBUG
+	unsigned long ok = 0;
+#endif
+
+	save_flags(flags);
+	cli();
+	if ((*p == wait) &&
+#ifdef DEBUG
+	    (ok = 1) &&
+#endif
+	    ((*p = wait->next) == wait)) {
+		*p = (wait_queue *)NULL;
+	} else {
+		tmp = wait;
+		while (tmp->next != wait) {
+			tmp = tmp->next;
+#ifdef DEBUG
+			if (tmp == *p)
+				ok = 1;
+#endif
+		}
+		tmp->next = wait->next;
+	}
+	wait->next = (wait_queue *)NULL;
+	restore_flags(flags);
+#ifdef DEBUG
+	if (!ok) {
+		printk("removed wait_queue not on list.\n");
+		printk("list = %08x, queue = %08x\n",p,wait);
+		__asm__("call 1f\n1:\tpopl %0":"=r" (ok));
+		printk("eip = %08x\n",ok);
+	}
+#endif
+}
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern inline void select_wait(struct wait_queue ** wait_address, select_table * p)
 // TODO WGJA WIP: {

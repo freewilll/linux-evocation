@@ -17,7 +17,7 @@
 	$(CC) $(CFLAGS) -c $<
 
 # TODO WGJA: Work in progress build
-SUBDIRS	=	chr_drv
+SUBDIRS	=	chr_drv blk_drv
 # SUBDIRS	= chr_drv blk_drv FPU-emu
 
 OBJS  = sched.o sys_call.o traps.o irq.o vsprintf.o early_printk.o fork.o sys.o

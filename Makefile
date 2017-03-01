@@ -83,7 +83,7 @@ endif
 # size in blocks.
 #
 
-#RAMDISK = -DRAMDISK=512
+RAMDISK = -DRAMDISK=2048
 
 AS86	=as86 -0 -a
 LD86	=ld86 -0
@@ -210,6 +210,7 @@ tools/zSystem:	wip.o boot/head.o init/main.o linuxsubdirs
 		ipc/ipc.o \
 		$(LIBS) \
 		kernel/chr_drv/chr_drv.a \
+		kernel/blk_drv/blk_drv.a \
 		-o tools/zSystem > zSystem.map
 
 # TODO WGJA: Work in progress build

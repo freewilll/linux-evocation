@@ -171,42 +171,42 @@ confuse_gcc2:
 // TODO WGJA WIP: 	schedule();
 // TODO WGJA WIP: 	return -ERESTARTNOHAND;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * wake_up doesn't wake up stopped processes - they have to be awakened
-// TODO WGJA WIP:  * with signals or similar.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Note that this doesn't need cli-sti pairs: interrupts may not change
-// TODO WGJA WIP:  * the wait-queue structures directly, but only call wake_up() to wake
-// TODO WGJA WIP:  * a process. The process itself must remove the queue once it has woken.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: void wake_up(struct wait_queue **q)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct wait_queue *tmp;
-// TODO WGJA WIP: 	struct task_struct * p;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!q || !(tmp = *q))
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	do {
-// TODO WGJA WIP: 		if ((p = tmp->task) != NULL) {
-// TODO WGJA WIP: 			if ((p->state == TASK_UNINTERRUPTIBLE) ||
-// TODO WGJA WIP: 			    (p->state == TASK_INTERRUPTIBLE)) {
-// TODO WGJA WIP: 				p->state = TASK_RUNNING;
-// TODO WGJA WIP: 				if (p->counter > current->counter)
-// TODO WGJA WIP: 					need_resched = 1;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (!tmp->next) {
-// TODO WGJA WIP: 			printk("wait_queue is bad (eip = %08x)\n",((unsigned long *) q)[-1]);
-// TODO WGJA WIP: 			printk("        q = %08x\n",q);
-// TODO WGJA WIP: 			printk("       *q = %08x\n",*q);
-// TODO WGJA WIP: 			printk("      tmp = %08x\n",tmp);
-// TODO WGJA WIP: 			break;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		tmp = tmp->next;
-// TODO WGJA WIP: 	} while (tmp != *q);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+/*
+ * wake_up doesn't wake up stopped processes - they have to be awakened
+ * with signals or similar.
+ *
+ * Note that this doesn't need cli-sti pairs: interrupts may not change
+ * the wait-queue structures directly, but only call wake_up() to wake
+ * a process. The process itself must remove the queue once it has woken.
+ */
+void wake_up(struct wait_queue **q)
+{
+	struct wait_queue *tmp;
+	struct task_struct * p;
+
+	if (!q || !(tmp = *q))
+		return;
+	do {
+		if ((p = tmp->task) != NULL) {
+			if ((p->state == TASK_UNINTERRUPTIBLE) ||
+			    (p->state == TASK_INTERRUPTIBLE)) {
+				p->state = TASK_RUNNING;
+				if (p->counter > current->counter)
+					need_resched = 1;
+			}
+		}
+		if (!tmp->next) {
+			printk("wait_queue is bad (eip = %08x)\n",((unsigned long *) q)[-1]);
+			printk("        q = %08x\n",q);
+			printk("       *q = %08x\n",*q);
+			printk("      tmp = %08x\n",tmp);
+			break;
+		}
+		tmp = tmp->next;
+	} while (tmp != *q);
+}
+
 // TODO WGJA WIP: void wake_up_interruptible(struct wait_queue **q)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	struct wait_queue *tmp;
@@ -232,34 +232,34 @@ confuse_gcc2:
 // TODO WGJA WIP: 		tmp = tmp->next;
 // TODO WGJA WIP: 	} while (tmp != *q);
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static inline void __sleep_on(struct wait_queue **p, int state)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long flags;
-// TODO WGJA WIP: 	struct wait_queue wait = { current, NULL };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!p)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	if (current == task[0])
-// TODO WGJA WIP: 		panic("task[0] trying to sleep");
-// TODO WGJA WIP: 	current->state = state;
-// TODO WGJA WIP: 	add_wait_queue(p, &wait);
-// TODO WGJA WIP: 	save_flags(flags);
-// TODO WGJA WIP: 	sti();
-// TODO WGJA WIP: 	schedule();
-// TODO WGJA WIP: 	remove_wait_queue(p, &wait);
-// TODO WGJA WIP: 	restore_flags(flags);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+static inline void __sleep_on(struct wait_queue **p, int state)
+{
+	unsigned long flags;
+	struct wait_queue wait = { current, NULL };
+
+	if (!p)
+		return;
+	if (current == task[0])
+		panic("task[0] trying to sleep");
+	current->state = state;
+	add_wait_queue(p, &wait);
+	save_flags(flags);
+	sti();
+	schedule();
+	remove_wait_queue(p, &wait);
+	restore_flags(flags);
+}
+
 // TODO WGJA WIP: void interruptible_sleep_on(struct wait_queue **p)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	__sleep_on(p,TASK_INTERRUPTIBLE);
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void sleep_on(struct wait_queue **p)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	__sleep_on(p,TASK_UNINTERRUPTIBLE);
-// TODO WGJA WIP: }
+
+void sleep_on(struct wait_queue **p)
+{
+	__sleep_on(p,TASK_UNINTERRUPTIBLE);
+}
 
 static struct timer_list * next_timer = (timer_list *) NULL;
 

@@ -148,28 +148,28 @@ static void check_partition(struct gendisk *hd, unsigned int dev)
 	brelse(bh);
 }
 
-/* This function is used to re-read partition tables for removable disks.
-   Much of the cleanup from the old partition tables should have already been
-   done */
-
-/* This function will re-read the partition tables for a given device,
-and set things back up again.  There are some important caveats,
-however.  You must ensure that no one is using the device, and no one
-can start using the device while this function is being executed. */
-
-void resetup_one_dev(struct gendisk *dev, int drive)
-{
-	int i;
-	int start = drive<<dev->minor_shift;
-	int j = start + dev->max_p;
-	int major = dev->major << 8;
-
-	current_minor = 1+(drive<<dev->minor_shift);
-	check_partition(dev, major+(drive<<dev->minor_shift));
-
-	for (i=start ; i < j ; i++)
-		dev->sizes[i] = dev->part[i].nr_sects >> (BLOCK_SIZE_BITS - 9);
-}
+// TODO WGJA WIP: /* This function is used to re-read partition tables for removable disks.
+// TODO WGJA WIP:    Much of the cleanup from the old partition tables should have already been
+// TODO WGJA WIP:    done */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /* This function will re-read the partition tables for a given device,
+// TODO WGJA WIP: and set things back up again.  There are some important caveats,
+// TODO WGJA WIP: however.  You must ensure that no one is using the device, and no one
+// TODO WGJA WIP: can start using the device while this function is being executed. */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: void resetup_one_dev(struct gendisk *dev, int drive)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	int i;
+// TODO WGJA WIP: 	int start = drive<<dev->minor_shift;
+// TODO WGJA WIP: 	int j = start + dev->max_p;
+// TODO WGJA WIP: 	int major = dev->major << 8;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	current_minor = 1+(drive<<dev->minor_shift);
+// TODO WGJA WIP: 	check_partition(dev, major+(drive<<dev->minor_shift));
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	for (i=start ; i < j ; i++)
+// TODO WGJA WIP: 		dev->sizes[i] = dev->part[i].nr_sects >> (BLOCK_SIZE_BITS - 9);
+// TODO WGJA WIP: }
 
 static void setup_dev(struct gendisk *dev)
 {
@@ -192,7 +192,7 @@ static void setup_dev(struct gendisk *dev)
 		dev->sizes[i] = dev->part[i].nr_sects >> (BLOCK_SIZE_BITS - 9);
 	blk_size[dev->major] = dev->sizes;
 }
-	
+
 /* This may be used only once, enforced by 'static int callable' */
 extern "C" int sys_setup(void * BIOS)
 {
@@ -208,9 +208,9 @@ extern "C" int sys_setup(void * BIOS)
 		setup_dev(p);
 		nr += p->nr_real;
 	}
-		
+
 	if (ramdisk_size)
 		rd_load();
-	mount_root();
+	// mount_root();
 	return (0);
 }

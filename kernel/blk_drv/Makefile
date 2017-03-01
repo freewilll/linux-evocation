@@ -16,9 +16,12 @@
 .c.o:
 	$(CC) $(CFLAGS) $(RAMDISK) -c $<
 
-SUBDIRS	= scsi
+# TODO WGJA: Work in progress build
+SUBDIRS	=
+# SUBDIRS	= scsi
 
-OBJS = xd.o hd.o ll_rw_blk.o floppy.o ramdisk.o genhd.o cdu31a.o mcd.o
+OBJS = ll_rw_blk.o ramdisk.o genhd.o
+# OBJS = xd.o hd.o ll_rw_blk.o floppy.o ramdisk.o genhd.o cdu31a.o mcd.o
 
 all: blk_drv.a scsisubdirs
 

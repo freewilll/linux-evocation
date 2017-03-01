@@ -19,9 +19,9 @@ struct file_operations * chrdev_fops[MAX_CHRDEV] = {
 	NULL,
 };
 
-// TODO WGJA WIP: struct file_operations * blkdev_fops[MAX_BLKDEV] = {
-	// TODO WGJA WIP: NULL,
-// TODO WGJA WIP: };
+struct file_operations * blkdev_fops[MAX_BLKDEV] = {
+	NULL,
+};
 
 int register_chrdev(unsigned int major, const char * name, struct file_operations *fops)
 {
@@ -33,16 +33,16 @@ int register_chrdev(unsigned int major, const char * name, struct file_operation
 	return 0;
 }
 
-// TODO WGJA WIP: int register_blkdev(unsigned int major, const char * name, struct file_operations *fops)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (major >= MAX_BLKDEV)
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	if (blkdev_fops[major])
-// TODO WGJA WIP: 		return -EBUSY;
-// TODO WGJA WIP: 	blkdev_fops[major] = fops;
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+int register_blkdev(unsigned int major, const char * name, struct file_operations *fops)
+{
+	if (major >= MAX_BLKDEV)
+		return -EINVAL;
+	if (blkdev_fops[major])
+		return -EBUSY;
+	blkdev_fops[major] = fops;
+	return 0;
+}
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * Called every time a block special file is opened
 // TODO WGJA WIP:  */

@@ -1,3 +1,4 @@
+#pragma GCC diagnostic ignored "-fpermissive"
 /*
  *  linux/fs/buffer.c
  *
@@ -29,21 +30,21 @@
 #include <asm/system.h>
 #include <asm/io.h>
 
-#ifdef CONFIG_SCSI
-#ifdef CONFIG_BLK_DEV_SR
-extern int check_cdrom_media_change(int, int);
-#endif
-#ifdef CONFIG_BLK_DEV_SD
-extern int check_scsidisk_media_change(int, int);
-extern int revalidate_scsidisk(int, int);
-#endif
-#endif
-#ifdef CONFIG_CDU31A
-extern int check_cdu31a_media_change(int, int);
-#endif
-#ifdef CONFIG_MCD
-extern int check_mcd_media_change(int, int);
-#endif
+// TODO WGJA WIP: #ifdef CONFIG_SCSI
+// TODO WGJA WIP: #ifdef CONFIG_BLK_DEV_SR
+// TODO WGJA WIP: extern int check_cdrom_media_change(int, int);
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: #ifdef CONFIG_BLK_DEV_SD
+// TODO WGJA WIP: extern int check_scsidisk_media_change(int, int);
+// TODO WGJA WIP: extern int revalidate_scsidisk(int, int);
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: #ifdef CONFIG_CDU31A
+// TODO WGJA WIP: extern int check_cdu31a_media_change(int, int);
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: #ifdef CONFIG_MCD
+// TODO WGJA WIP: extern int check_mcd_media_change(int, int);
+// TODO WGJA WIP: #endif
 
 static struct buffer_head * hash_table[NR_HASH];
 static struct buffer_head * free_list = NULL;
@@ -144,13 +145,13 @@ repeat:
 	return err;
 }
 
-void sync_dev(dev_t dev)
-{
-	sync_buffers(dev, 0);
-	sync_supers(dev);
-	sync_inodes(dev);
-	sync_buffers(dev, 0);
-}
+// TODO WGJA WIP: void sync_dev(dev_t dev)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	sync_buffers(dev, 0);
+// TODO WGJA WIP: 	sync_supers(dev);
+// TODO WGJA WIP: 	sync_inodes(dev);
+// TODO WGJA WIP: 	sync_buffers(dev, 0);
+// TODO WGJA WIP: }
 
 int fsync_dev(dev_t dev)
 {
@@ -160,118 +161,118 @@ int fsync_dev(dev_t dev)
 	return sync_buffers(dev, 1);
 }
 
-extern "C" int sys_sync(void)
-{
-	sync_dev(0);
-	return 0;
-}
-
-int file_fsync (struct inode *inode, struct file *filp)
-{
-	return fsync_dev(inode->i_dev);
-}
-
-extern "C" int sys_fsync(unsigned int fd)
-{
-	struct file * file;
-	struct inode * inode;
-
-	if (fd>=NR_OPEN || !(file=current->filp[fd]) || !(inode=file->f_inode))
-		return -EBADF;
-	if (!file->f_op || !file->f_op->fsync)
-		return -EINVAL;
-	if (file->f_op->fsync(inode,file))
-		return -EIO;
-	return 0;
-}
-
-void invalidate_buffers(dev_t dev)
-{
-	int i;
-	struct buffer_head * bh;
-
-	bh = free_list;
-	for (i = nr_buffers*2 ; --i > 0 ; bh = bh->b_next_free) {
-		if (bh->b_dev != dev)
-			continue;
-		wait_on_buffer(bh);
-		if (bh->b_dev == dev)
-			bh->b_uptodate = bh->b_dirt = bh->b_req = 0;
-	}
-}
-
-/*
- * This routine checks whether a floppy has been changed, and
- * invalidates all buffer-cache-entries in that case. This
- * is a relatively slow routine, so we have to try to minimize using
- * it. Thus it is called only upon a 'mount' or 'open'. This
- * is the best way of combining speed and utility, I think.
- * People changing diskettes in the middle of an operation deserve
- * to loose :-)
- *
- * NOTE! Although currently this is only for floppies, the idea is
- * that any additional removable block-device will use this routine,
- * and that mount/open needn't know that floppies/whatever are
- * special.
- */
-void check_disk_change(dev_t dev)
-{
-	int i;
-	struct buffer_head * bh;
-
-	switch(MAJOR(dev)){
-	case 2: /* floppy disc */
-		if (!(bh = getblk(dev,0,1024)))
-			return;
-		i = floppy_change(bh);
-		brelse(bh);
-		break;
-
-#if defined(CONFIG_BLK_DEV_SD) && defined(CONFIG_SCSI)
-         case 8: /* Removable scsi disk */
-		i = check_scsidisk_media_change(dev, 0);
-		break;
-#endif
-
-#if defined(CONFIG_BLK_DEV_SR) && defined(CONFIG_SCSI)
-         case 11: /* CDROM */
-		i = check_cdrom_media_change(dev, 0);
-		break;
-#endif
-
-#if defined(CONFIG_CDU31A)
-         case 15: /* Sony CDROM */
-		i = check_cdu31a_media_change(dev, 0);
-		break;
-#endif
-
-#if defined(CONFIG_MCD)
-         case 23: /* Sony CDROM */
-		i = check_mcd_media_change(dev, 0);
-		break;
-#endif
-
-         default:
-		return;
-	};
-
-	if (!i)	return;
-
-	printk("VFS: Disk change detected on device %d/%d\n",
-					MAJOR(dev), MINOR(dev));
-	for (i=0 ; i<NR_SUPER ; i++)
-		if (super_blocks[i].s_dev == dev)
-			put_super(super_blocks[i].s_dev);
-	invalidate_inodes(dev);
-	invalidate_buffers(dev);
-
-#if defined(CONFIG_BLK_DEV_SD) && defined(CONFIG_SCSI)
-/* This is trickier for a removable hardisk, because we have to invalidate
-   all of the partitions that lie on the disk. */
-	if (MAJOR(dev) == 8)
-		revalidate_scsidisk(dev, 0);
-#endif
-}
+// TODO WGJA WIP: extern "C" int sys_sync(void)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	sync_dev(0);
+// TODO WGJA WIP: 	return 0;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: int file_fsync (struct inode *inode, struct file *filp)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	return fsync_dev(inode->i_dev);
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: extern "C" int sys_fsync(unsigned int fd)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct file * file;
+// TODO WGJA WIP: 	struct inode * inode;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (fd>=NR_OPEN || !(file=current->filp[fd]) || !(inode=file->f_inode))
+// TODO WGJA WIP: 		return -EBADF;
+// TODO WGJA WIP: 	if (!file->f_op || !file->f_op->fsync)
+// TODO WGJA WIP: 		return -EINVAL;
+// TODO WGJA WIP: 	if (file->f_op->fsync(inode,file))
+// TODO WGJA WIP: 		return -EIO;
+// TODO WGJA WIP: 	return 0;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: void invalidate_buffers(dev_t dev)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	int i;
+// TODO WGJA WIP: 	struct buffer_head * bh;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	bh = free_list;
+// TODO WGJA WIP: 	for (i = nr_buffers*2 ; --i > 0 ; bh = bh->b_next_free) {
+// TODO WGJA WIP: 		if (bh->b_dev != dev)
+// TODO WGJA WIP: 			continue;
+// TODO WGJA WIP: 		wait_on_buffer(bh);
+// TODO WGJA WIP: 		if (bh->b_dev == dev)
+// TODO WGJA WIP: 			bh->b_uptodate = bh->b_dirt = bh->b_req = 0;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * This routine checks whether a floppy has been changed, and
+// TODO WGJA WIP:  * invalidates all buffer-cache-entries in that case. This
+// TODO WGJA WIP:  * is a relatively slow routine, so we have to try to minimize using
+// TODO WGJA WIP:  * it. Thus it is called only upon a 'mount' or 'open'. This
+// TODO WGJA WIP:  * is the best way of combining speed and utility, I think.
+// TODO WGJA WIP:  * People changing diskettes in the middle of an operation deserve
+// TODO WGJA WIP:  * to loose :-)
+// TODO WGJA WIP:  *
+// TODO WGJA WIP:  * NOTE! Although currently this is only for floppies, the idea is
+// TODO WGJA WIP:  * that any additional removable block-device will use this routine,
+// TODO WGJA WIP:  * and that mount/open needn't know that floppies/whatever are
+// TODO WGJA WIP:  * special.
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: void check_disk_change(dev_t dev)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	int i;
+// TODO WGJA WIP: 	struct buffer_head * bh;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	switch(MAJOR(dev)){
+// TODO WGJA WIP: 	case 2: /* floppy disc */
+// TODO WGJA WIP: 		if (!(bh = getblk(dev,0,1024)))
+// TODO WGJA WIP: 			return;
+// TODO WGJA WIP: 		i = floppy_change(bh);
+// TODO WGJA WIP: 		brelse(bh);
+// TODO WGJA WIP: 		break;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #if defined(CONFIG_BLK_DEV_SD) && defined(CONFIG_SCSI)
+// TODO WGJA WIP:          case 8: /* Removable scsi disk */
+// TODO WGJA WIP: 		i = check_scsidisk_media_change(dev, 0);
+// TODO WGJA WIP: 		break;
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #if defined(CONFIG_BLK_DEV_SR) && defined(CONFIG_SCSI)
+// TODO WGJA WIP:          case 11: /* CDROM */
+// TODO WGJA WIP: 		i = check_cdrom_media_change(dev, 0);
+// TODO WGJA WIP: 		break;
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #if defined(CONFIG_CDU31A)
+// TODO WGJA WIP:          case 15: /* Sony CDROM */
+// TODO WGJA WIP: 		i = check_cdu31a_media_change(dev, 0);
+// TODO WGJA WIP: 		break;
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #if defined(CONFIG_MCD)
+// TODO WGJA WIP:          case 23: /* Sony CDROM */
+// TODO WGJA WIP: 		i = check_mcd_media_change(dev, 0);
+// TODO WGJA WIP: 		break;
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: 
+// TODO WGJA WIP:          default:
+// TODO WGJA WIP: 		return;
+// TODO WGJA WIP: 	};
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (!i)	return;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	printk("VFS: Disk change detected on device %d/%d\n",
+// TODO WGJA WIP: 					MAJOR(dev), MINOR(dev));
+// TODO WGJA WIP: 	for (i=0 ; i<NR_SUPER ; i++)
+// TODO WGJA WIP: 		if (super_blocks[i].s_dev == dev)
+// TODO WGJA WIP: 			put_super(super_blocks[i].s_dev);
+// TODO WGJA WIP: 	invalidate_inodes(dev);
+// TODO WGJA WIP: 	invalidate_buffers(dev);
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #if defined(CONFIG_BLK_DEV_SD) && defined(CONFIG_SCSI)
+// TODO WGJA WIP: /* This is trickier for a removable hardisk, because we have to invalidate
+// TODO WGJA WIP:    all of the partitions that lie on the disk. */
+// TODO WGJA WIP: 	if (MAJOR(dev) == 8)
+// TODO WGJA WIP: 		revalidate_scsidisk(dev, 0);
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: }
 
 #define _hashfn(dev,block) (((unsigned)(dev^block))%NR_HASH)
 #define hash(dev,block) hash_table[_hashfn(dev,block)]
@@ -304,18 +305,18 @@ static inline void remove_from_queues(struct buffer_head * bh)
 	remove_from_free_list(bh);
 }
 
-static inline void put_first_free(struct buffer_head * bh)
-{
-	if (!bh || (bh == free_list))
-		return;
-	remove_from_free_list(bh);
-/* add to front of free list */
-	bh->b_next_free = free_list;
-	bh->b_prev_free = free_list->b_prev_free;
-	free_list->b_prev_free->b_next_free = bh;
-	free_list->b_prev_free = bh;
-	free_list = bh;
-}
+// TODO WGJA WIP: static inline void put_first_free(struct buffer_head * bh)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	if (!bh || (bh == free_list))
+// TODO WGJA WIP: 		return;
+// TODO WGJA WIP: 	remove_from_free_list(bh);
+// TODO WGJA WIP: /* add to front of free list */
+// TODO WGJA WIP: 	bh->b_next_free = free_list;
+// TODO WGJA WIP: 	bh->b_prev_free = free_list->b_prev_free;
+// TODO WGJA WIP: 	free_list->b_prev_free->b_next_free = bh;
+// TODO WGJA WIP: 	free_list->b_prev_free = bh;
+// TODO WGJA WIP: 	free_list = bh;
+// TODO WGJA WIP: }
 
 static inline void put_last_free(struct buffer_head * bh)
 {
@@ -389,47 +390,47 @@ struct buffer_head * get_hash_table(dev_t dev, int block, int size)
 	}
 }
 
-void set_blocksize(dev_t dev, int size)
-{
-	int i;
-	struct buffer_head * bh, *bhnext;
-
-	if (!blksize_size[MAJOR(dev)])
-		return;
-
-	switch(size) {
-		default: panic("Invalid blocksize passed to set_blocksize");
-		case 512: case 1024: case 2048: case 4096:;
-	}
-
-	if (blksize_size[MAJOR(dev)][MINOR(dev)] == 0 && size == BLOCK_SIZE) {
-		blksize_size[MAJOR(dev)][MINOR(dev)] = size;
-		return;
-	}
-	if (blksize_size[MAJOR(dev)][MINOR(dev)] == size)
-		return;
-	sync_buffers(dev, 2);
-	blksize_size[MAJOR(dev)][MINOR(dev)] = size;
-
-  /* We need to be quite careful how we do this - we are moving entries
-     around on the free list, and we can get in a loop if we are not careful.*/
-
-	bh = free_list;
-	for (i = nr_buffers*2 ; --i > 0 ; bh = bhnext) {
-		bhnext = bh->b_next_free; 
-		if (bh->b_dev != dev)
-			continue;
-		if (bh->b_size == size)
-			continue;
-
-		wait_on_buffer(bh);
-		if (bh->b_dev == dev && bh->b_size != size)
-			bh->b_uptodate = bh->b_dirt = 0;
-		remove_from_hash_queue(bh);
-/*    put_first_free(bh); */
-	}
-}
-
+// TODO WGJA WIP: void set_blocksize(dev_t dev, int size)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	int i;
+// TODO WGJA WIP: 	struct buffer_head * bh, *bhnext;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (!blksize_size[MAJOR(dev)])
+// TODO WGJA WIP: 		return;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	switch(size) {
+// TODO WGJA WIP: 		default: panic("Invalid blocksize passed to set_blocksize");
+// TODO WGJA WIP: 		case 512: case 1024: case 2048: case 4096:;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (blksize_size[MAJOR(dev)][MINOR(dev)] == 0 && size == BLOCK_SIZE) {
+// TODO WGJA WIP: 		blksize_size[MAJOR(dev)][MINOR(dev)] = size;
+// TODO WGJA WIP: 		return;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (blksize_size[MAJOR(dev)][MINOR(dev)] == size)
+// TODO WGJA WIP: 		return;
+// TODO WGJA WIP: 	sync_buffers(dev, 2);
+// TODO WGJA WIP: 	blksize_size[MAJOR(dev)][MINOR(dev)] = size;
+// TODO WGJA WIP: 
+// TODO WGJA WIP:   /* We need to be quite careful how we do this - we are moving entries
+// TODO WGJA WIP:      around on the free list, and we can get in a loop if we are not careful.*/
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	bh = free_list;
+// TODO WGJA WIP: 	for (i = nr_buffers*2 ; --i > 0 ; bh = bhnext) {
+// TODO WGJA WIP: 		bhnext = bh->b_next_free; 
+// TODO WGJA WIP: 		if (bh->b_dev != dev)
+// TODO WGJA WIP: 			continue;
+// TODO WGJA WIP: 		if (bh->b_size == size)
+// TODO WGJA WIP: 			continue;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 		wait_on_buffer(bh);
+// TODO WGJA WIP: 		if (bh->b_dev == dev && bh->b_size != size)
+// TODO WGJA WIP: 			bh->b_uptodate = bh->b_dirt = 0;
+// TODO WGJA WIP: 		remove_from_hash_queue(bh);
+// TODO WGJA WIP: /*    put_first_free(bh); */
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
 /*
  * Ok, this is getblk, and it isn't very clear, again to hinder
  * race-conditions. Most of the code is seldom used, (ie repeating),
@@ -675,187 +676,187 @@ no_grow:
 	return NULL;
 }
 
-static void read_buffers(struct buffer_head * bh[], int nrbuf)
-{
-	int i;
-	int bhnum = 0;
-	struct buffer_head * bhr[8];
-
-	for (i = 0 ; i < nrbuf ; i++) {
-		if (bh[i] && !bh[i]->b_uptodate)
-			bhr[bhnum++] = bh[i];
-	}
-	if (bhnum)
-		ll_rw_block(READ, bhnum, bhr);
-	for (i = 0 ; i < nrbuf ; i++) {
-		if (bh[i]) {
-			wait_on_buffer(bh[i]);
-		}
-	}
-}
-
-static unsigned long check_aligned(struct buffer_head * first, unsigned long address,
-	dev_t dev, int *b, int size)
-{
-	struct buffer_head * bh[8];
-	unsigned long page;
-	unsigned long offset;
-	int block;
-	int nrbuf;
-
-	page = (unsigned long) first->b_data;
-	if (page & ~PAGE_MASK) {
-		brelse(first);
-		return 0;
-	}
-	mem_map[MAP_NR(page)]++;
-	bh[0] = first;
-	nrbuf = 1;
-	for (offset = size ; offset < PAGE_SIZE ; offset += size) {
-		block = *++b;
-		if (!block)
-			goto no_go;
-		first = get_hash_table(dev, block, size);
-		if (!first)
-			goto no_go;
-		bh[nrbuf++] = first;
-		if (page+offset != (unsigned long) first->b_data)
-			goto no_go;
-	}
-	read_buffers(bh,nrbuf);		/* make sure they are actually read correctly */
-	while (nrbuf-- > 0)
-		brelse(bh[nrbuf]);
-	free_page(address);
-	++current->min_flt;
-	return page;
-no_go:
-	while (nrbuf-- > 0)
-		brelse(bh[nrbuf]);
-	free_page(page);
-	return 0;
-}
-
-static unsigned long try_to_load_aligned(unsigned long address,
-	dev_t dev, int b[], int size)
-{
-	struct buffer_head * bh, * tmp, * arr[8];
-	unsigned long offset;
-	int * p;
-	int block;
-
-	bh = create_buffers(address, size);
-	if (!bh)
-		return 0;
-	p = b;
-	for (offset = 0 ; offset < PAGE_SIZE ; offset += size) {
-		block = *(p++);
-		if (!block)
-			goto not_aligned;
-		tmp = get_hash_table(dev, block, size);
-		if (tmp) {
-			brelse(tmp);
-			goto not_aligned;
-		}
-	}
-	tmp = bh;
-	p = b;
-	block = 0;
-	while (1) {
-		arr[block++] = bh;
-		bh->b_count = 1;
-		bh->b_dirt = 0;
-		bh->b_uptodate = 0;
-		bh->b_dev = dev;
-		bh->b_blocknr = *(p++);
-		nr_buffers++;
-		insert_into_queues(bh);
-		if (bh->b_this_page)
-			bh = bh->b_this_page;
-		else
-			break;
-	}
-	buffermem += PAGE_SIZE;
-	bh->b_this_page = tmp;
-	mem_map[MAP_NR(address)]++;
-	read_buffers(arr,block);
-	while (block-- > 0)
-		brelse(arr[block]);
-	++current->maj_flt;
-	return address;
-not_aligned:
-	while ((tmp = bh) != NULL) {
-		bh = bh->b_this_page;
-		put_unused_buffer_head(tmp);
-	}
-	return 0;
-}
-
-/*
- * Try-to-share-buffers tries to minimize memory use by trying to keep
- * both code pages and the buffer area in the same page. This is done by
- * (a) checking if the buffers are already aligned correctly in memory and
- * (b) if none of the buffer heads are in memory at all, trying to load
- * them into memory the way we want them.
- *
- * This doesn't guarantee that the memory is shared, but should under most
- * circumstances work very well indeed (ie >90% sharing of code pages on
- * demand-loadable executables).
- */
-static inline unsigned long try_to_share_buffers(unsigned long address,
-	dev_t dev, int *b, int size)
-{
-	struct buffer_head * bh;
-	int block;
-
-	block = b[0];
-	if (!block)
-		return 0;
-	bh = get_hash_table(dev, block, size);
-	if (bh)
-		return check_aligned(bh, address, dev, b, size);
-	return try_to_load_aligned(address, dev, b, size);
-}
-
-#define COPYBLK(size,from,to) \
-__asm__ __volatile__("rep ; movsl": \
-	:"c" (((unsigned long) size) >> 2),"S" (from),"D" (to) \
-	:"cx","di","si")
-
-/*
- * bread_page reads four buffers into memory at the desired address. It's
- * a function of its own, as there is some speed to be got by reading them
- * all at the same time, not waiting for one to be read, and then another
- * etc. This also allows us to optimize memory usage by sharing code pages
- * and filesystem buffers..
- */
-unsigned long bread_page(unsigned long address, dev_t dev, int b[], int size, int prot)
-{
-	struct buffer_head * bh[8];
-	unsigned long where;
-	int i, j;
-
-	if (!(prot & PAGE_RW)) {
-		where = try_to_share_buffers(address,dev,b,size);
-		if (where)
-			return where;
-	}
-	++current->maj_flt;
- 	for (i=0, j=0; j<PAGE_SIZE ; i++, j+= size) {
-		bh[i] = NULL;
-		if (b[i])
-			bh[i] = getblk(dev, b[i], size);
-	}
-	read_buffers(bh,4);
-	where = address;
- 	for (i=0, j=0; j<PAGE_SIZE ; i++, j += size,address += size) {
-		if (bh[i]) {
-			if (bh[i]->b_uptodate)
-				COPYBLK(size, (unsigned long) bh[i]->b_data,address);
-			brelse(bh[i]);
-		}
-	}
-	return where;
-}
+// TODO WGJA WIP: static void read_buffers(struct buffer_head * bh[], int nrbuf)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	int i;
+// TODO WGJA WIP: 	int bhnum = 0;
+// TODO WGJA WIP: 	struct buffer_head * bhr[8];
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	for (i = 0 ; i < nrbuf ; i++) {
+// TODO WGJA WIP: 		if (bh[i] && !bh[i]->b_uptodate)
+// TODO WGJA WIP: 			bhr[bhnum++] = bh[i];
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (bhnum)
+// TODO WGJA WIP: 		ll_rw_block(READ, bhnum, bhr);
+// TODO WGJA WIP: 	for (i = 0 ; i < nrbuf ; i++) {
+// TODO WGJA WIP: 		if (bh[i]) {
+// TODO WGJA WIP: 			wait_on_buffer(bh[i]);
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: static unsigned long check_aligned(struct buffer_head * first, unsigned long address,
+// TODO WGJA WIP: 	dev_t dev, int *b, int size)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct buffer_head * bh[8];
+// TODO WGJA WIP: 	unsigned long page;
+// TODO WGJA WIP: 	unsigned long offset;
+// TODO WGJA WIP: 	int block;
+// TODO WGJA WIP: 	int nrbuf;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	page = (unsigned long) first->b_data;
+// TODO WGJA WIP: 	if (page & ~PAGE_MASK) {
+// TODO WGJA WIP: 		brelse(first);
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	mem_map[MAP_NR(page)]++;
+// TODO WGJA WIP: 	bh[0] = first;
+// TODO WGJA WIP: 	nrbuf = 1;
+// TODO WGJA WIP: 	for (offset = size ; offset < PAGE_SIZE ; offset += size) {
+// TODO WGJA WIP: 		block = *++b;
+// TODO WGJA WIP: 		if (!block)
+// TODO WGJA WIP: 			goto no_go;
+// TODO WGJA WIP: 		first = get_hash_table(dev, block, size);
+// TODO WGJA WIP: 		if (!first)
+// TODO WGJA WIP: 			goto no_go;
+// TODO WGJA WIP: 		bh[nrbuf++] = first;
+// TODO WGJA WIP: 		if (page+offset != (unsigned long) first->b_data)
+// TODO WGJA WIP: 			goto no_go;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	read_buffers(bh,nrbuf);		/* make sure they are actually read correctly */
+// TODO WGJA WIP: 	while (nrbuf-- > 0)
+// TODO WGJA WIP: 		brelse(bh[nrbuf]);
+// TODO WGJA WIP: 	free_page(address);
+// TODO WGJA WIP: 	++current->min_flt;
+// TODO WGJA WIP: 	return page;
+// TODO WGJA WIP: no_go:
+// TODO WGJA WIP: 	while (nrbuf-- > 0)
+// TODO WGJA WIP: 		brelse(bh[nrbuf]);
+// TODO WGJA WIP: 	free_page(page);
+// TODO WGJA WIP: 	return 0;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: static unsigned long try_to_load_aligned(unsigned long address,
+// TODO WGJA WIP: 	dev_t dev, int b[], int size)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct buffer_head * bh, * tmp, * arr[8];
+// TODO WGJA WIP: 	unsigned long offset;
+// TODO WGJA WIP: 	int * p;
+// TODO WGJA WIP: 	int block;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	bh = create_buffers(address, size);
+// TODO WGJA WIP: 	if (!bh)
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	p = b;
+// TODO WGJA WIP: 	for (offset = 0 ; offset < PAGE_SIZE ; offset += size) {
+// TODO WGJA WIP: 		block = *(p++);
+// TODO WGJA WIP: 		if (!block)
+// TODO WGJA WIP: 			goto not_aligned;
+// TODO WGJA WIP: 		tmp = get_hash_table(dev, block, size);
+// TODO WGJA WIP: 		if (tmp) {
+// TODO WGJA WIP: 			brelse(tmp);
+// TODO WGJA WIP: 			goto not_aligned;
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	tmp = bh;
+// TODO WGJA WIP: 	p = b;
+// TODO WGJA WIP: 	block = 0;
+// TODO WGJA WIP: 	while (1) {
+// TODO WGJA WIP: 		arr[block++] = bh;
+// TODO WGJA WIP: 		bh->b_count = 1;
+// TODO WGJA WIP: 		bh->b_dirt = 0;
+// TODO WGJA WIP: 		bh->b_uptodate = 0;
+// TODO WGJA WIP: 		bh->b_dev = dev;
+// TODO WGJA WIP: 		bh->b_blocknr = *(p++);
+// TODO WGJA WIP: 		nr_buffers++;
+// TODO WGJA WIP: 		insert_into_queues(bh);
+// TODO WGJA WIP: 		if (bh->b_this_page)
+// TODO WGJA WIP: 			bh = bh->b_this_page;
+// TODO WGJA WIP: 		else
+// TODO WGJA WIP: 			break;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	buffermem += PAGE_SIZE;
+// TODO WGJA WIP: 	bh->b_this_page = tmp;
+// TODO WGJA WIP: 	mem_map[MAP_NR(address)]++;
+// TODO WGJA WIP: 	read_buffers(arr,block);
+// TODO WGJA WIP: 	while (block-- > 0)
+// TODO WGJA WIP: 		brelse(arr[block]);
+// TODO WGJA WIP: 	++current->maj_flt;
+// TODO WGJA WIP: 	return address;
+// TODO WGJA WIP: not_aligned:
+// TODO WGJA WIP: 	while ((tmp = bh) != NULL) {
+// TODO WGJA WIP: 		bh = bh->b_this_page;
+// TODO WGJA WIP: 		put_unused_buffer_head(tmp);
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	return 0;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * Try-to-share-buffers tries to minimize memory use by trying to keep
+// TODO WGJA WIP:  * both code pages and the buffer area in the same page. This is done by
+// TODO WGJA WIP:  * (a) checking if the buffers are already aligned correctly in memory and
+// TODO WGJA WIP:  * (b) if none of the buffer heads are in memory at all, trying to load
+// TODO WGJA WIP:  * them into memory the way we want them.
+// TODO WGJA WIP:  *
+// TODO WGJA WIP:  * This doesn't guarantee that the memory is shared, but should under most
+// TODO WGJA WIP:  * circumstances work very well indeed (ie >90% sharing of code pages on
+// TODO WGJA WIP:  * demand-loadable executables).
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: static inline unsigned long try_to_share_buffers(unsigned long address,
+// TODO WGJA WIP: 	dev_t dev, int *b, int size)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct buffer_head * bh;
+// TODO WGJA WIP: 	int block;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	block = b[0];
+// TODO WGJA WIP: 	if (!block)
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	bh = get_hash_table(dev, block, size);
+// TODO WGJA WIP: 	if (bh)
+// TODO WGJA WIP: 		return check_aligned(bh, address, dev, b, size);
+// TODO WGJA WIP: 	return try_to_load_aligned(address, dev, b, size);
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: #define COPYBLK(size,from,to) \
+// TODO WGJA WIP: __asm__ __volatile__("rep ; movsl": \
+// TODO WGJA WIP: 	:"c" (((unsigned long) size) >> 2),"S" (from),"D" (to) \
+// TODO WGJA WIP: 	:"cx","di","si")
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * bread_page reads four buffers into memory at the desired address. It's
+// TODO WGJA WIP:  * a function of its own, as there is some speed to be got by reading them
+// TODO WGJA WIP:  * all at the same time, not waiting for one to be read, and then another
+// TODO WGJA WIP:  * etc. This also allows us to optimize memory usage by sharing code pages
+// TODO WGJA WIP:  * and filesystem buffers..
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: unsigned long bread_page(unsigned long address, dev_t dev, int b[], int size, int prot)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct buffer_head * bh[8];
+// TODO WGJA WIP: 	unsigned long where;
+// TODO WGJA WIP: 	int i, j;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (!(prot & PAGE_RW)) {
+// TODO WGJA WIP: 		where = try_to_share_buffers(address,dev,b,size);
+// TODO WGJA WIP: 		if (where)
+// TODO WGJA WIP: 			return where;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	++current->maj_flt;
+// TODO WGJA WIP:  	for (i=0, j=0; j<PAGE_SIZE ; i++, j+= size) {
+// TODO WGJA WIP: 		bh[i] = NULL;
+// TODO WGJA WIP: 		if (b[i])
+// TODO WGJA WIP: 			bh[i] = getblk(dev, b[i], size);
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	read_buffers(bh,4);
+// TODO WGJA WIP: 	where = address;
+// TODO WGJA WIP:  	for (i=0, j=0; j<PAGE_SIZE ; i++, j += size,address += size) {
+// TODO WGJA WIP: 		if (bh[i]) {
+// TODO WGJA WIP: 			if (bh[i]->b_uptodate)
+// TODO WGJA WIP: 				COPYBLK(size, (unsigned long) bh[i]->b_data,address);
+// TODO WGJA WIP: 			brelse(bh[i]);
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	return where;
+// TODO WGJA WIP: }
 
 /*
  * Try to increase the number of buffers available: the size argument
@@ -900,97 +901,97 @@ void grow_buffers(int size)
 	return;
 }
 
-/*
- * try_to_free() checks if all the buffers on this particular page
- * are unused, and free's the page if so.
- */
-static int try_to_free(struct buffer_head * bh, struct buffer_head ** bhp)
-{
-	unsigned long page;
-	struct buffer_head * tmp, * p;
-
-	*bhp = bh;
-	page = (unsigned long) bh->b_data;
-	page &= PAGE_MASK;
-	tmp = bh;
-	do {
-		if (!tmp)
-			return 0;
-		if (tmp->b_count || tmp->b_dirt || tmp->b_lock)
-			return 0;
-		tmp = tmp->b_this_page;
-	} while (tmp != bh);
-	tmp = bh;
-	do {
-		p = tmp;
-		tmp = tmp->b_this_page;
-		nr_buffers--;
-		if (p == *bhp)
-			*bhp = p->b_prev_free;
-		remove_from_queues(p);
-		put_unused_buffer_head(p);
-	} while (tmp != bh);
-	buffermem -= PAGE_SIZE;
-	free_page(page);
-	return !mem_map[MAP_NR(page)];
-}
-
-/*
- * Try to free up some pages by shrinking the buffer-cache
- *
- * Priority tells the routine how hard to try to shrink the
- * buffers: 3 means "don't bother too much", while a value
- * of 0 means "we'd better get some free pages now".
- */
-int shrink_buffers(unsigned int priority)
-{
-	struct buffer_head *bh;
-	int i;
-
-	if (priority < 2)
-		sync_buffers(0,0);
-	bh = free_list;
-	i = nr_buffers >> priority;
-	for ( ; i-- > 0 ; bh = bh->b_next_free) {
-		if (bh->b_count || !bh->b_this_page)
-			continue;
-		if (bh->b_lock)
-			if (priority)
-				continue;
-			else
-				wait_on_buffer(bh);
-		if (bh->b_dirt) {
-			bh->b_count++;
-			ll_rw_block(WRITEA, 1, &bh);
-			bh->b_count--;
-			continue;
-		}
-		if (try_to_free(bh, &bh))
-			return 1;
-	}
-	return 0;
-}
-
-/*
- * This initializes the initial buffer free list.  nr_buffers is set
- * to one less the actual number of buffers, as a sop to backwards
- * compatibility --- the old code did this (I think unintentionally,
- * but I'm not sure), and programs in the ps package expect it.
- * 					- TYT 8/30/92
- */
-void buffer_init(void)
-{
-	int i;
-
-	if (high_memory >= 4*1024*1024)
-		min_free_pages = 200;
-	else
-		min_free_pages = 20;
-	for (i = 0 ; i < NR_HASH ; i++)
-		hash_table[i] = NULL;
-	free_list = 0;
-	grow_buffers(BLOCK_SIZE);
-	if (!free_list)
-		panic("VFS: Unable to initialize buffer free list!");
-	return;
-}
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * try_to_free() checks if all the buffers on this particular page
+// TODO WGJA WIP:  * are unused, and free's the page if so.
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: static int try_to_free(struct buffer_head * bh, struct buffer_head ** bhp)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	unsigned long page;
+// TODO WGJA WIP: 	struct buffer_head * tmp, * p;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	*bhp = bh;
+// TODO WGJA WIP: 	page = (unsigned long) bh->b_data;
+// TODO WGJA WIP: 	page &= PAGE_MASK;
+// TODO WGJA WIP: 	tmp = bh;
+// TODO WGJA WIP: 	do {
+// TODO WGJA WIP: 		if (!tmp)
+// TODO WGJA WIP: 			return 0;
+// TODO WGJA WIP: 		if (tmp->b_count || tmp->b_dirt || tmp->b_lock)
+// TODO WGJA WIP: 			return 0;
+// TODO WGJA WIP: 		tmp = tmp->b_this_page;
+// TODO WGJA WIP: 	} while (tmp != bh);
+// TODO WGJA WIP: 	tmp = bh;
+// TODO WGJA WIP: 	do {
+// TODO WGJA WIP: 		p = tmp;
+// TODO WGJA WIP: 		tmp = tmp->b_this_page;
+// TODO WGJA WIP: 		nr_buffers--;
+// TODO WGJA WIP: 		if (p == *bhp)
+// TODO WGJA WIP: 			*bhp = p->b_prev_free;
+// TODO WGJA WIP: 		remove_from_queues(p);
+// TODO WGJA WIP: 		put_unused_buffer_head(p);
+// TODO WGJA WIP: 	} while (tmp != bh);
+// TODO WGJA WIP: 	buffermem -= PAGE_SIZE;
+// TODO WGJA WIP: 	free_page(page);
+// TODO WGJA WIP: 	return !mem_map[MAP_NR(page)];
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * Try to free up some pages by shrinking the buffer-cache
+// TODO WGJA WIP:  *
+// TODO WGJA WIP:  * Priority tells the routine how hard to try to shrink the
+// TODO WGJA WIP:  * buffers: 3 means "don't bother too much", while a value
+// TODO WGJA WIP:  * of 0 means "we'd better get some free pages now".
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: int shrink_buffers(unsigned int priority)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct buffer_head *bh;
+// TODO WGJA WIP: 	int i;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (priority < 2)
+// TODO WGJA WIP: 		sync_buffers(0,0);
+// TODO WGJA WIP: 	bh = free_list;
+// TODO WGJA WIP: 	i = nr_buffers >> priority;
+// TODO WGJA WIP: 	for ( ; i-- > 0 ; bh = bh->b_next_free) {
+// TODO WGJA WIP: 		if (bh->b_count || !bh->b_this_page)
+// TODO WGJA WIP: 			continue;
+// TODO WGJA WIP: 		if (bh->b_lock)
+// TODO WGJA WIP: 			if (priority)
+// TODO WGJA WIP: 				continue;
+// TODO WGJA WIP: 			else
+// TODO WGJA WIP: 				wait_on_buffer(bh);
+// TODO WGJA WIP: 		if (bh->b_dirt) {
+// TODO WGJA WIP: 			bh->b_count++;
+// TODO WGJA WIP: 			ll_rw_block(WRITEA, 1, &bh);
+// TODO WGJA WIP: 			bh->b_count--;
+// TODO WGJA WIP: 			continue;
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 		if (try_to_free(bh, &bh))
+// TODO WGJA WIP: 			return 1;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	return 0;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * This initializes the initial buffer free list.  nr_buffers is set
+// TODO WGJA WIP:  * to one less the actual number of buffers, as a sop to backwards
+// TODO WGJA WIP:  * compatibility --- the old code did this (I think unintentionally,
+// TODO WGJA WIP:  * but I'm not sure), and programs in the ps package expect it.
+// TODO WGJA WIP:  * 					- TYT 8/30/92
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: void buffer_init(void)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	int i;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (high_memory >= 4*1024*1024)
+// TODO WGJA WIP: 		min_free_pages = 200;
+// TODO WGJA WIP: 	else
+// TODO WGJA WIP: 		min_free_pages = 20;
+// TODO WGJA WIP: 	for (i = 0 ; i < NR_HASH ; i++)
+// TODO WGJA WIP: 		hash_table[i] = NULL;
+// TODO WGJA WIP: 	free_list = 0;
+// TODO WGJA WIP: 	grow_buffers(BLOCK_SIZE);
+// TODO WGJA WIP: 	if (!free_list)
+// TODO WGJA WIP: 		panic("VFS: Unable to initialize buffer free list!");
+// TODO WGJA WIP: 	return;
+// TODO WGJA WIP: }

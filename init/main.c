@@ -80,11 +80,11 @@ extern char empty_zero_page[PAGE_SIZE];
 extern "C" int vsprintf(char *,const char *,va_list);
 // TODO WGJA WIP: extern void init(void);
 extern void init_IRQ(void);
-// TODO WGJA WIP: extern long blk_dev_init(long,long);
+extern long blk_dev_init(long,long);
 extern long chr_dev_init(long,long);
 // TODO WGJA WIP: extern void floppy_init(void);
 // TODO WGJA WIP: extern void sock_init(void);
-// TODO WGJA WIP: extern long rd_init(long mem_start, int length);
+extern long rd_init(long mem_start, int length);
 // TODO WGJA WIP: extern long kernel_mktime(struct mktime * time);
 extern unsigned long simple_strtoul(const char *,char **,unsigned int);
 // TODO WGJA WIP: 
@@ -388,6 +388,7 @@ extern "C" void start_kernel(void)
 	memory_start += prof_len * sizeof(unsigned long);
 #endif
 	memory_start = chr_dev_init(memory_start,memory_end);
+	memory_start = blk_dev_init(memory_start,memory_end);
 
 	// WGJA TODO devices
 
