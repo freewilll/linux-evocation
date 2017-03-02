@@ -1,3 +1,4 @@
+#pragma GCC diagnostic ignored "-fpermissive"
 /*
  *  linux/fs/inode.c
  *
@@ -12,41 +13,41 @@
 
 #include <asm/system.h>
 
-// TODO WGJA WIP: static struct inode * hash_table[NR_IHASH];
+static struct inode * hash_table[NR_IHASH];
 static struct inode * first_inode;
 // TODO WGJA WIP: static struct wait_queue * inode_wait = NULL;
 static int nr_inodes = 0, nr_free_inodes = 0;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static inline int const hashfn(dev_t dev, unsigned int i)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	return (dev ^ i) % NR_IHASH;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static inline struct inode ** const hash(dev_t dev, int i)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	return hash_table + hashfn(dev, i);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static void insert_inode_free(struct inode *inode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	inode->i_next = first_inode;
-// TODO WGJA WIP: 	inode->i_prev = first_inode->i_prev;
-// TODO WGJA WIP: 	inode->i_next->i_prev = inode;
-// TODO WGJA WIP: 	inode->i_prev->i_next = inode;
-// TODO WGJA WIP: 	first_inode = inode;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static void remove_inode_free(struct inode *inode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (first_inode == inode)
-// TODO WGJA WIP: 		first_inode = first_inode->i_next;
-// TODO WGJA WIP: 	if (inode->i_next)
-// TODO WGJA WIP: 		inode->i_next->i_prev = inode->i_prev;
-// TODO WGJA WIP: 	if (inode->i_prev)
-// TODO WGJA WIP: 		inode->i_prev->i_next = inode->i_next;
-// TODO WGJA WIP: 	inode->i_next = inode->i_prev = NULL;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+static inline int const hashfn(dev_t dev, unsigned int i)
+{
+	return (dev ^ i) % NR_IHASH;
+}
+
+static inline struct inode ** const hash(dev_t dev, int i)
+{
+	return hash_table + hashfn(dev, i);
+}
+
+static void insert_inode_free(struct inode *inode)
+{
+	inode->i_next = first_inode;
+	inode->i_prev = first_inode->i_prev;
+	inode->i_next->i_prev = inode;
+	inode->i_prev->i_next = inode;
+	first_inode = inode;
+}
+
+static void remove_inode_free(struct inode *inode)
+{
+	if (first_inode == inode)
+		first_inode = first_inode->i_next;
+	if (inode->i_next)
+		inode->i_next->i_prev = inode->i_prev;
+	if (inode->i_prev)
+		inode->i_prev->i_next = inode->i_next;
+	inode->i_next = inode->i_prev = NULL;
+}
+
 // TODO WGJA WIP: void insert_inode_hash(struct inode *inode)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	struct inode **h;
@@ -58,21 +59,21 @@ static int nr_inodes = 0, nr_free_inodes = 0;
 // TODO WGJA WIP: 		inode->i_hash_next->i_hash_prev = inode;
 // TODO WGJA WIP: 	*h = inode;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static void remove_inode_hash(struct inode *inode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode **h;
-// TODO WGJA WIP: 	h = hash(inode->i_dev, inode->i_ino);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (*h == inode)
-// TODO WGJA WIP: 		*h = inode->i_hash_next;
-// TODO WGJA WIP: 	if (inode->i_hash_next)
-// TODO WGJA WIP: 		inode->i_hash_next->i_hash_prev = inode->i_hash_prev;
-// TODO WGJA WIP: 	if (inode->i_hash_prev)
-// TODO WGJA WIP: 		inode->i_hash_prev->i_hash_next = inode->i_hash_next;
-// TODO WGJA WIP: 	inode->i_hash_prev = inode->i_hash_next = NULL;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+static void remove_inode_hash(struct inode *inode)
+{
+	struct inode **h;
+	h = hash(inode->i_dev, inode->i_ino);
+
+	if (*h == inode)
+		*h = inode->i_hash_next;
+	if (inode->i_hash_next)
+		inode->i_hash_next->i_hash_prev = inode->i_hash_prev;
+	if (inode->i_hash_prev)
+		inode->i_hash_prev->i_hash_next = inode->i_hash_next;
+	inode->i_hash_prev = inode->i_hash_next = NULL;
+}
+
 // TODO WGJA WIP: static void put_last_free(struct inode *inode)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	remove_inode_free(inode);
@@ -128,33 +129,33 @@ static inline void unlock_inode(struct inode * inode)
 	wake_up(&inode->i_wait);
 }
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Note that we don't want to disturb any wait-queues when we discard
-// TODO WGJA WIP:  * an inode.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Argghh. Got bitten by a gcc problem with inlining: no way to tell
-// TODO WGJA WIP:  * the compiler that the inline asm function 'memset' changes 'inode'.
-// TODO WGJA WIP:  * I've been searching for the bug for days, and was getting desperate.
-// TODO WGJA WIP:  * Finally looked at the assembler output... Grrr.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * The solution is the weird use of 'volatile'. Ho humm. Have to report
-// TODO WGJA WIP:  * it to the gcc lists, and hope we can do this more cleanly some day..
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: void clear_inode(struct inode * inode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct wait_queue * wait;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	wait_on_inode(inode);
-// TODO WGJA WIP: 	remove_inode_hash(inode);
-// TODO WGJA WIP: 	remove_inode_free(inode);
-// TODO WGJA WIP: 	wait = ((volatile struct inode *) inode)->i_wait;
-// TODO WGJA WIP: 	if (inode->i_count)
-// TODO WGJA WIP: 		nr_free_inodes++;
-// TODO WGJA WIP: 	memset(inode,0,sizeof(*inode));
-// TODO WGJA WIP: 	((volatile struct inode *) inode)->i_wait = wait;
-// TODO WGJA WIP: 	insert_inode_free(inode);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+/*
+ * Note that we don't want to disturb any wait-queues when we discard
+ * an inode.
+ *
+ * Argghh. Got bitten by a gcc problem with inlining: no way to tell
+ * the compiler that the inline asm function 'memset' changes 'inode'.
+ * I've been searching for the bug for days, and was getting desperate.
+ * Finally looked at the assembler output... Grrr.
+ *
+ * The solution is the weird use of 'volatile'. Ho humm. Have to report
+ * it to the gcc lists, and hope we can do this more cleanly some day..
+ */
+void clear_inode(struct inode * inode)
+{
+	struct wait_queue * wait;
+
+	wait_on_inode(inode);
+	remove_inode_hash(inode);
+	remove_inode_free(inode);
+	wait = ((volatile struct inode *) inode)->i_wait;
+	if (inode->i_count)
+		nr_free_inodes++;
+	memset(inode,0,sizeof(*inode));
+	((volatile struct inode *) inode)->i_wait = wait;
+	insert_inode_free(inode);
+}
+
 // TODO WGJA WIP: int fs_may_mount(dev_t dev)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	struct inode * inode, * next;
@@ -261,25 +262,25 @@ static void write_inode(struct inode * inode)
 // TODO WGJA WIP: 		return inode->i_op->bmap(inode,block);
 // TODO WGJA WIP: 	return 0;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void invalidate_inodes(dev_t dev)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode * inode, * next;
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	next = first_inode;
-// TODO WGJA WIP: 	for(i = nr_inodes ; i > 0 ; i--) {
-// TODO WGJA WIP: 		inode = next;
-// TODO WGJA WIP: 		next = inode->i_next;		/* clear_inode() changes the queues.. */
-// TODO WGJA WIP: 		if (inode->i_dev != dev)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (inode->i_count || inode->i_dirt || inode->i_lock) {
-// TODO WGJA WIP: 			printk("VFS: inode busy on removed device %d/%d\n", MAJOR(dev), MINOR(dev));
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		clear_inode(inode);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: }
+
+void invalidate_inodes(dev_t dev)
+{
+	struct inode * inode, * next;
+	int i;
+
+	next = first_inode;
+	for(i = nr_inodes ; i > 0 ; i--) {
+		inode = next;
+		next = inode->i_next;		/* clear_inode() changes the queues.. */
+		if (inode->i_dev != dev)
+			continue;
+		if (inode->i_count || inode->i_dirt || inode->i_lock) {
+			printk("VFS: inode busy on removed device %d/%d\n", MAJOR(dev), MINOR(dev));
+			continue;
+		}
+		clear_inode(inode);
+	}
+}
 
 void sync_inodes(dev_t dev)
 {
@@ -474,24 +475,24 @@ void sync_inodes(dev_t dev)
 // TODO WGJA WIP: 	read_inode(inode);
 // TODO WGJA WIP: 	return inode;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * The "new" scheduling primitives (new as of 0.97 or so) allow this to
-// TODO WGJA WIP:  * be done without disabling interrupts (other than in the actual queue
-// TODO WGJA WIP:  * updating things: only a couple of 386 instructions). This should be
-// TODO WGJA WIP:  * much better for interrupt latency.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: static void __wait_on_inode(struct inode * inode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct wait_queue wait = { current, NULL };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	add_wait_queue(&inode->i_wait, &wait);
-// TODO WGJA WIP: repeat:
-// TODO WGJA WIP: 	current->state = TASK_UNINTERRUPTIBLE;
-// TODO WGJA WIP: 	if (inode->i_lock) {
-// TODO WGJA WIP: 		schedule();
-// TODO WGJA WIP: 		goto repeat;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	remove_wait_queue(&inode->i_wait, &wait);
-// TODO WGJA WIP: 	current->state = TASK_RUNNING;
-// TODO WGJA WIP: }
+
+/*
+ * The "new" scheduling primitives (new as of 0.97 or so) allow this to
+ * be done without disabling interrupts (other than in the actual queue
+ * updating things: only a couple of 386 instructions). This should be
+ * much better for interrupt latency.
+ */
+static void __wait_on_inode(struct inode * inode)
+{
+	struct wait_queue wait = { current, NULL };
+
+	add_wait_queue(&inode->i_wait, &wait);
+repeat:
+	current->state = TASK_UNINTERRUPTIBLE;
+	if (inode->i_lock) {
+		schedule();
+		goto repeat;
+	}
+	remove_wait_queue(&inode->i_wait, &wait);
+	current->state = TASK_RUNNING;
+}

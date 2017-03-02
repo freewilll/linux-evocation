@@ -211,6 +211,6 @@ extern "C" int sys_setup(void * BIOS)
 
 	if (ramdisk_size)
 		rd_load();
-	// mount_root();
+	mount_root();
 	return (0);
 }

@@ -14,7 +14,8 @@ static inline _syscall3(int,open,const char *,file,int,flag,int,mode)
 // TODO WGJA panic
 void panic(const char * s)
 {
-	printk("In swapper task - not syncing\n");
+	printk("TODO panic(): %s\nGiving up ...", s);
+	for (;;);
 }
 
 // TODO WGJA do_signal
@@ -249,5 +250,18 @@ void test_dev_zero()
 // TODO WGJA notify_change
 int notify_change(int flags, struct inode * inode)
 {
+	return 0;
+}
+
+// TODO WGJA wait_for_keypress
+void wait_for_keypress()
+{
+	printk("TODO: wait_for_keypress()\n");
+}
+
+// TODO WGJA floppy_change
+int floppy_change(struct buffer_head * bh)
+{
+	printk("TODO: floppy_change\n");
 	return 0;
 }

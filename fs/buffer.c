@@ -185,94 +185,94 @@ int fsync_dev(dev_t dev)
 // TODO WGJA WIP: 		return -EIO;
 // TODO WGJA WIP: 	return 0;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void invalidate_buffers(dev_t dev)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 	struct buffer_head * bh;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	bh = free_list;
-// TODO WGJA WIP: 	for (i = nr_buffers*2 ; --i > 0 ; bh = bh->b_next_free) {
-// TODO WGJA WIP: 		if (bh->b_dev != dev)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		wait_on_buffer(bh);
-// TODO WGJA WIP: 		if (bh->b_dev == dev)
-// TODO WGJA WIP: 			bh->b_uptodate = bh->b_dirt = bh->b_req = 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This routine checks whether a floppy has been changed, and
-// TODO WGJA WIP:  * invalidates all buffer-cache-entries in that case. This
-// TODO WGJA WIP:  * is a relatively slow routine, so we have to try to minimize using
-// TODO WGJA WIP:  * it. Thus it is called only upon a 'mount' or 'open'. This
-// TODO WGJA WIP:  * is the best way of combining speed and utility, I think.
-// TODO WGJA WIP:  * People changing diskettes in the middle of an operation deserve
-// TODO WGJA WIP:  * to loose :-)
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * NOTE! Although currently this is only for floppies, the idea is
-// TODO WGJA WIP:  * that any additional removable block-device will use this routine,
-// TODO WGJA WIP:  * and that mount/open needn't know that floppies/whatever are
-// TODO WGJA WIP:  * special.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: void check_disk_change(dev_t dev)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 	struct buffer_head * bh;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	switch(MAJOR(dev)){
-// TODO WGJA WIP: 	case 2: /* floppy disc */
-// TODO WGJA WIP: 		if (!(bh = getblk(dev,0,1024)))
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 		i = floppy_change(bh);
-// TODO WGJA WIP: 		brelse(bh);
-// TODO WGJA WIP: 		break;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #if defined(CONFIG_BLK_DEV_SD) && defined(CONFIG_SCSI)
-// TODO WGJA WIP:          case 8: /* Removable scsi disk */
-// TODO WGJA WIP: 		i = check_scsidisk_media_change(dev, 0);
-// TODO WGJA WIP: 		break;
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #if defined(CONFIG_BLK_DEV_SR) && defined(CONFIG_SCSI)
-// TODO WGJA WIP:          case 11: /* CDROM */
-// TODO WGJA WIP: 		i = check_cdrom_media_change(dev, 0);
-// TODO WGJA WIP: 		break;
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #if defined(CONFIG_CDU31A)
-// TODO WGJA WIP:          case 15: /* Sony CDROM */
-// TODO WGJA WIP: 		i = check_cdu31a_media_change(dev, 0);
-// TODO WGJA WIP: 		break;
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #if defined(CONFIG_MCD)
-// TODO WGJA WIP:          case 23: /* Sony CDROM */
-// TODO WGJA WIP: 		i = check_mcd_media_change(dev, 0);
-// TODO WGJA WIP: 		break;
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 
-// TODO WGJA WIP:          default:
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	};
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!i)	return;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	printk("VFS: Disk change detected on device %d/%d\n",
-// TODO WGJA WIP: 					MAJOR(dev), MINOR(dev));
-// TODO WGJA WIP: 	for (i=0 ; i<NR_SUPER ; i++)
-// TODO WGJA WIP: 		if (super_blocks[i].s_dev == dev)
-// TODO WGJA WIP: 			put_super(super_blocks[i].s_dev);
-// TODO WGJA WIP: 	invalidate_inodes(dev);
-// TODO WGJA WIP: 	invalidate_buffers(dev);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #if defined(CONFIG_BLK_DEV_SD) && defined(CONFIG_SCSI)
-// TODO WGJA WIP: /* This is trickier for a removable hardisk, because we have to invalidate
-// TODO WGJA WIP:    all of the partitions that lie on the disk. */
-// TODO WGJA WIP: 	if (MAJOR(dev) == 8)
-// TODO WGJA WIP: 		revalidate_scsidisk(dev, 0);
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: }
+
+void invalidate_buffers(dev_t dev)
+{
+	int i;
+	struct buffer_head * bh;
+
+	bh = free_list;
+	for (i = nr_buffers*2 ; --i > 0 ; bh = bh->b_next_free) {
+		if (bh->b_dev != dev)
+			continue;
+		wait_on_buffer(bh);
+		if (bh->b_dev == dev)
+			bh->b_uptodate = bh->b_dirt = bh->b_req = 0;
+	}
+}
+
+/*
+ * This routine checks whether a floppy has been changed, and
+ * invalidates all buffer-cache-entries in that case. This
+ * is a relatively slow routine, so we have to try to minimize using
+ * it. Thus it is called only upon a 'mount' or 'open'. This
+ * is the best way of combining speed and utility, I think.
+ * People changing diskettes in the middle of an operation deserve
+ * to loose :-)
+ *
+ * NOTE! Although currently this is only for floppies, the idea is
+ * that any additional removable block-device will use this routine,
+ * and that mount/open needn't know that floppies/whatever are
+ * special.
+ */
+void check_disk_change(dev_t dev)
+{
+	int i;
+	struct buffer_head * bh;
+
+	switch(MAJOR(dev)){
+	case 2: /* floppy disc */
+		if (!(bh = getblk(dev,0,1024)))
+			return;
+		i = floppy_change(bh);
+		brelse(bh);
+		break;
+
+#if defined(CONFIG_BLK_DEV_SD) && defined(CONFIG_SCSI)
+         case 8: /* Removable scsi disk */
+		i = check_scsidisk_media_change(dev, 0);
+		break;
+#endif
+
+#if defined(CONFIG_BLK_DEV_SR) && defined(CONFIG_SCSI)
+         case 11: /* CDROM */
+		i = check_cdrom_media_change(dev, 0);
+		break;
+#endif
+
+#if defined(CONFIG_CDU31A)
+         case 15: /* Sony CDROM */
+		i = check_cdu31a_media_change(dev, 0);
+		break;
+#endif
+
+#if defined(CONFIG_MCD)
+         case 23: /* Sony CDROM */
+		i = check_mcd_media_change(dev, 0);
+		break;
+#endif
+
+         default:
+		return;
+	};
+
+	if (!i)	return;
+
+	printk("VFS: Disk change detected on device %d/%d\n",
+					MAJOR(dev), MINOR(dev));
+	for (i=0 ; i<NR_SUPER ; i++)
+		if (super_blocks[i].s_dev == dev)
+			put_super(super_blocks[i].s_dev);
+	invalidate_inodes(dev);
+	invalidate_buffers(dev);
+
+#if defined(CONFIG_BLK_DEV_SD) && defined(CONFIG_SCSI)
+/* This is trickier for a removable hardisk, because we have to invalidate
+   all of the partitions that lie on the disk. */
+	if (MAJOR(dev) == 8)
+		revalidate_scsidisk(dev, 0);
+#endif
+}
 
 #define _hashfn(dev,block) (((unsigned)(dev^block))%NR_HASH)
 #define hash(dev,block) hash_table[_hashfn(dev,block)]

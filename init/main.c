@@ -57,7 +57,7 @@ extern void test_dev_zero();
 static inline _syscall0(int,idle)
 static inline _syscall0(int,fork)
 // TODO WGJA WIP: static inline _syscall0(int,pause)
-// TODO WGJA WIP: static inline _syscall1(int,setup,void *,BIOS)
+static inline _syscall1(int,setup,void *,BIOS)
 // TODO WGJA WIP: static inline _syscall0(int,sync)
 // TODO WGJA WIP: static inline _syscall0(pid_t,setsid)
 // TODO WGJA WIP: static inline _syscall3(int,write,int,fd,const char *,buf,off_t,count)
@@ -387,6 +387,7 @@ extern "C" void start_kernel(void)
 	prof_len >>= 2;
 	memory_start += prof_len * sizeof(unsigned long);
 #endif
+
 	memory_start = chr_dev_init(memory_start,memory_end);
 	memory_start = blk_dev_init(memory_start,memory_end);
 
@@ -400,9 +401,15 @@ extern "C" void start_kernel(void)
 	sti();
 
 	printk("Moving to user mode\n");
-	move_to_user_mode();
 
-	test_dev_zero();
+	move_to_user_mode();
+	if (!fork()) {		/* we count on this going ok */
+		setup((void *) &drive_info);
+		printk("setup() done\n");
+		for (;;);
+	}
+
+	// test_dev_zero();
 	// test_fork();
 	// test_fork_memory();
 	// test_memset();

@@ -20,14 +20,14 @@
 #include <linux/stat.h>
 #include <linux/fcntl.h>
 
-#define OFFSET_MAX	((off_t)0x7fffffff)	/* FIXME: move elsewhere? */
-
-static int copy_flock(struct file *filp, struct file_lock *fl, struct flock *l);
-static int conflict(struct file_lock *caller_fl, struct file_lock *sys_fl);
-static int overlap(struct file_lock *fl1, struct file_lock *fl2);
-static int lock_it(struct file *filp, struct file_lock *caller);
-static struct file_lock *alloc_lock(struct file_lock **pos, struct file_lock *fl);
-static void free_lock(struct file_lock **fl);
+// TODO WGJA WIP: #define OFFSET_MAX	((off_t)0x7fffffff)	/* FIXME: move elsewhere? */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: static int copy_flock(struct file *filp, struct file_lock *fl, struct flock *l);
+// TODO WGJA WIP: static int conflict(struct file_lock *caller_fl, struct file_lock *sys_fl);
+// TODO WGJA WIP: static int overlap(struct file_lock *fl1, struct file_lock *fl2);
+// TODO WGJA WIP: static int lock_it(struct file *filp, struct file_lock *caller);
+// TODO WGJA WIP: static struct file_lock *alloc_lock(struct file_lock **pos, struct file_lock *fl);
+// TODO WGJA WIP: static void free_lock(struct file_lock **fl);
 
 static struct file_lock file_lock_table[NR_FILE_LOCKS];
 static struct file_lock *file_lock_free_list;
@@ -49,395 +49,395 @@ void fcntl_init_locks(void)
 	file_lock_free_list = &file_lock_table[0];
 }
 
-int fcntl_getlk(unsigned int fd, struct flock *l)
-{
-	int error;
-	struct flock flock;
-	struct file *filp;
-	struct file_lock *fl,file_lock;
-
-	if (fd >= NR_OPEN || !(filp = current->filp[fd]))
-		return -EBADF;
-	error = verify_area(VERIFY_WRITE,l, sizeof(*l));
-	if (error)
-		return error;
-	memcpy_fromfs(&flock, l, sizeof(flock));
-	if (flock.l_type == F_UNLCK)
-		return -EINVAL;
-	if (!copy_flock(filp, &file_lock, &flock))
-		return -EINVAL;
-
-	for (fl = filp->f_inode->i_flock; fl != NULL; fl = fl->fl_next) {
-		if (conflict(&file_lock, fl)) {
-			flock.l_pid = fl->fl_owner->pid;
-			flock.l_start = fl->fl_start;
-			flock.l_len = fl->fl_end == OFFSET_MAX ? 0 :
-				fl->fl_end - fl->fl_start + 1;
-			flock.l_whence = fl->fl_whence;
-			flock.l_type = fl->fl_type;
-			memcpy_tofs(l, &flock, sizeof(flock));
-			return 0;
-		}
-	}
-
-	flock.l_type = F_UNLCK;			/* no conflict found */
-	memcpy_tofs(l, &flock, sizeof(flock));
-	return 0;
-}
-
-/*
- * This function implements both F_SETLK and F_SETLKW.
- */
-
-int fcntl_setlk(unsigned int fd, unsigned int cmd, struct flock *l)
-{
-	int error;
-	struct file *filp;
-	struct file_lock *fl,file_lock;
-	struct flock flock;
-
-	/*
-	 * Get arguments and validate them ...
-	 */
-
-	if (fd >= NR_OPEN || !(filp = current->filp[fd]))
-		return -EBADF;
-	error = verify_area(VERIFY_WRITE, l, sizeof(*l));
-	if (error)
-		return error;
-	memcpy_fromfs(&flock, l, sizeof(flock));
-	if (!copy_flock(filp, &file_lock, &flock))
-		return -EINVAL;
-	switch (file_lock.fl_type) {
-	case F_RDLCK :
-		if (!(filp->f_mode & 1))
-			return -EBADF;
-		break;
-	case F_WRLCK :
-		if (!(filp->f_mode & 2))
-			return -EBADF;
-		break;
-	case F_SHLCK :
-		if (!(filp->f_mode & 3))
-			return -EBADF;
-		file_lock.fl_type = F_RDLCK;
-		break;
-	case F_EXLCK :
-		if (!(filp->f_mode & 3))
-			return -EBADF;
-		file_lock.fl_type = F_WRLCK;
-		break;
-	case F_UNLCK :
-		break;
-	}
-
-  	/*
-  	 * Scan for a conflicting lock ...
-  	 */
-  
-	if (file_lock.fl_type != F_UNLCK) {
-repeat:
-		for (fl = filp->f_inode->i_flock; fl != NULL; fl = fl->fl_next) {
-			if (!conflict(&file_lock, fl))
-				continue;
-			/*
-			 * File is locked by another process. If this is
-			 * F_SETLKW wait for the lock to be released.
-			 * FIXME: We need to check for deadlocks here.
-			 */
-			if (cmd == F_SETLKW) {
-				if (current->signal & ~current->blocked)
-					return -ERESTARTSYS;
-				interruptible_sleep_on(&fl->fl_wait);
-				if (current->signal & ~current->blocked)
-					return -ERESTARTSYS;
-				goto repeat;
-			}
-			return -EAGAIN;
-  		}
-  	}
-
-	/*
-	 * Lock doesn't conflict with any other lock ...
-	 */
-
-	return lock_it(filp, &file_lock);
-}
-
-/*
- * This function is called when the file is closed.
- */
-
-void fcntl_remove_locks(struct task_struct *task, struct file *filp)
-{
-	struct file_lock *fl;
-	struct file_lock **before;
-
-	/* Find first lock owned by caller ... */
-
-	before = &filp->f_inode->i_flock;
-	while ((fl = *before) && task != fl->fl_owner)
-		before = &fl->fl_next;
-
-	/* The list is sorted by owner ... */
-
-	while ((fl = *before) && task == fl->fl_owner)
-		free_lock(before);
-}
-
-/*
- * Verify a "struct flock" and copy it to a "struct file_lock" ...
- * Result is a boolean indicating success.
- */
-
-static int copy_flock(struct file *filp, struct file_lock *fl, struct flock *l)
-{
-	off_t start;
-
-	if (!filp->f_inode)	/* just in case */
-		return 0;
-	if (!S_ISREG(filp->f_inode->i_mode))
-		return 0;
-	if (l->l_type != F_UNLCK && l->l_type != F_RDLCK && l->l_type != F_WRLCK
-	 && l->l_type != F_SHLCK && l->l_type != F_EXLCK)
-		return 0;
-	switch (l->l_whence) {
-	case 0 /*SEEK_SET*/ : start = 0; break;
-	case 1 /*SEEK_CUR*/ : start = filp->f_pos; break;
-	case 2 /*SEEK_END*/ : start = filp->f_inode->i_size; break;
-	default : return 0;
-	}
-	if ((start += l->l_start) < 0 || l->l_len < 0)
-		return 0;
-	fl->fl_type = l->l_type;
-	fl->fl_start = start;	/* we record the absolute position */
-	fl->fl_whence = 0;	/* FIXME: do we record {l_start} as passed? */
-	if (l->l_len == 0 || (fl->fl_end = start + l->l_len - 1) < 0)
-		fl->fl_end = OFFSET_MAX;
-	fl->fl_owner = current;
-	fl->fl_wait = NULL;		/* just for cleanliness */
-	return 1;
-}
-
-/*
- * Determine if lock {sys_fl} blocks lock {caller_fl} ...
- */
-
-static int conflict(struct file_lock *caller_fl, struct file_lock *sys_fl)
-{
-	if (caller_fl->fl_owner == sys_fl->fl_owner)
-		return 0;
-	if (!overlap(caller_fl, sys_fl))
-		return 0;
-	switch (caller_fl->fl_type) {
-	case F_RDLCK :
-		return sys_fl->fl_type != F_RDLCK;
-	case F_WRLCK :
-		return 1;	/* overlapping region not owned by caller */
-	}
-	return 0;	/* shouldn't get here, but just in case */
-}
-
-static int overlap(struct file_lock *fl1, struct file_lock *fl2)
-{
-	return fl1->fl_end >= fl2->fl_start && fl2->fl_end >= fl1->fl_start;
-}
-
-/*
- * Add a lock to a file ...
- * Result is 0 for success or -ENOLCK.
- *
- * We merge adjacent locks whenever possible.
- *
- * WARNING: We assume the lock doesn't conflict with any other lock.
- */
-  
-/*
- * Rewritten by Kai Petzke:
- * We sort the lock list first by owner, then by the starting address.
- *
- * To make freeing a lock much faster, we keep a pointer to the lock before the
- * actual one. But the real gain of the new coding was, that lock_it() and
- * unlock_it() became one function.
- *
- * To all purists: Yes, I use a few goto's. Just pass on to the next function.
- */
-
-static int lock_it(struct file *filp, struct file_lock *caller)
-{
-	struct file_lock *fl;
-	struct file_lock *left = 0;
-	struct file_lock *right = 0;
-	struct file_lock **before;
-	int added = 0;
-
-	/*
-	 * Find the first old lock with the same owner as the new lock.
-	 */
-
-	before = &filp->f_inode->i_flock;
-	while ((fl = *before) && caller->fl_owner != fl->fl_owner)
-		before = &fl->fl_next;
-
-	/*
-	 * Look up all locks of this owner.
-	 */
-
-	while ((fl = *before) && caller->fl_owner == fl->fl_owner) {
-		/*
-		 * Detect adjacent or overlapping regions (if same lock type)
-		 */
-		if (caller->fl_type == fl->fl_type) {
-			if (fl->fl_end < caller->fl_start - 1)
-				goto next_lock;
-			/*
-			 * If the next lock in the list has entirely bigger
-			 * addresses than the new one, insert the lock here.
-			 */
-			if (fl->fl_start > caller->fl_end + 1)
-				break;
-
-			/*
-			 * If we come here, the new and old lock are of the
-			 * same type and adjacent or overlapping. Make one
-			 * lock yielding from the lower start address of both
-			 * locks to the higher end address.
-			 */
-			if (fl->fl_start > caller->fl_start)
-				fl->fl_start = caller->fl_start;
-			else
-				caller->fl_start = fl->fl_start;
-			if (fl->fl_end < caller->fl_end)
-				fl->fl_end = caller->fl_end;
-			else
-				caller->fl_end = fl->fl_end;
-			if (added) {
-				free_lock(before);
-				continue;
-			}
-			caller = fl;
-			added = 1;
-			goto next_lock;
-		}
-		/*
-		 * Processing for different lock types is a bit more complex.
-		 */
-		if (fl->fl_end < caller->fl_start)
-			goto next_lock;
-		if (fl->fl_start > caller->fl_end)
-			break;
-		if (caller->fl_type == F_UNLCK)
-			added = 1;
-		if (fl->fl_start < caller->fl_start)
-			left = fl;
-		/*
-		 * If the next lock in the list has a higher end address than
-		 * the new one, insert the new one here.
-		 */
-		if (fl->fl_end > caller->fl_end) {
-			right = fl;
-			break;
-		}
-		if (fl->fl_start >= caller->fl_start) {
-			/*
-			 * The new lock completely replaces an old one (This may
-			 * happen several times).
-			 */
-			if (added) {
-				free_lock(before);
-				continue;
-			}
-			/*
-			 * Replace the old lock with the new one. Wake up
-			 * anybody waiting for the old one, as the change in
-			 * lock type migth satisfy his needs.
-			 */
-			wake_up(&fl->fl_wait);
-			fl->fl_start = caller->fl_start;
-			fl->fl_end   = caller->fl_end;
-			fl->fl_type  = caller->fl_type;
-			fl->fl_wait  = 0;
-			caller = fl;
-			added = 1;
-		}
-		/*
-		 * Go on to next lock.
-		 */
-next_lock:
-		before = &(*before)->fl_next;
-	}
-
-	if (! added) {
-		if (caller->fl_type == F_UNLCK)
-			return -EINVAL;
-		if (! (caller = alloc_lock(before, caller)))
-			return -ENOLCK;
-	}
-	if (right) {
-		if (left == right) {
-			/*
-			 * The new lock breaks the old one in two pieces, so we
-			 * have to allocate one more lock (in this case, even
-			 * F_UNLCK may fail!).
-			 */
-			if (! (left = alloc_lock(before, right))) {
-				if (! added)
-					free_lock(before);
-				return -ENOLCK;
-			}
-		}
-		right->fl_start = caller->fl_end + 1;
-	}
-	if (left)
-		left->fl_end = caller->fl_start - 1;
-	return 0;
-}
-
-/*
- * File_lock() inserts a lock at the position pos of the linked list.
- */
-
-static struct file_lock *alloc_lock(struct file_lock **pos,
-				    struct file_lock *fl)
-{
-	struct file_lock *tmp;
-
-	tmp = file_lock_free_list;
-	if (tmp == NULL)
-		return NULL;			/* no available entry */
-	if (tmp->fl_owner != NULL)
-		panic("alloc_lock: broken free list\n");
-
-	/* remove from free list */
-	file_lock_free_list = tmp->fl_next;
-
-	*tmp = *fl;
-
-	tmp->fl_next = *pos;	/* insert into file's list */
-	*pos = tmp;
-
-	tmp->fl_owner = current;	/* FIXME: needed? */
-	tmp->fl_wait = NULL;
-	return tmp;
-}
-
-/*
- * Add a lock to the free list ...
- */
-
-static void free_lock(struct file_lock **fl_p)
-{
-	struct file_lock *fl;
-
-	fl = *fl_p;
-	if (fl->fl_owner == NULL)	/* sanity check */
-		panic("free_lock: broken lock list\n");
-
-	*fl_p = (*fl_p)->fl_next;
-
-	fl->fl_next = file_lock_free_list;	/* add to free list */
-	file_lock_free_list = fl;
-	fl->fl_owner = NULL;			/* for sanity checks */
-
-	wake_up(&fl->fl_wait);
-}
+// TODO WGJA WIP: int fcntl_getlk(unsigned int fd, struct flock *l)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	int error;
+// TODO WGJA WIP: 	struct flock flock;
+// TODO WGJA WIP: 	struct file *filp;
+// TODO WGJA WIP: 	struct file_lock *fl,file_lock;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (fd >= NR_OPEN || !(filp = current->filp[fd]))
+// TODO WGJA WIP: 		return -EBADF;
+// TODO WGJA WIP: 	error = verify_area(VERIFY_WRITE,l, sizeof(*l));
+// TODO WGJA WIP: 	if (error)
+// TODO WGJA WIP: 		return error;
+// TODO WGJA WIP: 	memcpy_fromfs(&flock, l, sizeof(flock));
+// TODO WGJA WIP: 	if (flock.l_type == F_UNLCK)
+// TODO WGJA WIP: 		return -EINVAL;
+// TODO WGJA WIP: 	if (!copy_flock(filp, &file_lock, &flock))
+// TODO WGJA WIP: 		return -EINVAL;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	for (fl = filp->f_inode->i_flock; fl != NULL; fl = fl->fl_next) {
+// TODO WGJA WIP: 		if (conflict(&file_lock, fl)) {
+// TODO WGJA WIP: 			flock.l_pid = fl->fl_owner->pid;
+// TODO WGJA WIP: 			flock.l_start = fl->fl_start;
+// TODO WGJA WIP: 			flock.l_len = fl->fl_end == OFFSET_MAX ? 0 :
+// TODO WGJA WIP: 				fl->fl_end - fl->fl_start + 1;
+// TODO WGJA WIP: 			flock.l_whence = fl->fl_whence;
+// TODO WGJA WIP: 			flock.l_type = fl->fl_type;
+// TODO WGJA WIP: 			memcpy_tofs(l, &flock, sizeof(flock));
+// TODO WGJA WIP: 			return 0;
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	flock.l_type = F_UNLCK;			/* no conflict found */
+// TODO WGJA WIP: 	memcpy_tofs(l, &flock, sizeof(flock));
+// TODO WGJA WIP: 	return 0;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * This function implements both F_SETLK and F_SETLKW.
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: int fcntl_setlk(unsigned int fd, unsigned int cmd, struct flock *l)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	int error;
+// TODO WGJA WIP: 	struct file *filp;
+// TODO WGJA WIP: 	struct file_lock *fl,file_lock;
+// TODO WGJA WIP: 	struct flock flock;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	/*
+// TODO WGJA WIP: 	 * Get arguments and validate them ...
+// TODO WGJA WIP: 	 */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (fd >= NR_OPEN || !(filp = current->filp[fd]))
+// TODO WGJA WIP: 		return -EBADF;
+// TODO WGJA WIP: 	error = verify_area(VERIFY_WRITE, l, sizeof(*l));
+// TODO WGJA WIP: 	if (error)
+// TODO WGJA WIP: 		return error;
+// TODO WGJA WIP: 	memcpy_fromfs(&flock, l, sizeof(flock));
+// TODO WGJA WIP: 	if (!copy_flock(filp, &file_lock, &flock))
+// TODO WGJA WIP: 		return -EINVAL;
+// TODO WGJA WIP: 	switch (file_lock.fl_type) {
+// TODO WGJA WIP: 	case F_RDLCK :
+// TODO WGJA WIP: 		if (!(filp->f_mode & 1))
+// TODO WGJA WIP: 			return -EBADF;
+// TODO WGJA WIP: 		break;
+// TODO WGJA WIP: 	case F_WRLCK :
+// TODO WGJA WIP: 		if (!(filp->f_mode & 2))
+// TODO WGJA WIP: 			return -EBADF;
+// TODO WGJA WIP: 		break;
+// TODO WGJA WIP: 	case F_SHLCK :
+// TODO WGJA WIP: 		if (!(filp->f_mode & 3))
+// TODO WGJA WIP: 			return -EBADF;
+// TODO WGJA WIP: 		file_lock.fl_type = F_RDLCK;
+// TODO WGJA WIP: 		break;
+// TODO WGJA WIP: 	case F_EXLCK :
+// TODO WGJA WIP: 		if (!(filp->f_mode & 3))
+// TODO WGJA WIP: 			return -EBADF;
+// TODO WGJA WIP: 		file_lock.fl_type = F_WRLCK;
+// TODO WGJA WIP: 		break;
+// TODO WGJA WIP: 	case F_UNLCK :
+// TODO WGJA WIP: 		break;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 
+// TODO WGJA WIP:   	/*
+// TODO WGJA WIP:   	 * Scan for a conflicting lock ...
+// TODO WGJA WIP:   	 */
+  // TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (file_lock.fl_type != F_UNLCK) {
+// TODO WGJA WIP: repeat:
+// TODO WGJA WIP: 		for (fl = filp->f_inode->i_flock; fl != NULL; fl = fl->fl_next) {
+// TODO WGJA WIP: 			if (!conflict(&file_lock, fl))
+// TODO WGJA WIP: 				continue;
+// TODO WGJA WIP: 			/*
+// TODO WGJA WIP: 			 * File is locked by another process. If this is
+// TODO WGJA WIP: 			 * F_SETLKW wait for the lock to be released.
+// TODO WGJA WIP: 			 * FIXME: We need to check for deadlocks here.
+// TODO WGJA WIP: 			 */
+// TODO WGJA WIP: 			if (cmd == F_SETLKW) {
+// TODO WGJA WIP: 				if (current->signal & ~current->blocked)
+// TODO WGJA WIP: 					return -ERESTARTSYS;
+// TODO WGJA WIP: 				interruptible_sleep_on(&fl->fl_wait);
+// TODO WGJA WIP: 				if (current->signal & ~current->blocked)
+// TODO WGJA WIP: 					return -ERESTARTSYS;
+// TODO WGJA WIP: 				goto repeat;
+// TODO WGJA WIP: 			}
+// TODO WGJA WIP: 			return -EAGAIN;
+// TODO WGJA WIP:   		}
+// TODO WGJA WIP:   	}
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	/*
+// TODO WGJA WIP: 	 * Lock doesn't conflict with any other lock ...
+// TODO WGJA WIP: 	 */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	return lock_it(filp, &file_lock);
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * This function is called when the file is closed.
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: void fcntl_remove_locks(struct task_struct *task, struct file *filp)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct file_lock *fl;
+// TODO WGJA WIP: 	struct file_lock **before;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	/* Find first lock owned by caller ... */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	before = &filp->f_inode->i_flock;
+// TODO WGJA WIP: 	while ((fl = *before) && task != fl->fl_owner)
+// TODO WGJA WIP: 		before = &fl->fl_next;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	/* The list is sorted by owner ... */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	while ((fl = *before) && task == fl->fl_owner)
+// TODO WGJA WIP: 		free_lock(before);
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * Verify a "struct flock" and copy it to a "struct file_lock" ...
+// TODO WGJA WIP:  * Result is a boolean indicating success.
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: static int copy_flock(struct file *filp, struct file_lock *fl, struct flock *l)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	off_t start;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (!filp->f_inode)	/* just in case */
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	if (!S_ISREG(filp->f_inode->i_mode))
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	if (l->l_type != F_UNLCK && l->l_type != F_RDLCK && l->l_type != F_WRLCK
+// TODO WGJA WIP: 	 && l->l_type != F_SHLCK && l->l_type != F_EXLCK)
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	switch (l->l_whence) {
+// TODO WGJA WIP: 	case 0 /*SEEK_SET*/ : start = 0; break;
+// TODO WGJA WIP: 	case 1 /*SEEK_CUR*/ : start = filp->f_pos; break;
+// TODO WGJA WIP: 	case 2 /*SEEK_END*/ : start = filp->f_inode->i_size; break;
+// TODO WGJA WIP: 	default : return 0;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if ((start += l->l_start) < 0 || l->l_len < 0)
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	fl->fl_type = l->l_type;
+// TODO WGJA WIP: 	fl->fl_start = start;	/* we record the absolute position */
+// TODO WGJA WIP: 	fl->fl_whence = 0;	/* FIXME: do we record {l_start} as passed? */
+// TODO WGJA WIP: 	if (l->l_len == 0 || (fl->fl_end = start + l->l_len - 1) < 0)
+// TODO WGJA WIP: 		fl->fl_end = OFFSET_MAX;
+// TODO WGJA WIP: 	fl->fl_owner = current;
+// TODO WGJA WIP: 	fl->fl_wait = NULL;		/* just for cleanliness */
+// TODO WGJA WIP: 	return 1;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * Determine if lock {sys_fl} blocks lock {caller_fl} ...
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: static int conflict(struct file_lock *caller_fl, struct file_lock *sys_fl)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	if (caller_fl->fl_owner == sys_fl->fl_owner)
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	if (!overlap(caller_fl, sys_fl))
+// TODO WGJA WIP: 		return 0;
+// TODO WGJA WIP: 	switch (caller_fl->fl_type) {
+// TODO WGJA WIP: 	case F_RDLCK :
+// TODO WGJA WIP: 		return sys_fl->fl_type != F_RDLCK;
+// TODO WGJA WIP: 	case F_WRLCK :
+// TODO WGJA WIP: 		return 1;	/* overlapping region not owned by caller */
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	return 0;	/* shouldn't get here, but just in case */
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: static int overlap(struct file_lock *fl1, struct file_lock *fl2)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	return fl1->fl_end >= fl2->fl_start && fl2->fl_end >= fl1->fl_start;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * Add a lock to a file ...
+// TODO WGJA WIP:  * Result is 0 for success or -ENOLCK.
+// TODO WGJA WIP:  *
+// TODO WGJA WIP:  * We merge adjacent locks whenever possible.
+// TODO WGJA WIP:  *
+// TODO WGJA WIP:  * WARNING: We assume the lock doesn't conflict with any other lock.
+// TODO WGJA WIP:  */
+  // TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * Rewritten by Kai Petzke:
+// TODO WGJA WIP:  * We sort the lock list first by owner, then by the starting address.
+// TODO WGJA WIP:  *
+// TODO WGJA WIP:  * To make freeing a lock much faster, we keep a pointer to the lock before the
+// TODO WGJA WIP:  * actual one. But the real gain of the new coding was, that lock_it() and
+// TODO WGJA WIP:  * unlock_it() became one function.
+// TODO WGJA WIP:  *
+// TODO WGJA WIP:  * To all purists: Yes, I use a few goto's. Just pass on to the next function.
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: static int lock_it(struct file *filp, struct file_lock *caller)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct file_lock *fl;
+// TODO WGJA WIP: 	struct file_lock *left = 0;
+// TODO WGJA WIP: 	struct file_lock *right = 0;
+// TODO WGJA WIP: 	struct file_lock **before;
+// TODO WGJA WIP: 	int added = 0;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	/*
+// TODO WGJA WIP: 	 * Find the first old lock with the same owner as the new lock.
+// TODO WGJA WIP: 	 */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	before = &filp->f_inode->i_flock;
+// TODO WGJA WIP: 	while ((fl = *before) && caller->fl_owner != fl->fl_owner)
+// TODO WGJA WIP: 		before = &fl->fl_next;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	/*
+// TODO WGJA WIP: 	 * Look up all locks of this owner.
+// TODO WGJA WIP: 	 */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	while ((fl = *before) && caller->fl_owner == fl->fl_owner) {
+// TODO WGJA WIP: 		/*
+// TODO WGJA WIP: 		 * Detect adjacent or overlapping regions (if same lock type)
+// TODO WGJA WIP: 		 */
+// TODO WGJA WIP: 		if (caller->fl_type == fl->fl_type) {
+// TODO WGJA WIP: 			if (fl->fl_end < caller->fl_start - 1)
+// TODO WGJA WIP: 				goto next_lock;
+// TODO WGJA WIP: 			/*
+// TODO WGJA WIP: 			 * If the next lock in the list has entirely bigger
+// TODO WGJA WIP: 			 * addresses than the new one, insert the lock here.
+// TODO WGJA WIP: 			 */
+// TODO WGJA WIP: 			if (fl->fl_start > caller->fl_end + 1)
+// TODO WGJA WIP: 				break;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 			/*
+// TODO WGJA WIP: 			 * If we come here, the new and old lock are of the
+// TODO WGJA WIP: 			 * same type and adjacent or overlapping. Make one
+// TODO WGJA WIP: 			 * lock yielding from the lower start address of both
+// TODO WGJA WIP: 			 * locks to the higher end address.
+// TODO WGJA WIP: 			 */
+// TODO WGJA WIP: 			if (fl->fl_start > caller->fl_start)
+// TODO WGJA WIP: 				fl->fl_start = caller->fl_start;
+// TODO WGJA WIP: 			else
+// TODO WGJA WIP: 				caller->fl_start = fl->fl_start;
+// TODO WGJA WIP: 			if (fl->fl_end < caller->fl_end)
+// TODO WGJA WIP: 				fl->fl_end = caller->fl_end;
+// TODO WGJA WIP: 			else
+// TODO WGJA WIP: 				caller->fl_end = fl->fl_end;
+// TODO WGJA WIP: 			if (added) {
+// TODO WGJA WIP: 				free_lock(before);
+// TODO WGJA WIP: 				continue;
+// TODO WGJA WIP: 			}
+// TODO WGJA WIP: 			caller = fl;
+// TODO WGJA WIP: 			added = 1;
+// TODO WGJA WIP: 			goto next_lock;
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 		/*
+// TODO WGJA WIP: 		 * Processing for different lock types is a bit more complex.
+// TODO WGJA WIP: 		 */
+// TODO WGJA WIP: 		if (fl->fl_end < caller->fl_start)
+// TODO WGJA WIP: 			goto next_lock;
+// TODO WGJA WIP: 		if (fl->fl_start > caller->fl_end)
+// TODO WGJA WIP: 			break;
+// TODO WGJA WIP: 		if (caller->fl_type == F_UNLCK)
+// TODO WGJA WIP: 			added = 1;
+// TODO WGJA WIP: 		if (fl->fl_start < caller->fl_start)
+// TODO WGJA WIP: 			left = fl;
+// TODO WGJA WIP: 		/*
+// TODO WGJA WIP: 		 * If the next lock in the list has a higher end address than
+// TODO WGJA WIP: 		 * the new one, insert the new one here.
+// TODO WGJA WIP: 		 */
+// TODO WGJA WIP: 		if (fl->fl_end > caller->fl_end) {
+// TODO WGJA WIP: 			right = fl;
+// TODO WGJA WIP: 			break;
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 		if (fl->fl_start >= caller->fl_start) {
+// TODO WGJA WIP: 			/*
+// TODO WGJA WIP: 			 * The new lock completely replaces an old one (This may
+// TODO WGJA WIP: 			 * happen several times).
+// TODO WGJA WIP: 			 */
+// TODO WGJA WIP: 			if (added) {
+// TODO WGJA WIP: 				free_lock(before);
+// TODO WGJA WIP: 				continue;
+// TODO WGJA WIP: 			}
+// TODO WGJA WIP: 			/*
+// TODO WGJA WIP: 			 * Replace the old lock with the new one. Wake up
+// TODO WGJA WIP: 			 * anybody waiting for the old one, as the change in
+// TODO WGJA WIP: 			 * lock type migth satisfy his needs.
+// TODO WGJA WIP: 			 */
+// TODO WGJA WIP: 			wake_up(&fl->fl_wait);
+// TODO WGJA WIP: 			fl->fl_start = caller->fl_start;
+// TODO WGJA WIP: 			fl->fl_end   = caller->fl_end;
+// TODO WGJA WIP: 			fl->fl_type  = caller->fl_type;
+// TODO WGJA WIP: 			fl->fl_wait  = 0;
+// TODO WGJA WIP: 			caller = fl;
+// TODO WGJA WIP: 			added = 1;
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 		/*
+// TODO WGJA WIP: 		 * Go on to next lock.
+// TODO WGJA WIP: 		 */
+// TODO WGJA WIP: next_lock:
+// TODO WGJA WIP: 		before = &(*before)->fl_next;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (! added) {
+// TODO WGJA WIP: 		if (caller->fl_type == F_UNLCK)
+// TODO WGJA WIP: 			return -EINVAL;
+// TODO WGJA WIP: 		if (! (caller = alloc_lock(before, caller)))
+// TODO WGJA WIP: 			return -ENOLCK;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (right) {
+// TODO WGJA WIP: 		if (left == right) {
+// TODO WGJA WIP: 			/*
+// TODO WGJA WIP: 			 * The new lock breaks the old one in two pieces, so we
+// TODO WGJA WIP: 			 * have to allocate one more lock (in this case, even
+// TODO WGJA WIP: 			 * F_UNLCK may fail!).
+// TODO WGJA WIP: 			 */
+// TODO WGJA WIP: 			if (! (left = alloc_lock(before, right))) {
+// TODO WGJA WIP: 				if (! added)
+// TODO WGJA WIP: 					free_lock(before);
+// TODO WGJA WIP: 				return -ENOLCK;
+// TODO WGJA WIP: 			}
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 		right->fl_start = caller->fl_end + 1;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (left)
+// TODO WGJA WIP: 		left->fl_end = caller->fl_start - 1;
+// TODO WGJA WIP: 	return 0;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * File_lock() inserts a lock at the position pos of the linked list.
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: static struct file_lock *alloc_lock(struct file_lock **pos,
+// TODO WGJA WIP: 				    struct file_lock *fl)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct file_lock *tmp;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	tmp = file_lock_free_list;
+// TODO WGJA WIP: 	if (tmp == NULL)
+// TODO WGJA WIP: 		return NULL;			/* no available entry */
+// TODO WGJA WIP: 	if (tmp->fl_owner != NULL)
+// TODO WGJA WIP: 		panic("alloc_lock: broken free list\n");
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	/* remove from free list */
+// TODO WGJA WIP: 	file_lock_free_list = tmp->fl_next;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	*tmp = *fl;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	tmp->fl_next = *pos;	/* insert into file's list */
+// TODO WGJA WIP: 	*pos = tmp;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	tmp->fl_owner = current;	/* FIXME: needed? */
+// TODO WGJA WIP: 	tmp->fl_wait = NULL;
+// TODO WGJA WIP: 	return tmp;
+// TODO WGJA WIP: }
+// TODO WGJA WIP: 
+// TODO WGJA WIP: /*
+// TODO WGJA WIP:  * Add a lock to the free list ...
+// TODO WGJA WIP:  */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: static void free_lock(struct file_lock **fl_p)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	struct file_lock *fl;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	fl = *fl_p;
+// TODO WGJA WIP: 	if (fl->fl_owner == NULL)	/* sanity check */
+// TODO WGJA WIP: 		panic("free_lock: broken lock list\n");
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	*fl_p = (*fl_p)->fl_next;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	fl->fl_next = file_lock_free_list;	/* add to free list */
+// TODO WGJA WIP: 	file_lock_free_list = fl;
+// TODO WGJA WIP: 	fl->fl_owner = NULL;			/* for sanity checks */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	wake_up(&fl->fl_wait);
+// TODO WGJA WIP: }

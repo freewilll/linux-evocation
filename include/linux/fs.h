@@ -226,16 +226,16 @@ struct file {
 	struct file_operations * f_op;
 };
 
-// TODO WGJA WIP: struct file_lock {
-// TODO WGJA WIP: 	struct file_lock *fl_next;	/* singly linked list */
-// TODO WGJA WIP: 	struct task_struct *fl_owner;	/* NULL if on free list, for sanity checks */
-// TODO WGJA WIP: 	struct wait_queue *fl_wait;
-// TODO WGJA WIP: 	char fl_type;
-// TODO WGJA WIP: 	char fl_whence;
-// TODO WGJA WIP: 	off_t fl_start;
-// TODO WGJA WIP: 	off_t fl_end;
-// TODO WGJA WIP: };
-// TODO WGJA WIP: 
+struct file_lock {
+	struct file_lock *fl_next;	/* singly linked list */
+	struct task_struct *fl_owner;	/* NULL if on free list, for sanity checks */
+	struct wait_queue *fl_wait;
+	char fl_type;
+	char fl_whence;
+	off_t fl_start;
+	off_t fl_end;
+};
+
 // TODO WGJA WIP: #include <linux/minix_fs_sb.h>
 // TODO WGJA WIP: #include <linux/ext_fs_sb.h>
 // TODO WGJA WIP: #include <linux/ext2_fs_sb.h>
@@ -311,14 +311,14 @@ struct super_operations {
 	int (*remount_fs) (struct super_block *, int *);
 };
 
-// TODO WGJA WIP: struct file_system_type {
-// TODO WGJA WIP: 	struct super_block *(*read_super) (struct super_block *, void *, int);
-// TODO WGJA WIP: 	char *name;
-// TODO WGJA WIP: 	int requires_dev;
-// TODO WGJA WIP: };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #ifdef __KERNEL__
-// TODO WGJA WIP: 
+struct file_system_type {
+	struct super_block *(*read_super) (struct super_block *, void *, int);
+	char *name;
+	int requires_dev;
+};
+
+#ifdef __KERNEL__
+
 extern "C" int sys_open(const char *, int, int);
 // TODO WGJA WIP: extern "C" int sys_close(unsigned int);		/* yes, it's really unsigned */
 
@@ -350,7 +350,7 @@ extern int register_chrdev(unsigned int, const char *, struct file_operations *)
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern struct file *first_file;
 // TODO WGJA WIP: extern int nr_files;
-// TODO WGJA WIP: extern struct super_block super_blocks[NR_SUPER];
+extern struct super_block super_blocks[NR_SUPER];
 
 extern void grow_buffers(int size);
 extern int shrink_buffers(unsigned int priority);
@@ -358,11 +358,11 @@ extern int shrink_buffers(unsigned int priority);
 // TODO WGJA WIP: extern int nr_buffers;
 // TODO WGJA WIP: extern int buffermem;
 // TODO WGJA WIP: extern int nr_buffer_heads;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern void check_disk_change(dev_t dev);
-// TODO WGJA WIP: extern void invalidate_inodes(dev_t dev);
-// TODO WGJA WIP: extern void invalidate_buffers(dev_t dev);
-// TODO WGJA WIP: extern int floppy_change(struct buffer_head * first_block);
+
+extern void check_disk_change(dev_t dev);
+extern void invalidate_inodes(dev_t dev);
+extern void invalidate_buffers(dev_t dev);
+extern int floppy_change(struct buffer_head * first_block);
 extern void sync_inodes(dev_t dev);
 // TODO WGJA WIP: extern void sync_dev(dev_t dev);
 extern int fsync_dev(dev_t dev);
@@ -392,7 +392,7 @@ extern void brelse(struct buffer_head * buf);
 extern struct buffer_head * bread(dev_t dev, int block, int size);
 // TODO WGJA WIP: extern unsigned long bread_page(unsigned long addr,dev_t dev,int b[],int size,int prot);
 extern struct buffer_head * breada(dev_t dev,int block,...);
-// TODO WGJA WIP: extern void put_super(dev_t dev);
+extern void put_super(dev_t dev);
 extern dev_t ROOT_DEV;
 
 extern void mount_root(void);
@@ -408,7 +408,7 @@ extern int block_write(struct inode *, struct file *, char *, int);
 // TODO WGJA WIP: 
 extern int block_fsync(struct inode *, struct file *);
 // TODO WGJA WIP: extern int file_fsync(struct inode *, struct file *);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #endif /* __KERNEL__ */
+
+#endif /* __KERNEL__ */
 
 #endif

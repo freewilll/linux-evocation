@@ -25,13 +25,13 @@
  * filesystems.c.  Now super.c contains no fs specific code.  -- jrs
  */
 
-// TODO WGJA WIP: extern struct file_system_type file_systems[];
+extern struct file_system_type file_systems[];
 // TODO WGJA WIP: extern struct file_operations * blkdev_fops[];
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern void wait_for_keypress(void);
-// TODO WGJA WIP: extern void fcntl_init_locks(void);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern int root_mountflags;
+
+extern void wait_for_keypress(void);
+extern void fcntl_init_locks(void);
+
+extern int root_mountflags;
 
 struct super_block super_blocks[NR_SUPER];
 
@@ -40,17 +40,17 @@ struct super_block super_blocks[NR_SUPER];
 /* this is initialized in init/main.c */
 dev_t ROOT_DEV = 0;
 
-// TODO WGJA WIP: struct file_system_type *get_fs_type(char *name)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int a;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!name)
-// TODO WGJA WIP: 		return &file_systems[0];
-// TODO WGJA WIP: 	for(a = 0 ; file_systems[a].read_super ; a++)
-// TODO WGJA WIP: 		if (!strcmp(name,file_systems[a].name))
-// TODO WGJA WIP: 			return(&file_systems[a]);
-// TODO WGJA WIP: 	return NULL;
-// TODO WGJA WIP: }
+struct file_system_type *get_fs_type(char *name)
+{
+	int a;
+
+	if (!name)
+		return &file_systems[0];
+	for(a = 0 ; file_systems[a].read_super ; a++)
+		if (!strcmp(name,file_systems[a].name))
+			return(&file_systems[a]);
+	return NULL;
+}
 
 void __wait_on_super(struct super_block * sb)
 {
@@ -86,80 +86,80 @@ void sync_supers(dev_t dev)
 	}
 }
 
-// TODO WGJA WIP: static struct super_block * get_super(dev_t dev)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct super_block * s;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!dev)
-// TODO WGJA WIP: 		return NULL;
-// TODO WGJA WIP: 	s = 0+super_blocks;
-// TODO WGJA WIP: 	while (s < NR_SUPER+super_blocks)
-// TODO WGJA WIP: 		if (s->s_dev == dev) {
-// TODO WGJA WIP: 			wait_on_super(s);
-// TODO WGJA WIP: 			if (s->s_dev == dev)
-// TODO WGJA WIP: 				return s;
-// TODO WGJA WIP: 			s = 0+super_blocks;
-// TODO WGJA WIP: 		} else
-// TODO WGJA WIP: 			s++;
-// TODO WGJA WIP: 	return NULL;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void put_super(dev_t dev)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct super_block * sb;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (dev == ROOT_DEV) {
-// TODO WGJA WIP: 		printk("VFS: Root device %d/%d: prepare for armageddon\n",
-// TODO WGJA WIP: 							MAJOR(dev), MINOR(dev));
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!(sb = get_super(dev)))
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	if (sb->s_covered) {
-// TODO WGJA WIP: 		printk("VFS: Mounted device %d/%d - tssk, tssk\n",
-// TODO WGJA WIP: 						MAJOR(dev), MINOR(dev));
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (sb->s_op && sb->s_op->put_super)
-// TODO WGJA WIP: 		sb->s_op->put_super(sb);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static struct super_block * read_super(dev_t dev,char *name,int flags,
-// TODO WGJA WIP: 				       void *data, int silent)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct super_block * s;
-// TODO WGJA WIP: 	struct file_system_type *type;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!dev)
-// TODO WGJA WIP: 		return NULL;
-// TODO WGJA WIP: 	check_disk_change(dev);
-// TODO WGJA WIP: 	s = get_super(dev);
-// TODO WGJA WIP: 	if (s)
-// TODO WGJA WIP: 		return s;
-// TODO WGJA WIP: 	if (!(type = get_fs_type(name))) {
-// TODO WGJA WIP: 		printk("VFS: on device %d/%d: get_fs_type(%s) failed\n",
-// TODO WGJA WIP: 						MAJOR(dev), MINOR(dev), name);
-// TODO WGJA WIP: 		return NULL;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	for (s = 0+super_blocks ;; s++) {
-// TODO WGJA WIP: 		if (s >= NR_SUPER+super_blocks)
-// TODO WGJA WIP: 			return NULL;
-// TODO WGJA WIP: 		if (!s->s_dev)
-// TODO WGJA WIP: 			break;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	s->s_dev = dev;
-// TODO WGJA WIP: 	s->s_flags = flags;
-// TODO WGJA WIP: 	if (!type->read_super(s,data, silent)) {
-// TODO WGJA WIP: 		s->s_dev = 0;
-// TODO WGJA WIP: 		return NULL;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	s->s_dev = dev;
-// TODO WGJA WIP: 	s->s_covered = NULL;
-// TODO WGJA WIP: 	s->s_rd_only = 0;
-// TODO WGJA WIP: 	s->s_dirt = 0;
-// TODO WGJA WIP: 	return s;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+static struct super_block * get_super(dev_t dev)
+{
+	struct super_block * s;
+
+	if (!dev)
+		return NULL;
+	s = 0+super_blocks;
+	while (s < NR_SUPER+super_blocks)
+		if (s->s_dev == dev) {
+			wait_on_super(s);
+			if (s->s_dev == dev)
+				return s;
+			s = 0+super_blocks;
+		} else
+			s++;
+	return NULL;
+}
+
+void put_super(dev_t dev)
+{
+	struct super_block * sb;
+
+	if (dev == ROOT_DEV) {
+		printk("VFS: Root device %d/%d: prepare for armageddon\n",
+							MAJOR(dev), MINOR(dev));
+		return;
+	}
+	if (!(sb = get_super(dev)))
+		return;
+	if (sb->s_covered) {
+		printk("VFS: Mounted device %d/%d - tssk, tssk\n",
+						MAJOR(dev), MINOR(dev));
+		return;
+	}
+	if (sb->s_op && sb->s_op->put_super)
+		sb->s_op->put_super(sb);
+}
+
+static struct super_block * read_super(dev_t dev,char *name,int flags,
+				       void *data, int silent)
+{
+	struct super_block * s;
+	struct file_system_type *type;
+
+	if (!dev)
+		return NULL;
+	check_disk_change(dev);
+	s = get_super(dev);
+	if (s)
+		return s;
+	if (!(type = get_fs_type(name))) {
+		printk("VFS: on device %d/%d: get_fs_type(%s) failed\n",
+						MAJOR(dev), MINOR(dev), name);
+		return NULL;
+	}
+	for (s = 0+super_blocks ;; s++) {
+		if (s >= NR_SUPER+super_blocks)
+			return NULL;
+		if (!s->s_dev)
+			break;
+	}
+	s->s_dev = dev;
+	s->s_flags = flags;
+	if (!type->read_super(s,data, silent)) {
+		s->s_dev = 0;
+		return NULL;
+	}
+	s->s_dev = dev;
+	s->s_covered = NULL;
+	s->s_rd_only = 0;
+	s->s_dirt = 0;
+	return s;
+}
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * Unnamed block devices are dummy devices used by virtual
 // TODO WGJA WIP:  * filesystems which don't use real block-devices.  -- jrs
@@ -476,35 +476,35 @@ void sync_supers(dev_t dev)
 // TODO WGJA WIP: 	iput(inode);
 // TODO WGJA WIP: 	return retval;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void mount_root(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct file_system_type * fs_type;
-// TODO WGJA WIP: 	struct super_block * sb;
-// TODO WGJA WIP: 	struct inode * inode;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	memset(super_blocks, 0, sizeof(super_blocks));
-// TODO WGJA WIP: 	fcntl_init_locks();
-// TODO WGJA WIP: 	if (MAJOR(ROOT_DEV) == 2) {
-// TODO WGJA WIP: 		printk("VFS: Insert root floppy and press ENTER");
-// TODO WGJA WIP: 		wait_for_keypress();
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	for (fs_type = file_systems; fs_type->read_super; fs_type++) {
-// TODO WGJA WIP: 		if (!fs_type->requires_dev)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		sb = read_super(ROOT_DEV,fs_type->name,root_mountflags,NULL,1);
-// TODO WGJA WIP: 		if (sb) {
-// TODO WGJA WIP: 			inode = sb->s_mounted;
-// TODO WGJA WIP: 			inode->i_count += 3 ;	/* NOTE! it is logically used 4 times, not 1 */
-// TODO WGJA WIP: 			sb->s_covered = inode;
-// TODO WGJA WIP: 			sb->s_flags = root_mountflags;
-// TODO WGJA WIP: 			current->pwd = inode;
-// TODO WGJA WIP: 			current->root = inode;
-// TODO WGJA WIP: 			printk ("VFS: Mounted root (%s filesystem)%s.\n",
-// TODO WGJA WIP: 				fs_type->name,
-// TODO WGJA WIP: 				(sb->s_flags & MS_RDONLY) ? " readonly" : "");
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	panic("VFS: Unable to mount root");
-// TODO WGJA WIP: }
+
+void mount_root(void)
+{
+	struct file_system_type * fs_type;
+	struct super_block * sb;
+	struct inode * inode;
+
+	memset(super_blocks, 0, sizeof(super_blocks));
+	fcntl_init_locks();
+	if (MAJOR(ROOT_DEV) == 2) {
+		printk("VFS: Insert root floppy and press ENTER");
+		wait_for_keypress();
+	}
+	for (fs_type = file_systems; fs_type->read_super; fs_type++) {
+		if (!fs_type->requires_dev)
+			continue;
+		sb = read_super(ROOT_DEV,fs_type->name,root_mountflags,NULL,1);
+		if (sb) {
+			inode = sb->s_mounted;
+			inode->i_count += 3 ;	/* NOTE! it is logically used 4 times, not 1 */
+			sb->s_covered = inode;
+			sb->s_flags = root_mountflags;
+			current->pwd = inode;
+			current->root = inode;
+			printk ("VFS: Mounted root (%s filesystem)%s.\n",
+				fs_type->name,
+				(sb->s_flags & MS_RDONLY) ? " readonly" : "");
+			return;
+		}
+	}
+	panic("VFS: Unable to mount root");
+}
