@@ -12,7 +12,7 @@
 // TODO WGJA WIP: #include <linux/mktime.h>
 #include <linux/mm.h>
 #include <linux/types.h>
-// TODO WGJA WIP: #include <linux/fcntl.h>
+#include <linux/fcntl.h>
 #include <linux/config.h>
 #include <linux/sched.h>
 #include <linux/tty.h>
@@ -56,29 +56,29 @@ extern void test_dev_zero();
  */
 static inline _syscall0(int,idle)
 static inline _syscall0(int,fork)
-// TODO WGJA WIP: static inline _syscall0(int,pause)
+static inline _syscall0(int,pause)
 static inline _syscall1(int,setup,void *,BIOS)
-// TODO WGJA WIP: static inline _syscall0(int,sync)
-// TODO WGJA WIP: static inline _syscall0(pid_t,setsid)
-// TODO WGJA WIP: static inline _syscall3(int,write,int,fd,const char *,buf,off_t,count)
-// TODO WGJA WIP: static inline _syscall1(int,dup,int,fd)
-// TODO WGJA WIP: static inline _syscall3(int,execve,const char *,file,char **,argv,char **,envp)
-// TODO WGJA WIP: static inline _syscall3(int,open,const char *,file,int,flag,int,mode)
-// TODO WGJA WIP: static inline _syscall1(int,close,int,fd)
-// TODO WGJA WIP: static inline _syscall1(int,exit,int,exitcode)
-// TODO WGJA WIP: static inline _syscall3(pid_t,waitpid,pid_t,pid,int *,wait_stat,int,options)
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static inline pid_t wait(int * wait_stat)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	return waitpid(-1,wait_stat,0);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static char printbuf[1024];
-// TODO WGJA WIP: 
+static inline _syscall0(int,sync)
+static inline _syscall0(pid_t,setsid)
+static inline _syscall3(int,write,int,fd,const char *,buf,off_t,count)
+static inline _syscall1(int,dup,int,fd)
+static inline _syscall3(int,execve,const char *,file,char **,argv,char **,envp)
+static inline _syscall3(int,open,const char *,file,int,flag,int,mode)
+static inline _syscall1(int,close,int,fd)
+static inline _syscall1(int,exit,int,exitcode)
+static inline _syscall3(pid_t,waitpid,pid_t,pid,int *,wait_stat,int,options)
+
+static inline pid_t wait(int * wait_stat)
+{
+	return waitpid(-1,wait_stat,0);
+}
+
+static char printbuf[1024];
+
 void init_early_printk();
 extern char empty_zero_page[PAGE_SIZE];
 extern "C" int vsprintf(char *,const char *,va_list);
-// TODO WGJA WIP: extern void init(void);
+extern void init(void);
 extern void init_IRQ(void);
 extern long blk_dev_init(long,long);
 extern long chr_dev_init(long,long);
@@ -166,11 +166,11 @@ static unsigned long low_memory_start = 0;
 static char * argv_init[MAX_INIT_ARGS+2] = { "init", (char*) NULL, };
 static char * envp_init[MAX_INIT_ENVS+2] = { "HOME=/", "TERM=console", (char*) NULL, };
 
-// TODO WGJA WIP: static char * argv_rc[] = { "/bin/sh", (char*) NULL };
-// TODO WGJA WIP: static char * envp_rc[] = { "HOME=/", "TERM=console", (char*) NULL };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static char * argv[] = { "-/bin/sh", (char*) NULL };
-// TODO WGJA WIP: static char * envp[] = { "HOME=/usr/root", "TERM=console", (char*) NULL };
+static char * argv_rc[] = { "/bin/sh", (char*) NULL };
+static char * envp_rc[] = { "HOME=/", "TERM=console", (char*) NULL };
+
+static char * argv[] = { "-/bin/sh", (char*) NULL };
+static char * envp[] = { "HOME=/usr/root", "TERM=console", (char*) NULL };
 
 struct drive_info_struct { char dummy[32]; } drive_info;
 struct screen_info screen_info;
@@ -387,65 +387,32 @@ extern "C" void start_kernel(void)
 	prof_len >>= 2;
 	memory_start += prof_len * sizeof(unsigned long);
 #endif
-
 	memory_start = chr_dev_init(memory_start,memory_end);
 	memory_start = blk_dev_init(memory_start,memory_end);
-
-	// WGJA TODO devices
-
+#ifdef CONFIG_SCSI
+	memory_start = scsi_dev_init(memory_start,memory_end);
+#endif
+	memory_start = inode_init(memory_start,memory_end);
+	memory_start = file_table_init(memory_start,memory_end);
 	mem_init(low_memory_start,memory_start,memory_end);
-	// test_page_map();
-	// test_kmalloc();
-	init_test_keyboard();
-
+	buffer_init();
+	// time_init(); 	// WGJA TODO time_init()
+	// floppy_init();	// WGJA TODO floppy_init()
+	// sock_init();		// WGJA TODO sock_init()
+#ifdef CONFIG_SYSVIPC
+	ipc_init();
+#endif
 	sti();
-
-	printk("Moving to user mode\n");
-
-	move_to_user_mode();
-	if (!fork()) {		/* we count on this going ok */
-		setup((void *) &drive_info);
-		printk("setup() done\n");
-		for (;;);
-	}
-
-	// test_dev_zero();
-	// test_fork();
-	// test_fork_memory();
-	// test_memset();
-	// test_memcpy();
-
-	printk("Falling through to an idle loop\n");
-	for (;;) {
-		idle();
-	}
-
-// TODO WGJA WIP: 	memory_start = chr_dev_init(memory_start,memory_end);
-// TODO WGJA WIP: 	memory_start = blk_dev_init(memory_start,memory_end);
-// TODO WGJA WIP: #ifdef CONFIG_SCSI
-// TODO WGJA WIP: 	memory_start = scsi_dev_init(memory_start,memory_end);
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 	memory_start = inode_init(memory_start,memory_end);
-// TODO WGJA WIP: 	memory_start = file_table_init(memory_start,memory_end);
-// TODO WGJA WIP:	mem_init(low_memory_start,memory_start,memory_end);      // Done
-// TODO WGJA WIP: 	buffer_init();
-// TODO WGJA WIP: 	time_init();
-// TODO WGJA WIP: 	floppy_init();
-// TODO WGJA WIP: 	sock_init();
-// TODO WGJA WIP: #ifdef CONFIG_SYSVIPC
-// TODO WGJA WIP: 	ipc_init();
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 	sti();
-// TODO WGJA WIP: 	calibrate_delay();
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * check if exception 16 works correctly.. This is truly evil
-// TODO WGJA WIP: 	 * code: it disables the high 8 interrupts to make sure that
-// TODO WGJA WIP: 	 * the irq13 doesn't happen. But as this will lead to a lockup
-// TODO WGJA WIP: 	 * if no exception16 arrives, it depends on the fact that the
-// TODO WGJA WIP: 	 * high 8 interrupts will be re-enabled by the next timer tick.
-// TODO WGJA WIP: 	 * So the irq13 will happen eventually, but the exception 16
-// TODO WGJA WIP: 	 * should get there first..
-// TODO WGJA WIP: 	 */
+	// calibrate_delay();	// WGJA TODO calibrate_delay()
+	/*
+	 * check if exception 16 works correctly.. This is truly evil
+	 * code: it disables the high 8 interrupts to make sure that
+	 * the irq13 doesn't happen. But as this will lead to a lockup
+	 * if no exception16 arrives, it depends on the fact that the
+	 * high 8 interrupts will be re-enabled by the next timer tick.
+	 * So the irq13 will happen eventually, but the exception 16
+	 * should get there first..
+	 */
 // TODO WGJA WIP: 	if (hard_math) {
 // TODO WGJA WIP: 		unsigned short control_word;
 // TODO WGJA WIP: 
@@ -470,78 +437,108 @@ extern "C" void start_kernel(void)
 // TODO WGJA WIP: 		for (;;) ;
 // TODO WGJA WIP: 	}
 // TODO WGJA WIP: #endif
-// TODO WGJA WIP: 	move_to_user_mode();
-// TODO WGJA WIP: 	if (!fork())		/* we count on this going ok */
-// TODO WGJA WIP: 		init();
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * task[0] is meant to be used as an "idle" task: it may not sleep, but
-// TODO WGJA WIP:  * it might do some general things like count free pages or it could be
-// TODO WGJA WIP:  * used to implement a reasonable LRU algorithm for the paging routines:
-// TODO WGJA WIP:  * anything that can be useful, but shouldn't take time from the real
-// TODO WGJA WIP:  * processes.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Right now task[0] just does a infinite idle loop.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: 	for(;;)
-// TODO WGJA WIP: 		idle();
+	move_to_user_mode();
+	if (!fork())		/* we count on this going ok */
+		init();
+/*
+ * task[0] is meant to be used as an "idle" task: it may not sleep, but
+ * it might do some general things like count free pages or it could be
+ * used to implement a reasonable LRU algorithm for the paging routines:
+ * anything that can be useful, but shouldn't take time from the real
+ * processes.
+ *
+ * Right now task[0] just does a infinite idle loop.
+ */
+	for(;;)
+		idle();
+
+	// WGJA WIP
+
+	// sti();
+
+	// printk("Moving to user mode\n");
+
+	// move_to_user_mode();
+	// if (!fork()) {		/* we count on this going ok */
+	// 	setup((void *) &drive_info);
+	// 	printk("setup() done\n");
+	// 	for (;;);
+	// }
+
+	// // test_page_map();
+	// // test_kmalloc();
+	// // init_test_keyboard();
+	// // test_dev_zero();
+	// // test_fork();
+	// // test_fork_memory();
+	// // test_memset();
+	// // test_memcpy();
+
+	// printk("Falling through to an idle loop\n");
+	// for (;;) {
+	// 	idle();
+	// }
+
+
 }
 
-// TODO WGJA WIP: static int printf(const char *fmt, ...)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	va_list args;
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	va_start(args, fmt);
-// TODO WGJA WIP: 	write(1,printbuf,i=vsprintf(printbuf, fmt, args));
-// TODO WGJA WIP: 	va_end(args);
-// TODO WGJA WIP: 	return i;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void init(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int pid,i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	setup((void *) &drive_info);
-// TODO WGJA WIP: 	(void) open("/dev/tty1",O_RDWR,0);
-// TODO WGJA WIP: 	(void) dup(0);
-// TODO WGJA WIP: 	(void) dup(0);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	system_utsname.machine[1] = '0' + x86;
-// TODO WGJA WIP: 	printf(linux_banner);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	execve("/etc/init",argv_init,envp_init);
-// TODO WGJA WIP: 	execve("/bin/init",argv_init,envp_init);
-// TODO WGJA WIP: 	execve("/sbin/init",argv_init,envp_init);
-// TODO WGJA WIP: 	/* if this fails, fall through to original stuff */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!(pid=fork())) {
-// TODO WGJA WIP: 		close(0);
-// TODO WGJA WIP: 		if (open("/etc/rc",O_RDONLY,0))
-// TODO WGJA WIP: 			exit(1);
-// TODO WGJA WIP: 		execve("/bin/sh",argv_rc,envp_rc);
-// TODO WGJA WIP: 		exit(2);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (pid>0)
-// TODO WGJA WIP: 		while (pid != wait(&i))
-// TODO WGJA WIP: 			/* nothing */;
-// TODO WGJA WIP: 	while (1) {
-// TODO WGJA WIP: 		if ((pid = fork()) < 0) {
-// TODO WGJA WIP: 			printf("Fork failed in init\n\r");
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (!pid) {
-// TODO WGJA WIP: 			close(0);close(1);close(2);
-// TODO WGJA WIP: 			setsid();
-// TODO WGJA WIP: 			(void) open("/dev/tty1",O_RDWR,0);
-// TODO WGJA WIP: 			(void) dup(0);
-// TODO WGJA WIP: 			(void) dup(0);
-// TODO WGJA WIP: 			exit(execve("/bin/sh",argv,envp));
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		while (1)
-// TODO WGJA WIP: 			if (pid == wait(&i))
-// TODO WGJA WIP: 				break;
-// TODO WGJA WIP: 		printf("\n\rchild %d died with code %04x\n\r",pid,i);
-// TODO WGJA WIP: 		sync();
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	exit(0);
-// TODO WGJA WIP: }
+static int printf(const char *fmt, ...)
+{
+	va_list args;
+	int i;
+
+	va_start(args, fmt);
+	write(1,printbuf,i=vsprintf(printbuf, fmt, args));
+	va_end(args);
+	return i;
+}
+
+void init(void)
+{
+	// printk("TODO: init\n");
+	int pid,i;
+
+	setup((void *) &drive_info);
+	(void) open("/dev/tty1",O_RDWR,0);
+	(void) dup(0);
+	(void) dup(0);
+
+	// system_utsname.machine[1] = '0' + x86;	// TODO utsname
+	// printf(linux_banner);			// TODO linux_banner
+
+	execve("/etc/init",argv_init,envp_init);
+	execve("/bin/init",argv_init,envp_init);
+	execve("/sbin/init",argv_init,envp_init);
+	/* if this fails, fall through to original stuff */
+
+	if (!(pid=fork())) {
+		close(0);
+		if (open("/etc/rc",O_RDONLY,0))
+			exit(1);
+		execve("/bin/sh",argv_rc,envp_rc);
+		exit(2);
+	}
+	if (pid>0)
+		while (pid != wait(&i))
+			/* nothing */;
+	while (1) {
+		if ((pid = fork()) < 0) {
+			printf("Fork failed in init\n\r");
+			continue;
+		}
+		if (!pid) {
+			close(0);close(1);close(2);
+			setsid();
+			(void) open("/dev/tty1",O_RDWR,0);
+			(void) dup(0);
+			(void) dup(0);
+			exit(execve("/bin/sh",argv,envp));
+		}
+		while (1)
+			if (pid == wait(&i))
+				break;
+		printf("\n\rchild %d died with code %04x\n\r",pid,i);
+		sync();
+	}
+	exit(0);
+}

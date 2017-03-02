@@ -101,13 +101,13 @@ static void remove_inode_hash(struct inode *inode)
 // TODO WGJA WIP: 	for ( ; i ; i-- )
 // TODO WGJA WIP: 		insert_inode_free(inode++);
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: unsigned long inode_init(unsigned long start, unsigned long end)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	memset(hash_table, 0, sizeof(hash_table));
-// TODO WGJA WIP: 	first_inode = NULL;
-// TODO WGJA WIP: 	return start;
-// TODO WGJA WIP: }
+
+unsigned long inode_init(unsigned long start, unsigned long end)
+{
+	memset(hash_table, 0, sizeof(hash_table));
+	first_inode = NULL;
+	return start;
+}
 
 static void __wait_on_inode(struct inode *);
 

@@ -66,9 +66,9 @@
 #define READA 2		/* read-ahead - don't pause */
 #define WRITEA 3	/* "write-ahead" - silly, but somewhat useful */
 
-// TODO WGJA WIP: extern void buffer_init(void);
-// TODO WGJA WIP: extern unsigned long inode_init(unsigned long start, unsigned long end);
-// TODO WGJA WIP: extern unsigned long file_table_init(unsigned long start, unsigned long end);
+extern void buffer_init(void);
+extern unsigned long inode_init(unsigned long start, unsigned long end);
+extern unsigned long file_table_init(unsigned long start, unsigned long end);
 
 #define MAJOR(a) (((unsigned)(a))>>8)
 #define MINOR(a) ((a)&0xff)

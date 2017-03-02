@@ -971,27 +971,27 @@ void grow_buffers(int size)
 // TODO WGJA WIP: 	}
 // TODO WGJA WIP: 	return 0;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This initializes the initial buffer free list.  nr_buffers is set
-// TODO WGJA WIP:  * to one less the actual number of buffers, as a sop to backwards
-// TODO WGJA WIP:  * compatibility --- the old code did this (I think unintentionally,
-// TODO WGJA WIP:  * but I'm not sure), and programs in the ps package expect it.
-// TODO WGJA WIP:  * 					- TYT 8/30/92
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: void buffer_init(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (high_memory >= 4*1024*1024)
-// TODO WGJA WIP: 		min_free_pages = 200;
-// TODO WGJA WIP: 	else
-// TODO WGJA WIP: 		min_free_pages = 20;
-// TODO WGJA WIP: 	for (i = 0 ; i < NR_HASH ; i++)
-// TODO WGJA WIP: 		hash_table[i] = NULL;
-// TODO WGJA WIP: 	free_list = 0;
-// TODO WGJA WIP: 	grow_buffers(BLOCK_SIZE);
-// TODO WGJA WIP: 	if (!free_list)
-// TODO WGJA WIP: 		panic("VFS: Unable to initialize buffer free list!");
-// TODO WGJA WIP: 	return;
-// TODO WGJA WIP: }
+
+/*
+ * This initializes the initial buffer free list.  nr_buffers is set
+ * to one less the actual number of buffers, as a sop to backwards
+ * compatibility --- the old code did this (I think unintentionally,
+ * but I'm not sure), and programs in the ps package expect it.
+ * 					- TYT 8/30/92
+ */
+void buffer_init(void)
+{
+	int i;
+
+	if (high_memory >= 4*1024*1024)
+		min_free_pages = 200;
+	else
+		min_free_pages = 20;
+	for (i = 0 ; i < NR_HASH ; i++)
+		hash_table[i] = NULL;
+	free_list = 0;
+	grow_buffers(BLOCK_SIZE);
+	if (!free_list)
+		panic("VFS: Unable to initialize buffer free list!");
+	return;
+}

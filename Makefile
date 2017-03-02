@@ -83,6 +83,7 @@ endif
 # size in blocks.
 #
 
+# RAMDISK =
 RAMDISK = -DRAMDISK=2048
 
 AS86	=as86 -0 -a
