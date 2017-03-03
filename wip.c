@@ -247,12 +247,6 @@ void test_dev_zero()
 	printk("fh=%d\n", fh);
 }
 
-// TODO WGJA notify_change
-int notify_change(int flags, struct inode * inode)
-{
-	return 0;
-}
-
 // TODO WGJA wait_for_keypress
 void wait_for_keypress()
 {
@@ -264,4 +258,21 @@ int floppy_change(struct buffer_head * bh)
 {
 	printk("TODO: floppy_change\n");
 	return 0;
+}
+
+// TODO WGJA do_wp_page
+void do_wp_page(unsigned long error_code, unsigned long address,
+	struct task_struct * tsk, unsigned long user_esp)
+{
+	printk("TODO: do_wp_page\n");
+	for (;;);
+}
+
+// TODO WGJA generic_mmap
+int generic_mmap(struct inode * inode, struct file * file,
+	unsigned long addr, size_t len, int prot, unsigned long off)
+{
+	printk("TODO generic_mmap\n");
+	for (;;);
+
 }

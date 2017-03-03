@@ -8,13 +8,13 @@
 # Note 2! The CFLAGS definitions are now in the main makefile...
 
 # TODO WGJA: Work in progress build
-SUBDIRS =
+SUBDIRS = minix
 #SUBDIRS = minix ext ext2 msdos proc isofs nfs xiafs
 
 # TODO WGJA: Work in progress build
-# ifdef CONFIG_MINIX_FS
-# FS_SUBDIRS := $(FS_SUBDIRS) minix
-# endif
+ifdef CONFIG_MINIX_FS
+FS_SUBDIRS := $(FS_SUBDIRS) minix
+endif
 # ifdef CONFIG_EXT_FS
 # FS_SUBDIRS := $(FS_SUBDIRS) ext
 # endif
@@ -46,7 +46,7 @@ SUBDIRS =
 	$(AS) -o $*.o $<
 
 # TODO WGJA: Work in progress build
-OBJS=	super.o devices.o open.o namei.o file_table.o buffer.o block_dev.o inode.o locks.o filesystems.o
+OBJS=	super.o devices.o open.o namei.o file_table.o buffer.o block_dev.o inode.o locks.o filesystems.o fifo.o pipe.o
 # OBJS=	open.o read_write.o inode.o devices.o file_table.o buffer.o super.o \
 # 	block_dev.o stat.o exec.o pipe.o namei.o fcntl.o ioctl.o \
 # 	select.o fifo.o locks.o filesystems.o

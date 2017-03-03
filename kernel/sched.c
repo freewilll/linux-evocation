@@ -251,10 +251,10 @@ static inline void __sleep_on(struct wait_queue **p, int state)
 	restore_flags(flags);
 }
 
-// TODO WGJA WIP: void interruptible_sleep_on(struct wait_queue **p)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	__sleep_on(p,TASK_INTERRUPTIBLE);
-// TODO WGJA WIP: }
+void interruptible_sleep_on(struct wait_queue **p)
+{
+	__sleep_on(p,TASK_INTERRUPTIBLE);
+}
 
 void sleep_on(struct wait_queue **p)
 {

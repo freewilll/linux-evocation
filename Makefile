@@ -83,8 +83,8 @@ endif
 # size in blocks.
 #
 
-# RAMDISK =
-RAMDISK = -DRAMDISK=2048
+RAMDISK =
+# RAMDISK = -DRAMDISK=2048
 
 AS86	=as86 -0 -a
 LD86	=ld86 -0
@@ -210,6 +210,7 @@ tools/zSystem:	wip.o boot/head.o init/main.o linuxsubdirs
 		fs/fs.o \
 		ipc/ipc.o \
 		$(LIBS) \
+		$(FILESYSTEMS) \
 		kernel/chr_drv/chr_drv.a \
 		kernel/blk_drv/blk_drv.a \
 		-o tools/zSystem > zSystem.map

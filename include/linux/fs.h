@@ -9,8 +9,8 @@
 #include <linux/limits.h>
 #include <linux/wait.h>
 #include <linux/types.h>
-// TODO WGJA WIP: #include <linux/dirent.h>
-// TODO WGJA WIP: #include <linux/vfs.h>
+#include <linux/dirent.h>
+#include <linux/vfs.h>
 
 /*
  * It's silly to have NR_OPEN bigger than NR_FILE, but I'll fix
@@ -73,14 +73,14 @@ extern unsigned long file_table_init(unsigned long start, unsigned long end);
 #define MAJOR(a) (((unsigned)(a))>>8)
 #define MINOR(a) ((a)&0xff)
 
-// TODO WGJA WIP: #ifndef NULL
-// TODO WGJA WIP: #define NULL ((void *) 0)
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define NIL_FILP	((struct file *)0)
-// TODO WGJA WIP: #define SEL_IN		1
-// TODO WGJA WIP: #define SEL_OUT		2
-// TODO WGJA WIP: #define SEL_EX		4
+#ifndef NULL
+#define NULL ((void *) 0)
+#endif
+
+#define NIL_FILP	((struct file *)0)
+#define SEL_IN		1
+#define SEL_OUT		2
+#define SEL_EX		4
 
 /*
  * These are the fs-independent mount-flags: up to 16 flags are supported
@@ -236,13 +236,13 @@ struct file_lock {
 	off_t fl_end;
 };
 
-// TODO WGJA WIP: #include <linux/minix_fs_sb.h>
-// TODO WGJA WIP: #include <linux/ext_fs_sb.h>
-// TODO WGJA WIP: #include <linux/ext2_fs_sb.h>
-// TODO WGJA WIP: #include <linux/msdos_fs_sb.h>
-// TODO WGJA WIP: #include <linux/iso_fs_sb.h>
-// TODO WGJA WIP: #include <linux/nfs_fs_sb.h>
-// TODO WGJA WIP: #include <linux/xia_fs_sb.h>
+#include <linux/minix_fs_sb.h>
+#include <linux/ext_fs_sb.h>
+#include <linux/ext2_fs_sb.h>
+#include <linux/msdos_fs_sb.h>
+#include <linux/iso_fs_sb.h>
+#include <linux/nfs_fs_sb.h>
+#include <linux/xia_fs_sb.h>
 
 struct super_block {
 	dev_t s_dev;
@@ -259,7 +259,7 @@ struct super_block {
 	struct inode * s_mounted;
 	struct wait_queue * s_wait;
 	union {
-// TODO WGJA WIP: 		struct minix_sb_info minix_sb;
+		struct minix_sb_info minix_sb;
 // TODO WGJA WIP: 		struct ext_sb_info ext_sb;
 // TODO WGJA WIP: 		struct ext2_sb_info ext2_sb;
 // TODO WGJA WIP: 		struct msdos_sb_info msdos_sb;
@@ -328,20 +328,20 @@ extern void putname(char * name);
 extern int register_blkdev(unsigned int, const char *, struct file_operations *);
 // TODO WGJA WIP: extern int blkdev_open(struct inode * inode, struct file * filp);
 // TODO WGJA WIP: extern struct file_operations def_blk_fops;
-// TODO WGJA WIP: extern struct inode_operations blkdev_inode_operations;
+extern struct inode_operations blkdev_inode_operations;
 
 extern int register_chrdev(unsigned int, const char *, struct file_operations *);
 // TODO WGJA WIP: extern int chrdev_open(struct inode * inode, struct file * filp);
 // TODO WGJA WIP: extern struct file_operations def_chr_fops;
-// TODO WGJA WIP: extern struct inode_operations chrdev_inode_operations;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern void init_fifo(struct inode * inode);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern struct file_operations connecting_pipe_fops;
-// TODO WGJA WIP: extern struct file_operations read_pipe_fops;
-// TODO WGJA WIP: extern struct file_operations write_pipe_fops;
-// TODO WGJA WIP: extern struct file_operations rdwr_pipe_fops;
-// TODO WGJA WIP: 
+extern struct inode_operations chrdev_inode_operations;
+
+extern void init_fifo(struct inode * inode);
+
+extern struct file_operations connecting_pipe_fops;
+extern struct file_operations read_pipe_fops;
+extern struct file_operations write_pipe_fops;
+extern struct file_operations rdwr_pipe_fops;
+
 // TODO WGJA WIP: extern struct file_system_type *get_fs_type(char *name);
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern int fs_may_mount(dev_t dev);
@@ -376,13 +376,13 @@ extern int open_namei(const char * pathname, int flag, int mode,
 	struct inode ** res_inode, struct inode * base);
 // TODO WGJA WIP: extern int do_mknod(const char * filename, int mode, dev_t dev);
 extern void iput(struct inode * inode);
-// TODO WGJA WIP: extern struct inode * iget(struct super_block * sb,int nr);
-// TODO WGJA WIP: extern struct inode * get_empty_inode(void);
-// TODO WGJA WIP: extern void insert_inode_hash(struct inode *);
-// TODO WGJA WIP: extern void clear_inode(struct inode *);
-// TODO WGJA WIP: extern struct inode * get_pipe_inode(void);
+extern struct inode * iget(struct super_block * sb,int nr);
+extern struct inode * get_empty_inode(void);
+extern void insert_inode_hash(struct inode *);
+extern void clear_inode(struct inode *);
+extern struct inode * get_pipe_inode(void);
 extern struct file * get_empty_filp(void);
-// TODO WGJA WIP: extern struct buffer_head * get_hash_table(dev_t dev, int block, int size);
+extern struct buffer_head * get_hash_table(dev_t dev, int block, int size);
 extern struct buffer_head * getblk(dev_t dev, int block, int size);
 extern void ll_rw_block(int rw, int nr, struct buffer_head * bh[]);
 // TODO WGJA WIP: extern void ll_rw_page(int rw, int dev, int nr, char * buffer);
@@ -403,11 +403,11 @@ extern int read_ahead[];
 
 // TODO WGJA WIP: extern int char_write(struct inode *, struct file *, char *, int);
 extern int block_write(struct inode *, struct file *, char *, int);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern int generic_mmap(struct inode *, struct file *, unsigned long, size_t, int, unsigned long);
-// TODO WGJA WIP: 
+
+extern int generic_mmap(struct inode *, struct file *, unsigned long, size_t, int, unsigned long);
+
 extern int block_fsync(struct inode *, struct file *);
-// TODO WGJA WIP: extern int file_fsync(struct inode *, struct file *);
+extern int file_fsync(struct inode *, struct file *);
 
 #endif /* __KERNEL__ */
 

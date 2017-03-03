@@ -15,7 +15,7 @@
 
 static struct inode * hash_table[NR_IHASH];
 static struct inode * first_inode;
-// TODO WGJA WIP: static struct wait_queue * inode_wait = NULL;
+static struct wait_queue * inode_wait = NULL;
 static int nr_inodes = 0, nr_free_inodes = 0;
 
 static inline int const hashfn(dev_t dev, unsigned int i)
@@ -48,17 +48,17 @@ static void remove_inode_free(struct inode *inode)
 	inode->i_next = inode->i_prev = NULL;
 }
 
-// TODO WGJA WIP: void insert_inode_hash(struct inode *inode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode **h;
-// TODO WGJA WIP: 	h = hash(inode->i_dev, inode->i_ino);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	inode->i_hash_next = *h;
-// TODO WGJA WIP: 	inode->i_hash_prev = NULL;
-// TODO WGJA WIP: 	if (inode->i_hash_next)
-// TODO WGJA WIP: 		inode->i_hash_next->i_hash_prev = inode;
-// TODO WGJA WIP: 	*h = inode;
-// TODO WGJA WIP: }
+void insert_inode_hash(struct inode *inode)
+{
+	struct inode **h;
+	h = hash(inode->i_dev, inode->i_ino);
+
+	inode->i_hash_next = *h;
+	inode->i_hash_prev = NULL;
+	if (inode->i_hash_next)
+		inode->i_hash_next->i_hash_prev = inode;
+	*h = inode;
+}
 
 static void remove_inode_hash(struct inode *inode)
 {
@@ -74,33 +74,33 @@ static void remove_inode_hash(struct inode *inode)
 	inode->i_hash_prev = inode->i_hash_next = NULL;
 }
 
-// TODO WGJA WIP: static void put_last_free(struct inode *inode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	remove_inode_free(inode);
-// TODO WGJA WIP: 	inode->i_prev = first_inode->i_prev;
-// TODO WGJA WIP: 	inode->i_prev->i_next = inode;
-// TODO WGJA WIP: 	inode->i_next = first_inode;
-// TODO WGJA WIP: 	inode->i_next->i_prev = inode;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void grow_inodes(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode * inode;
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if(!(inode = (struct inode*) get_free_page(GFP_KERNEL)))
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	i=PAGE_SIZE / sizeof(struct inode);
-// TODO WGJA WIP: 	nr_inodes += i;
-// TODO WGJA WIP: 	nr_free_inodes += i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!first_inode)
-// TODO WGJA WIP: 		inode->i_next = inode->i_prev = first_inode = inode++, i--;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	for ( ; i ; i-- )
-// TODO WGJA WIP: 		insert_inode_free(inode++);
-// TODO WGJA WIP: }
+static void put_last_free(struct inode *inode)
+{
+	remove_inode_free(inode);
+	inode->i_prev = first_inode->i_prev;
+	inode->i_prev->i_next = inode;
+	inode->i_next = first_inode;
+	inode->i_next->i_prev = inode;
+}
+
+void grow_inodes(void)
+{
+	struct inode * inode;
+	int i;
+
+	if(!(inode = (struct inode*) get_free_page(GFP_KERNEL)))
+		return;
+
+	i=PAGE_SIZE / sizeof(struct inode);
+	nr_inodes += i;
+	nr_free_inodes += i;
+
+	if (!first_inode)
+		inode->i_next = inode->i_prev = first_inode = inode++, i--;
+
+	for ( ; i ; i-- )
+		insert_inode_free(inode++);
+}
 
 unsigned long inode_init(unsigned long start, unsigned long end)
 {
@@ -222,46 +222,46 @@ static void write_inode(struct inode * inode)
 	unlock_inode(inode);
 }
 
-// TODO WGJA WIP: static void read_inode(struct inode * inode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	lock_inode(inode);
-// TODO WGJA WIP: 	if (inode->i_sb && inode->i_sb->s_op && inode->i_sb->s_op->read_inode)
-// TODO WGJA WIP: 		inode->i_sb->s_op->read_inode(inode);
-// TODO WGJA WIP: 	unlock_inode(inode);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * notify_change is called for inode-changing operations such as
-// TODO WGJA WIP:  * chown, chmod, utime, and truncate.  It is guaranteed (unlike
-// TODO WGJA WIP:  * write_inode) to be called from the context of the user requesting
-// TODO WGJA WIP:  * the change.  It is not called for ordinary access-time updates.
-// TODO WGJA WIP:  * NFS uses this to get the authentication correct.  -- jrs
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: int notify_change(int flags, struct inode * inode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (inode->i_sb && inode->i_sb->s_op  &&
-// TODO WGJA WIP: 	    inode->i_sb->s_op->notify_change)
-// TODO WGJA WIP: 		return inode->i_sb->s_op->notify_change(flags, inode);
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * bmap is needed for demand-loading and paging: if this function
-// TODO WGJA WIP:  * doesn't exist for a filesystem, then those things are impossible:
-// TODO WGJA WIP:  * executables cannot be run from the filesystem etc...
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * This isn't as bad as it sounds: the read-routines might still work,
-// TODO WGJA WIP:  * so the filesystem would be otherwise ok (for example, you might have
-// TODO WGJA WIP:  * a DOS filesystem, which doesn't lend itself to bmap very well, but
-// TODO WGJA WIP:  * you could still transfer files to/from the filesystem)
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: int bmap(struct inode * inode, int block)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (inode->i_op && inode->i_op->bmap)
-// TODO WGJA WIP: 		return inode->i_op->bmap(inode,block);
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
+static void read_inode(struct inode * inode)
+{
+	lock_inode(inode);
+	if (inode->i_sb && inode->i_sb->s_op && inode->i_sb->s_op->read_inode)
+		inode->i_sb->s_op->read_inode(inode);
+	unlock_inode(inode);
+}
+
+/*
+ * notify_change is called for inode-changing operations such as
+ * chown, chmod, utime, and truncate.  It is guaranteed (unlike
+ * write_inode) to be called from the context of the user requesting
+ * the change.  It is not called for ordinary access-time updates.
+ * NFS uses this to get the authentication correct.  -- jrs
+ */
+
+int notify_change(int flags, struct inode * inode)
+{
+	if (inode->i_sb && inode->i_sb->s_op  &&
+	    inode->i_sb->s_op->notify_change)
+		return inode->i_sb->s_op->notify_change(flags, inode);
+	return 0;
+}
+
+/*
+ * bmap is needed for demand-loading and paging: if this function
+ * doesn't exist for a filesystem, then those things are impossible:
+ * executables cannot be run from the filesystem etc...
+ *
+ * This isn't as bad as it sounds: the read-routines might still work,
+ * so the filesystem would be otherwise ok (for example, you might have
+ * a DOS filesystem, which doesn't lend itself to bmap very well, but
+ * you could still transfer files to/from the filesystem)
+ */
+int bmap(struct inode * inode, int block)
+{
+	if (inode->i_op && inode->i_op->bmap)
+		return inode->i_op->bmap(inode,block);
+	return 0;
+}
 
 void invalidate_inodes(dev_t dev)
 {
@@ -338,143 +338,143 @@ void sync_inodes(dev_t dev)
 // TODO WGJA WIP: 	nr_free_inodes++;
 // TODO WGJA WIP: 	return;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct inode * get_empty_inode(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode * inode, * best;
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (nr_inodes < NR_INODE && nr_free_inodes < (nr_inodes >> 2))
-// TODO WGJA WIP: 		grow_inodes();
-// TODO WGJA WIP: repeat:
-// TODO WGJA WIP: 	inode = first_inode;
-// TODO WGJA WIP: 	best = NULL;
-// TODO WGJA WIP: 	for (i = 0; i<nr_inodes; inode = inode->i_next, i++) {
-// TODO WGJA WIP: 		if (!inode->i_count) {
-// TODO WGJA WIP: 			if (!best)
-// TODO WGJA WIP: 				best = inode;
-// TODO WGJA WIP: 			if (!inode->i_dirt && !inode->i_lock) {
-// TODO WGJA WIP: 				best = inode;
-// TODO WGJA WIP: 				break;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!best || best->i_dirt || best->i_lock)
-// TODO WGJA WIP: 		if (nr_inodes < NR_INODE) {
-// TODO WGJA WIP: 			grow_inodes();
-// TODO WGJA WIP: 			goto repeat;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	inode = best;
-// TODO WGJA WIP: 	if (!inode) {
-// TODO WGJA WIP: 		printk("VFS: No free inodes - contact Linus\n");
-// TODO WGJA WIP: 		sleep_on(&inode_wait);
-// TODO WGJA WIP: 		goto repeat;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (inode->i_lock) {
-// TODO WGJA WIP: 		wait_on_inode(inode);
-// TODO WGJA WIP: 		goto repeat;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (inode->i_dirt) {
-// TODO WGJA WIP: 		write_inode(inode);
-// TODO WGJA WIP: 		goto repeat;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (inode->i_count)
-// TODO WGJA WIP: 		goto repeat;
-// TODO WGJA WIP: 	clear_inode(inode);
-// TODO WGJA WIP: 	inode->i_count = 1;
-// TODO WGJA WIP: 	inode->i_nlink = 1;
-// TODO WGJA WIP: 	nr_free_inodes--;
-// TODO WGJA WIP: 	if (nr_free_inodes < 0) {
-// TODO WGJA WIP: 		printk ("VFS: get_empty_inode: bad free inode count.\n");
-// TODO WGJA WIP: 		nr_free_inodes = 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return inode;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct inode * get_pipe_inode(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode * inode;
-// TODO WGJA WIP: 	extern struct inode_operations pipe_inode_operations;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!(inode = get_empty_inode()))
-// TODO WGJA WIP: 		return NULL;
-// TODO WGJA WIP: 	if (!(PIPE_BASE(*inode) = (char*) __get_free_page(GFP_USER))) {
-// TODO WGJA WIP: 		iput(inode);
-// TODO WGJA WIP: 		return NULL;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	inode->i_op = &pipe_inode_operations;
-// TODO WGJA WIP: 	inode->i_count = 2;	/* sum of readers/writers */
-// TODO WGJA WIP: 	PIPE_READ_WAIT(*inode) = PIPE_WRITE_WAIT(*inode) = NULL;
-// TODO WGJA WIP: 	PIPE_HEAD(*inode) = PIPE_TAIL(*inode) = 0;
-// TODO WGJA WIP: 	PIPE_RD_OPENERS(*inode) = PIPE_WR_OPENERS(*inode) = 0;
-// TODO WGJA WIP: 	PIPE_READERS(*inode) = PIPE_WRITERS(*inode) = 1;
-// TODO WGJA WIP: 	inode->i_pipe = 1;
-// TODO WGJA WIP: 	inode->i_mode |= S_IFIFO | S_IRUSR | S_IWUSR;
-// TODO WGJA WIP: 	inode->i_uid = current->euid;
-// TODO WGJA WIP: 	inode->i_gid = current->egid;
-// TODO WGJA WIP: 	inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
-// TODO WGJA WIP: 	return inode;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct inode * iget(struct super_block * sb,int nr)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode * inode, * empty;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!sb)
-// TODO WGJA WIP: 		panic("VFS: iget with sb==NULL");
-// TODO WGJA WIP: 	empty = get_empty_inode();
-// TODO WGJA WIP: repeat:
-// TODO WGJA WIP: 	inode = *(hash(sb->s_dev,nr));
-// TODO WGJA WIP: 	while (inode) {
-// TODO WGJA WIP: 		if (inode->i_dev != sb->s_dev || inode->i_ino != nr) {
-// TODO WGJA WIP: 			inode = inode->i_hash_next;
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		wait_on_inode(inode);
-// TODO WGJA WIP: 		if (inode->i_dev != sb->s_dev || inode->i_ino != nr)
-// TODO WGJA WIP: 			goto repeat;
-// TODO WGJA WIP: 		if (!inode->i_count)
-// TODO WGJA WIP: 			nr_free_inodes--;
-// TODO WGJA WIP: 		inode->i_count++;
-// TODO WGJA WIP: 		if (inode->i_mount) {
-// TODO WGJA WIP: 			int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 			for (i = 0 ; i<NR_SUPER ; i++)
-// TODO WGJA WIP: 				if (super_blocks[i].s_covered==inode)
-// TODO WGJA WIP: 					break;
-// TODO WGJA WIP: 			if (i >= NR_SUPER) {
-// TODO WGJA WIP: 				printk("VFS: Mounted inode hasn't got sb\n");
-// TODO WGJA WIP: 				if (empty)
-// TODO WGJA WIP: 					iput(empty);
-// TODO WGJA WIP: 				return inode;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 			iput(inode);
-// TODO WGJA WIP: 			if (!(inode = super_blocks[i].s_mounted))
-// TODO WGJA WIP: 				printk("VFS: Mounted device %d/%d has no rootinode\n",
-// TODO WGJA WIP: 					MAJOR(inode->i_dev), MINOR(inode->i_dev));
-// TODO WGJA WIP: 			else {
-// TODO WGJA WIP: 				if (!inode->i_count)
-// TODO WGJA WIP: 					nr_free_inodes--;
-// TODO WGJA WIP: 				inode->i_count++;
-// TODO WGJA WIP: 				wait_on_inode(inode);
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (empty)
-// TODO WGJA WIP: 			iput(empty);
-// TODO WGJA WIP: 		return inode;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!empty)
-// TODO WGJA WIP: 		return (NULL);
-// TODO WGJA WIP: 	inode = empty;
-// TODO WGJA WIP: 	inode->i_sb = sb;
-// TODO WGJA WIP: 	inode->i_dev = sb->s_dev;
-// TODO WGJA WIP: 	inode->i_ino = nr;
-// TODO WGJA WIP: 	inode->i_flags = sb->s_flags;
-// TODO WGJA WIP: 	put_last_free(inode);
-// TODO WGJA WIP: 	insert_inode_hash(inode);
-// TODO WGJA WIP: 	read_inode(inode);
-// TODO WGJA WIP: 	return inode;
-// TODO WGJA WIP: }
+
+struct inode * get_empty_inode(void)
+{
+	struct inode * inode, * best;
+	int i;
+
+	if (nr_inodes < NR_INODE && nr_free_inodes < (nr_inodes >> 2))
+		grow_inodes();
+repeat:
+	inode = first_inode;
+	best = NULL;
+	for (i = 0; i<nr_inodes; inode = inode->i_next, i++) {
+		if (!inode->i_count) {
+			if (!best)
+				best = inode;
+			if (!inode->i_dirt && !inode->i_lock) {
+				best = inode;
+				break;
+			}
+		}
+	}
+	if (!best || best->i_dirt || best->i_lock)
+		if (nr_inodes < NR_INODE) {
+			grow_inodes();
+			goto repeat;
+		}
+	inode = best;
+	if (!inode) {
+		printk("VFS: No free inodes - contact Linus\n");
+		sleep_on(&inode_wait);
+		goto repeat;
+	}
+	if (inode->i_lock) {
+		wait_on_inode(inode);
+		goto repeat;
+	}
+	if (inode->i_dirt) {
+		write_inode(inode);
+		goto repeat;
+	}
+	if (inode->i_count)
+		goto repeat;
+	clear_inode(inode);
+	inode->i_count = 1;
+	inode->i_nlink = 1;
+	nr_free_inodes--;
+	if (nr_free_inodes < 0) {
+		printk ("VFS: get_empty_inode: bad free inode count.\n");
+		nr_free_inodes = 0;
+	}
+	return inode;
+}
+
+struct inode * get_pipe_inode(void)
+{
+	struct inode * inode;
+	extern struct inode_operations pipe_inode_operations;
+
+	if (!(inode = get_empty_inode()))
+		return NULL;
+	if (!(PIPE_BASE(*inode) = (char*) __get_free_page(GFP_USER))) {
+		iput(inode);
+		return NULL;
+	}
+	inode->i_op = &pipe_inode_operations;
+	inode->i_count = 2;	/* sum of readers/writers */
+	PIPE_READ_WAIT(*inode) = PIPE_WRITE_WAIT(*inode) = NULL;
+	PIPE_HEAD(*inode) = PIPE_TAIL(*inode) = 0;
+	PIPE_RD_OPENERS(*inode) = PIPE_WR_OPENERS(*inode) = 0;
+	PIPE_READERS(*inode) = PIPE_WRITERS(*inode) = 1;
+	inode->i_pipe = 1;
+	inode->i_mode |= S_IFIFO | S_IRUSR | S_IWUSR;
+	inode->i_uid = current->euid;
+	inode->i_gid = current->egid;
+	inode->i_atime = inode->i_mtime = inode->i_ctime = CURRENT_TIME;
+	return inode;
+}
+
+struct inode * iget(struct super_block * sb,int nr)
+{
+	struct inode * inode, * empty;
+
+	if (!sb)
+		panic("VFS: iget with sb==NULL");
+	empty = get_empty_inode();
+repeat:
+	inode = *(hash(sb->s_dev,nr));
+	while (inode) {
+		if (inode->i_dev != sb->s_dev || inode->i_ino != nr) {
+			inode = inode->i_hash_next;
+			continue;
+		}
+		wait_on_inode(inode);
+		if (inode->i_dev != sb->s_dev || inode->i_ino != nr)
+			goto repeat;
+		if (!inode->i_count)
+			nr_free_inodes--;
+		inode->i_count++;
+		if (inode->i_mount) {
+			int i;
+
+			for (i = 0 ; i<NR_SUPER ; i++)
+				if (super_blocks[i].s_covered==inode)
+					break;
+			if (i >= NR_SUPER) {
+				printk("VFS: Mounted inode hasn't got sb\n");
+				if (empty)
+					iput(empty);
+				return inode;
+			}
+			iput(inode);
+			if (!(inode = super_blocks[i].s_mounted))
+				printk("VFS: Mounted device %d/%d has no rootinode\n",
+					MAJOR(inode->i_dev), MINOR(inode->i_dev));
+			else {
+				if (!inode->i_count)
+					nr_free_inodes--;
+				inode->i_count++;
+				wait_on_inode(inode);
+			}
+		}
+		if (empty)
+			iput(empty);
+		return inode;
+	}
+	if (!empty)
+		return (NULL);
+	inode = empty;
+	inode->i_sb = sb;
+	inode->i_dev = sb->s_dev;
+	inode->i_ino = nr;
+	inode->i_flags = sb->s_flags;
+	put_last_free(inode);
+	insert_inode_hash(inode);
+	read_inode(inode);
+	return inode;
+}
 
 /*
  * The "new" scheduling primitives (new as of 0.97 or so) allow this to

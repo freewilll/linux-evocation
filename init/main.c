@@ -352,6 +352,7 @@ extern "C" void start_kernel(void)
  * enable them
  */
 	set_call_gate(&default_ldt,lcall7);
+	printk("ORIG_ROOT_DEV=%#x, MAJOR(ORIG_ROOT_DEV)=%#x\n", ORIG_ROOT_DEV, MAJOR(ORIG_ROOT_DEV));
  	ROOT_DEV = ORIG_ROOT_DEV;
  	drive_info = DRIVE_INFO;
  	screen_info = SCREEN_INFO;
@@ -495,7 +496,7 @@ static int printf(const char *fmt, ...)
 
 void init(void)
 {
-	// printk("TODO: init\n");
+	printk("ROOT_DEV=%#x, MAJOR(ROOT_DEV)=%#x\n", ROOT_DEV, MAJOR(ROOT_DEV));
 	int pid,i;
 
 	setup((void *) &drive_info);

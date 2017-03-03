@@ -1,3 +1,4 @@
+#pragma GCC diagnostic ignored "-fpermissive"
 /*
  *  linux/fs/minix/bitmap.c
  *
@@ -14,27 +15,53 @@
 
 #include <asm/bitops.h>
 
-#define clear_block(addr) \
-__asm__("cld\n\t" \
-	"rep\n\t" \
-	"stosl" \
-	: \
-	:"a" (0),"c" (BLOCK_SIZE/4),"D" ((long) (addr)):"cx","di")
+extern inline void * clear_block(void * addr)
+{
+int d0, d1;
+__asm__ __volatile__(
+	"cld\n\t"
+	"rep\n\t"
+	"stosl"
+	: "=&c" (d0), "=&D" (d1)
+	:"a" (0),"1" (addr),"0" (BLOCK_SIZE/4)
+	:"memory");
+}
 
-#define find_first_zero(addr) ({ \
-int __res; \
-__asm__("cld\n" \
-	"1:\tlodsl\n\t" \
-	"notl %%eax\n\t" \
-	"bsfl %%eax,%%edx\n\t" \
-	"jne 2f\n\t" \
-	"addl $32,%%ecx\n\t" \
-	"cmpl $8192,%%ecx\n\t" \
-	"jl 1b\n\t" \
-	"xorl %%edx,%%edx\n" \
-	"2:\taddl %%edx,%%ecx" \
-	:"=c" (__res):"0" (0),"S" (addr):"ax","dx","si"); \
-__res;})
+/**
+ * ffz - find first zero bit in word
+ * @word: The word to search
+ *
+ * Undefined if no zero exists, so code should check against ~0UL first.
+ */
+static inline unsigned long ffz(unsigned long word)
+{
+	asm("rep; bsf %1,%0"
+		: "=r" (word)
+		: "r" (~word));
+	return word;
+}
+
+/*
+ * big-endian 16bit indexed bitmaps
+ */
+
+static inline int find_first_zero_bit(const void *vaddr, unsigned size)
+{
+	const unsigned short *p = vaddr, *addr = vaddr;
+	unsigned short num;
+
+	if (!size)
+		return 0;
+
+	size >>= 4;
+	while (*p++ == 0xffff) {
+		if (--size == 0)
+			return (p - addr) << 4;
+	}
+
+	num = *--p;
+	return ((p - addr) << 4) + ffz(num);
+}
 
 static int nibblemap[] = { 0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4 };
 
@@ -110,7 +137,7 @@ repeat:
 	j = 8192;
 	for (i=0 ; i<8 ; i++)
 		if ((bh=sb->u.minix_sb.s_zmap[i]) != NULL)
-			if ((j=find_first_zero(bh->b_data))<8192)
+			if ((j=find_first_zero_bit(bh->b_data, 8192))<8192)
 				break;
 	if (i>=8 || !bh || j>=8192)
 		return 0;
@@ -193,7 +220,7 @@ struct inode * minix_new_inode(const struct inode * dir)
 	j = 8192;
 	for (i=0 ; i<8 ; i++)
 		if ((bh = inode->i_sb->u.minix_sb.s_imap[i]) != NULL)
-			if ((j=find_first_zero(bh->b_data))<8192)
+			if ((j=find_first_zero_bit(bh->b_data, 8192))<8192)
 				break;
 	if (!bh || j >= 8192) {
 		iput(inode);

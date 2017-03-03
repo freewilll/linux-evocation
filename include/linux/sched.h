@@ -293,7 +293,7 @@ extern int x86;
 extern int ignore_irq13;
 extern int wp_works_ok;
 
-// TODO WGJA WIP: #define CURRENT_TIME (startup_time+(jiffies+jiffies_offset)/HZ)
+#define CURRENT_TIME (startup_time+(jiffies+jiffies_offset)/HZ)
 
 extern void sleep_on(struct wait_queue ** p);
 extern void interruptible_sleep_on(struct wait_queue ** p);
@@ -451,23 +451,23 @@ extern inline void remove_wait_queue(struct wait_queue ** p, struct wait_queue *
 	}
 #endif
 }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern inline void select_wait(struct wait_queue ** wait_address, select_table * p)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct select_table_entry * entry;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!p || !wait_address)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	if (p->nr >= __MAX_SELECT_TABLE_ENTRIES)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP:  	entry = p->entry + p->nr;
-// TODO WGJA WIP: 	entry->wait_address = wait_address;
-// TODO WGJA WIP: 	entry->wait.task = current;
-// TODO WGJA WIP: 	entry->wait.next = (wait_queue *)NULL;
-// TODO WGJA WIP: 	add_wait_queue(wait_address,&entry->wait);
-// TODO WGJA WIP: 	p->nr++;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+extern inline void select_wait(struct wait_queue ** wait_address, select_table * p)
+{
+	struct select_table_entry * entry;
+
+	if (!p || !wait_address)
+		return;
+	if (p->nr >= __MAX_SELECT_TABLE_ENTRIES)
+		return;
+ 	entry = p->entry + p->nr;
+	entry->wait_address = wait_address;
+	entry->wait.task = current;
+	entry->wait.next = (wait_queue *)NULL;
+	add_wait_queue(wait_address,&entry->wait);
+	p->nr++;
+}
+
 // TODO WGJA WIP: static inline unsigned long _get_base(char * addr)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	unsigned long __base;

@@ -376,23 +376,23 @@ return (to);
 // TODO WGJA WIP: 	:"cx","si","di","memory");
 // TODO WGJA WIP: return dest;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern inline int memcmp(const void * cs,const void * ct,size_t count)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: register int __res __asm__("ax");
-// TODO WGJA WIP: __asm__("cld\n\t"
-// TODO WGJA WIP: 	"repe\n\t"
-// TODO WGJA WIP: 	"cmpsb\n\t"
-// TODO WGJA WIP: 	"je 1f\n\t"
-// TODO WGJA WIP: 	"movl $1,%%eax\n\t"
-// TODO WGJA WIP: 	"jb 1f\n\t"
-// TODO WGJA WIP: 	"negl %%eax\n"
-// TODO WGJA WIP: 	"1:"
-// TODO WGJA WIP: 	:"=a" (__res):"0" (0),"D" (cs),"S" (ct),"c" (count)
-// TODO WGJA WIP: 	:"si","di","cx");
-// TODO WGJA WIP: return __res;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+static inline int memcmp(const void * cs,const void * ct,size_t count)
+{
+int	d0, d1, d2;
+register int __res;
+__asm__ __volatile__(
+	"repe\n\t"
+	"cmpsb\n\t"
+	"je 1f\n\t"
+	"sbbl %0,%0\n\t"
+	"orb $1,%b0\n"
+	"1:"
+	:"=a" (__res), "=&S" (d0), "=&D" (d1), "=&c" (d2)
+	:"0" (0), "1" (cs), "2" (ct), "3" (count));
+return __res;
+}
+
 // TODO WGJA WIP: extern inline void * memchr(const void * cs,char c,size_t count)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: register void * __res __asm__("di");

@@ -145,13 +145,13 @@ repeat:
 	return err;
 }
 
-// TODO WGJA WIP: void sync_dev(dev_t dev)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	sync_buffers(dev, 0);
-// TODO WGJA WIP: 	sync_supers(dev);
-// TODO WGJA WIP: 	sync_inodes(dev);
-// TODO WGJA WIP: 	sync_buffers(dev, 0);
-// TODO WGJA WIP: }
+void sync_dev(dev_t dev)
+{
+	sync_buffers(dev, 0);
+	sync_supers(dev);
+	sync_inodes(dev);
+	sync_buffers(dev, 0);
+}
 
 int fsync_dev(dev_t dev)
 {
@@ -161,30 +161,30 @@ int fsync_dev(dev_t dev)
 	return sync_buffers(dev, 1);
 }
 
-// TODO WGJA WIP: extern "C" int sys_sync(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	sync_dev(0);
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: int file_fsync (struct inode *inode, struct file *filp)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	return fsync_dev(inode->i_dev);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_fsync(unsigned int fd)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct file * file;
-// TODO WGJA WIP: 	struct inode * inode;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (fd>=NR_OPEN || !(file=current->filp[fd]) || !(inode=file->f_inode))
-// TODO WGJA WIP: 		return -EBADF;
-// TODO WGJA WIP: 	if (!file->f_op || !file->f_op->fsync)
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	if (file->f_op->fsync(inode,file))
-// TODO WGJA WIP: 		return -EIO;
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
+extern "C" int sys_sync(void)
+{
+	sync_dev(0);
+	return 0;
+}
+
+int file_fsync (struct inode *inode, struct file *filp)
+{
+	return fsync_dev(inode->i_dev);
+}
+
+extern "C" int sys_fsync(unsigned int fd)
+{
+	struct file * file;
+	struct inode * inode;
+
+	if (fd>=NR_OPEN || !(file=current->filp[fd]) || !(inode=file->f_inode))
+		return -EBADF;
+	if (!file->f_op || !file->f_op->fsync)
+		return -EINVAL;
+	if (file->f_op->fsync(inode,file))
+		return -EIO;
+	return 0;
+}
 
 void invalidate_buffers(dev_t dev)
 {

@@ -103,8 +103,8 @@ extern int clone_page_tables(struct task_struct * to);
 // TODO WGJA WIP: extern int remap_page_range(unsigned long from, unsigned long to, unsigned long size, int mask);
 // TODO WGJA WIP: extern int zeromap_page_range(unsigned long from, unsigned long size, int mask);
 // TODO WGJA WIP: 
-// TODO WGJA WIP: extern void do_wp_page(unsigned long error_code, unsigned long address,
-// TODO WGJA WIP: 	struct task_struct *tsk, unsigned long user_esp);
+extern void do_wp_page(unsigned long error_code, unsigned long address,
+	struct task_struct *tsk, unsigned long user_esp);
 // TODO WGJA WIP: extern void do_no_page(unsigned long error_code, unsigned long address,
 // TODO WGJA WIP: 	struct task_struct *tsk, unsigned long user_esp);
 

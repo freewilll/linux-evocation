@@ -645,31 +645,31 @@ int copy_page_tables(struct task_struct * tsk)
 // TODO WGJA WIP: 	printk("bad page directory entry %08x\n",page);
 // TODO WGJA WIP: 	*pg_table = 0;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: int verify_area(int type, void * addr, unsigned long size)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long start;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	start = (unsigned long) addr;
-// TODO WGJA WIP: 	if (start >= TASK_SIZE)
-// TODO WGJA WIP: 		return -EFAULT;
-// TODO WGJA WIP: 	if (size > TASK_SIZE - start)
-// TODO WGJA WIP: 		return -EFAULT;
-// TODO WGJA WIP: 	if (type == VERIFY_READ || !size)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	if (!size)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	size--;
-// TODO WGJA WIP: 	size += start & ~PAGE_MASK;
-// TODO WGJA WIP: 	size >>= PAGE_SHIFT;
-// TODO WGJA WIP: 	start &= PAGE_MASK;
-// TODO WGJA WIP: 	do {
-// TODO WGJA WIP: 		do_wp_page(1,start,current,0);
-// TODO WGJA WIP: 		start += PAGE_SIZE;
-// TODO WGJA WIP: 	} while (size--);
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+int verify_area(int type, void * addr, unsigned long size)
+{
+	unsigned long start;
+
+	start = (unsigned long) addr;
+	if (start >= TASK_SIZE)
+		return -EFAULT;
+	if (size > TASK_SIZE - start)
+		return -EFAULT;
+	if (type == VERIFY_READ || !size)
+		return 0;
+	if (!size)
+		return 0;
+	size--;
+	size += start & ~PAGE_MASK;
+	size >>= PAGE_SHIFT;
+	start &= PAGE_MASK;
+	do {
+		do_wp_page(1,start,current,0);
+		start += PAGE_SIZE;
+	} while (size--);
+	return 0;
+}
+
 // TODO WGJA WIP: static inline void get_empty_page(struct task_struct * tsk, unsigned long address)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	unsigned long tmp;
