@@ -14,7 +14,7 @@
 .globl _empty_bad_page
 .globl _empty_bad_page_table
 .globl empty_zero_page
-.globl _tmp_floppy_area,_floppy_track_buffer
+.globl tmp_floppy_area,floppy_track_buffer
 
 #include <linux/tasks.h>
 #include <linux/segment.h>
@@ -267,7 +267,7 @@ empty_zero_page:
  * reach to a buffer-block. It needs to be aligned, so that it isn't
  * on a 64kB border.
  */
-_tmp_floppy_area:
+tmp_floppy_area:
 	.fill 1024,1,0
 /*
  * floppy_track_buffer is used to buffer one track of floppy data: it
@@ -275,7 +275,7 @@ _tmp_floppy_area:
  * sector read/write can mess it up. It can contain one full track of
  * data (18*2*512 bytes).
  */
-_floppy_track_buffer:
+floppy_track_buffer:
 	.fill 512*2*18,1,0
 
 /* This is the default interrupt "handler" :-) */

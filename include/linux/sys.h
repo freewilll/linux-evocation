@@ -43,7 +43,7 @@ extern int sys_open(const char * filename, int flags, int mode);
 // TODO WGJA WIP: extern int sys_access();
 // TODO WGJA WIP: extern int sys_nice();
 // TODO WGJA WIP: extern int sys_ftime();
-// TODO WGJA WIP: extern int sys_sync();
+extern int sys_sync();
 // TODO WGJA WIP: extern int sys_kill();
 // TODO WGJA WIP: extern int sys_rename();
 // TODO WGJA WIP: extern int sys_mkdir();
@@ -186,7 +186,7 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_access		 33
   sys_todo, 			// #define __NR_nice		 34
   sys_todo, 			// #define __NR_ftime		 35
-  sys_todo, 			// #define __NR_sync		 36
+  sys_sync, 			// #define __NR_sync		 36     Done
   sys_todo, 			// #define __NR_kill		 37
   sys_todo, 			// #define __NR_rename		 38
   sys_todo, 			// #define __NR_mkdir		 39

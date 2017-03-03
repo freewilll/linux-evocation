@@ -126,7 +126,7 @@ void rd_load(void)
 	 * case, we have to look at block 0.  Be intelligent about
 	 * this, and check both... - FvK
 	 */
-	for (tries = 0; tries < 1000; tries += 512) {
+	for (tries = 0; tries < 1536; tries += 256) {
 		block = tries;
 		bh = breada(ROOT_DEV,block+1,block,block+2,-1);
 		if (!bh) {
@@ -143,6 +143,7 @@ void rd_load(void)
 			printk("RAMDISK: trying old-style RAM image.\n");
 			continue;
 		}
+		printk("Found ramdisk at block %d\n", block);
 
 		if (nblocks > (rd_length >> BLOCK_SIZE_BITS)) {
 			printk("RAMDISK: image too big! (%d/%d blocks)\n",

@@ -336,46 +336,24 @@ return __res;
 // TODO WGJA WIP: return __res;
 // TODO WGJA WIP: }
 
-extern inline void * memcpy(void * to, const void * from, size_t n)
+// From 2.4 kernel
+static inline void * memcpy(void * to, const void * from, size_t n)
 {
-int d0, d1;
-__asm__("cld\n\t"
-	"movl %%edx, %%ecx\n\t"
-	"shrl $2,%%ecx\n\t"
+int d0, d1, d2;
+__asm__ __volatile__(
 	"rep ; movsl\n\t"
-	"testb $1,%%dl\n\t"
+	"testb $2,%b4\n\t"
 	"je 1f\n\t"
-	"movsb\n"
-	"1:\ttestb $2,%%dl\n\t"
-	"je 2f\n\t"
 	"movsw\n"
-	"2:\n"
-	: "=&D" (d0), "=&S" (d1)
-	:"d" (n),"D" ((long) to),"S" ((long) from)
-	: "cx","memory");
-
+	"1:\ttestb $1,%b4\n\t"
+	"je 2f\n\t"
+	"movsb\n"
+	"2:"
+	: "=&c" (d0), "=&D" (d1), "=&S" (d2)
+	:"0" (n/4), "q" (n),"1" ((long) to),"2" ((long) from)
+	: "memory");
 return (to);
 }
-
-// TODO WGJA WIP: extern inline void * memmove(void * dest,const void * src, size_t n)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: if (dest<src)
-// TODO WGJA WIP: __asm__("cld\n\t"
-// TODO WGJA WIP: 	"rep\n\t"
-// TODO WGJA WIP: 	"movsb"
-// TODO WGJA WIP: 	: /* no output */
-// TODO WGJA WIP: 	:"c" (n),"S" (src),"D" (dest)
-// TODO WGJA WIP: 	:"cx","si","di");
-// TODO WGJA WIP: else
-// TODO WGJA WIP: __asm__("std\n\t"
-// TODO WGJA WIP: 	"rep\n\t"
-// TODO WGJA WIP: 	"movsb\n\t"
-// TODO WGJA WIP: 	"cld"
-// TODO WGJA WIP: 	: /* no output */
-// TODO WGJA WIP: 	:"c" (n),"S" (src+n-1),"D" (dest+n-1)
-// TODO WGJA WIP: 	:"cx","si","di","memory");
-// TODO WGJA WIP: return dest;
-// TODO WGJA WIP: }
 
 static inline int memcmp(const void * cs,const void * ct,size_t count)
 {

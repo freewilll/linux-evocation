@@ -82,7 +82,7 @@ extern void init(void);
 extern void init_IRQ(void);
 extern long blk_dev_init(long,long);
 extern long chr_dev_init(long,long);
-// TODO WGJA WIP: extern void floppy_init(void);
+extern void floppy_init(void);
 // TODO WGJA WIP: extern void sock_init(void);
 extern long rd_init(long mem_start, int length);
 // TODO WGJA WIP: extern long kernel_mktime(struct mktime * time);
@@ -352,7 +352,6 @@ extern "C" void start_kernel(void)
  * enable them
  */
 	set_call_gate(&default_ldt,lcall7);
-	printk("ORIG_ROOT_DEV=%#x, MAJOR(ORIG_ROOT_DEV)=%#x\n", ORIG_ROOT_DEV, MAJOR(ORIG_ROOT_DEV));
  	ROOT_DEV = ORIG_ROOT_DEV;
  	drive_info = DRIVE_INFO;
  	screen_info = SCREEN_INFO;
@@ -398,7 +397,7 @@ extern "C" void start_kernel(void)
 	mem_init(low_memory_start,memory_start,memory_end);
 	buffer_init();
 	// time_init(); 	// WGJA TODO time_init()
-	// floppy_init();	// WGJA TODO floppy_init()
+	floppy_init();	
 	// sock_init();		// WGJA TODO sock_init()
 #ifdef CONFIG_SYSVIPC
 	ipc_init();
@@ -496,50 +495,52 @@ static int printf(const char *fmt, ...)
 
 void init(void)
 {
-	printk("ROOT_DEV=%#x, MAJOR(ROOT_DEV)=%#x\n", ROOT_DEV, MAJOR(ROOT_DEV));
 	int pid,i;
 
 	setup((void *) &drive_info);
-	(void) open("/dev/tty1",O_RDWR,0);
-	(void) dup(0);
-	(void) dup(0);
 
-	// system_utsname.machine[1] = '0' + x86;	// TODO utsname
-	// printf(linux_banner);			// TODO linux_banner
-
-	execve("/etc/init",argv_init,envp_init);
-	execve("/bin/init",argv_init,envp_init);
-	execve("/sbin/init",argv_init,envp_init);
-	/* if this fails, fall through to original stuff */
-
-	if (!(pid=fork())) {
-		close(0);
-		if (open("/etc/rc",O_RDONLY,0))
-			exit(1);
-		execve("/bin/sh",argv_rc,envp_rc);
-		exit(2);
-	}
-	if (pid>0)
-		while (pid != wait(&i))
-			/* nothing */;
-	while (1) {
-		if ((pid = fork()) < 0) {
-			printf("Fork failed in init\n\r");
-			continue;
-		}
-		if (!pid) {
-			close(0);close(1);close(2);
-			setsid();
-			(void) open("/dev/tty1",O_RDWR,0);
-			(void) dup(0);
-			(void) dup(0);
-			exit(execve("/bin/sh",argv,envp));
-		}
-		while (1)
-			if (pid == wait(&i))
-				break;
-		printf("\n\rchild %d died with code %04x\n\r",pid,i);
-		sync();
-	}
+	printk("TODO: rest of init()\n");
+	cli();asm("hlt");
+// TODO WGJA WIP: 	(void) open("/dev/tty1",O_RDWR,0);
+// TODO WGJA WIP: 	(void) dup(0);
+// TODO WGJA WIP: 	(void) dup(0);
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	// system_utsname.machine[1] = '0' + x86;	// TODO utsname
+// TODO WGJA WIP: 	// printf(linux_banner);			// TODO linux_banner
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	execve("/etc/init",argv_init,envp_init);
+// TODO WGJA WIP: 	execve("/bin/init",argv_init,envp_init);
+// TODO WGJA WIP: 	execve("/sbin/init",argv_init,envp_init);
+// TODO WGJA WIP: 	/* if this fails, fall through to original stuff */
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (!(pid=fork())) {
+// TODO WGJA WIP: 		close(0);
+// TODO WGJA WIP: 		if (open("/etc/rc",O_RDONLY,0))
+// TODO WGJA WIP: 			exit(1);
+// TODO WGJA WIP: 		execve("/bin/sh",argv_rc,envp_rc);
+// TODO WGJA WIP: 		exit(2);
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: 	if (pid>0)
+// TODO WGJA WIP: 		while (pid != wait(&i))
+// TODO WGJA WIP: 			/* nothing */;
+// TODO WGJA WIP: 	while (1) {
+// TODO WGJA WIP: 		if ((pid = fork()) < 0) {
+// TODO WGJA WIP: 			printf("Fork failed in init\n\r");
+// TODO WGJA WIP: 			continue;
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 		if (!pid) {
+// TODO WGJA WIP: 			close(0);close(1);close(2);
+// TODO WGJA WIP: 			setsid();
+// TODO WGJA WIP: 			(void) open("/dev/tty1",O_RDWR,0);
+// TODO WGJA WIP: 			(void) dup(0);
+// TODO WGJA WIP: 			(void) dup(0);
+// TODO WGJA WIP: 			exit(execve("/bin/sh",argv,envp));
+// TODO WGJA WIP: 		}
+// TODO WGJA WIP: 		while (1)
+// TODO WGJA WIP: 			if (pid == wait(&i))
+// TODO WGJA WIP: 				break;
+// TODO WGJA WIP: 		printf("\n\rchild %d died with code %04x\n\r",pid,i);
+// TODO WGJA WIP: 		sync();
+// TODO WGJA WIP: 	}
 	exit(0);
 }

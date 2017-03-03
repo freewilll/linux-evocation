@@ -263,53 +263,53 @@ void sleep_on(struct wait_queue **p)
 
 static struct timer_list * next_timer = (timer_list *) NULL;
 
-// TODO WGJA WIP: void add_timer(struct timer_list * timer)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long flags;
-// TODO WGJA WIP: 	struct timer_list ** p;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!timer)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	timer->next = NULL;
-// TODO WGJA WIP: 	p = &next_timer;
-// TODO WGJA WIP: 	save_flags(flags);
-// TODO WGJA WIP: 	cli();
-// TODO WGJA WIP: 	while (*p) {
-// TODO WGJA WIP: 		if ((*p)->expires > timer->expires) {
-// TODO WGJA WIP: 			(*p)->expires -= timer->expires;
-// TODO WGJA WIP: 			timer->next = *p;
-// TODO WGJA WIP: 			break;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		timer->expires -= (*p)->expires;
-// TODO WGJA WIP: 		p = &(*p)->next;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	*p = timer;
-// TODO WGJA WIP: 	restore_flags(flags);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: int del_timer(struct timer_list * timer)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long flags;
-// TODO WGJA WIP: 	unsigned long expires = 0;
-// TODO WGJA WIP: 	struct timer_list **p;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	p = &next_timer;
-// TODO WGJA WIP: 	save_flags(flags);
-// TODO WGJA WIP: 	cli();
-// TODO WGJA WIP: 	while (*p) {
-// TODO WGJA WIP: 		if (*p == timer) {
-// TODO WGJA WIP: 			if ((*p = timer->next) != NULL)
-// TODO WGJA WIP: 				(*p)->expires += timer->expires;
-// TODO WGJA WIP: 			timer->expires += expires;
-// TODO WGJA WIP: 			restore_flags(flags);
-// TODO WGJA WIP: 			return 1;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		expires += (*p)->expires;
-// TODO WGJA WIP: 		p = &(*p)->next;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	restore_flags(flags);
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
+void add_timer(struct timer_list * timer)
+{
+	unsigned long flags;
+	struct timer_list ** p;
+
+	if (!timer)
+		return;
+	timer->next = NULL;
+	p = &next_timer;
+	save_flags(flags);
+	cli();
+	while (*p) {
+		if ((*p)->expires > timer->expires) {
+			(*p)->expires -= timer->expires;
+			timer->next = *p;
+			break;
+		}
+		timer->expires -= (*p)->expires;
+		p = &(*p)->next;
+	}
+	*p = timer;
+	restore_flags(flags);
+}
+
+int del_timer(struct timer_list * timer)
+{
+	unsigned long flags;
+	unsigned long expires = 0;
+	struct timer_list **p;
+
+	p = &next_timer;
+	save_flags(flags);
+	cli();
+	while (*p) {
+		if (*p == timer) {
+			if ((*p = timer->next) != NULL)
+				(*p)->expires += timer->expires;
+			timer->expires += expires;
+			restore_flags(flags);
+			return 1;
+		}
+		expires += (*p)->expires;
+		p = &(*p)->next;
+	}
+	restore_flags(flags);
+	return 0;
+}
 
 unsigned long timer_active = 0;
 struct timer_struct timer_table[32];

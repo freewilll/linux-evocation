@@ -1,3 +1,4 @@
+#pragma GCC diagnostic ignored "-fpermissive"
 /*
  *  linux/kernel/floppy.c
  *
@@ -214,12 +215,12 @@ static int keep_data[4] = { 0,0,0,0 };
  * disk changes.
  * Also used to enable/disable printing of overrun warnings.
  */
-static ftd_msg[4] = { 0,0,0,0 };
+static int ftd_msg[4] = { 0,0,0,0 };
 
 /* Prevent "aliased" accesses. */
 
-static fd_ref[4] = { 0,0,0,0 };
-static fd_device[4] = { 0,0,0,0 };
+static int fd_ref[4] = { 0,0,0,0 };
+static int fd_device[4] = { 0,0,0,0 };
 
 /* Synchronization of FDC access. */
 static volatile int format_status = FORMAT_NONE, fdc_busy = 0;
@@ -429,11 +430,14 @@ int floppy_change(struct buffer_head * bh)
 	return 0;
 }
 
-#define copy_buffer(from,to) \
-__asm__("cld ; rep ; movsl" \
-	: \
-	:"c" (BLOCK_SIZE/4),"S" ((long)(from)),"D" ((long)(to)) \
-	:"cx","di","si")
+inline void * copy_buffer(void* from, void* to)
+{
+int d0, d1, d2;
+__asm__ __volatile__("cld ; rep ; movsl\n\t"
+	: "=c" (d0), "=S" (d1), "=D" (d2)
+	:"0" (BLOCK_SIZE/4), "1" ((long)(from)), "2" ((long)(to))
+	:"memory");
+}
 
 static void setup_DMA(void)
 {

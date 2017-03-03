@@ -117,15 +117,15 @@ extern unsigned long file_table_init(unsigned long start, unsigned long end);
 #define IS_NOEXEC(inode) ((inode)->i_flags & MS_NOEXEC)
 #define IS_SYNC(inode) ((inode)->i_flags & MS_SYNC)
 
-// TODO WGJA WIP: /* the read-only stuff doesn't really belong here, but any other place is
-// TODO WGJA WIP:    probably as bad and I don't want to create yet another include file. */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define BLKROSET 4701 /* set device read-only (0 = read-write) */
-// TODO WGJA WIP: #define BLKROGET 4702 /* get read-only status (0 = read_write) */
-// TODO WGJA WIP: #define BLKRRPART 4703 /* re-read partition table */
-// TODO WGJA WIP: #define BLKGETSIZE 4704 /* return device size */
-// TODO WGJA WIP: #define BLKFLSBUF 4705 /* flush buffer cache */
-// TODO WGJA WIP: 
+/* the read-only stuff doesn't really belong here, but any other place is
+   probably as bad and I don't want to create yet another include file. */
+
+#define BLKROSET 4701 /* set device read-only (0 = read-write) */
+#define BLKROGET 4702 /* get read-only status (0 = read_write) */
+#define BLKRRPART 4703 /* re-read partition table */
+#define BLKGETSIZE 4704 /* return device size */
+#define BLKFLSBUF 4705 /* flush buffer cache */
+
 // TODO WGJA WIP: /* These are a few other constants  only used by scsi  devices */
 // TODO WGJA WIP: 
 // TODO WGJA WIP: #define SCSI_IOCTL_GET_IDLUN 0x5382
@@ -364,14 +364,14 @@ extern void invalidate_inodes(dev_t dev);
 extern void invalidate_buffers(dev_t dev);
 extern int floppy_change(struct buffer_head * first_block);
 extern void sync_inodes(dev_t dev);
-// TODO WGJA WIP: extern void sync_dev(dev_t dev);
+extern void sync_dev(dev_t dev);
 extern int fsync_dev(dev_t dev);
 extern void sync_supers(dev_t dev);
 // TODO WGJA WIP: extern int bmap(struct inode * inode,int block);
 extern int notify_change(int flags, struct inode * inode);
 // TODO WGJA WIP: extern int namei(const char * pathname, struct inode ** res_inode);
 // TODO WGJA WIP: extern int lnamei(const char * pathname, struct inode ** res_inode);
-// TODO WGJA WIP: extern int permission(struct inode * inode,int mask);
+extern int permission(struct inode * inode,int mask);
 extern int open_namei(const char * pathname, int flag, int mode,
 	struct inode ** res_inode, struct inode * base);
 // TODO WGJA WIP: extern int do_mknod(const char * filename, int mode, dev_t dev);

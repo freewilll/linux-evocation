@@ -84,16 +84,16 @@ int is_read_only(int dev)
 	return ro_bits[major][minor >> 5] & (1 << (minor & 31));
 }
 
-// TODO WGJA WIP: void set_device_ro(int dev,int flag)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int minor,major;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	major = MAJOR(dev);
-// TODO WGJA WIP: 	minor = MINOR(dev);
-// TODO WGJA WIP: 	if (major < 0 || major >= MAX_BLKDEV) return;
-// TODO WGJA WIP: 	if (flag) ro_bits[major][minor >> 5] |= 1 << (minor & 31);
-// TODO WGJA WIP: 	else ro_bits[major][minor >> 5] &= ~(1 << (minor & 31));
-// TODO WGJA WIP: }
+void set_device_ro(int dev,int flag)
+{
+	int minor,major;
+
+	major = MAJOR(dev);
+	minor = MINOR(dev);
+	if (major < 0 || major >= MAX_BLKDEV) return;
+	if (flag) ro_bits[major][minor >> 5] |= 1 << (minor & 31);
+	else ro_bits[major][minor >> 5] &= ~(1 << (minor & 31));
+}
 
 /*
  * add-request adds a request to the linked list.

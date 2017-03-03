@@ -13,7 +13,7 @@
 
 extern "C" void sys_sync(void);	/* it's really int */
 
-volatile void panic(const char * s)
+void panic(const char * s)
 {
 	extern int log_to_console;
 
@@ -23,5 +23,7 @@ volatile void panic(const char * s)
 		printk("In swapper task - not syncing\n");
 	else
 		sys_sync();
+	cli();
+	asm("hlt");
 	for(;;);
 }

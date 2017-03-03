@@ -11,12 +11,8 @@ static inline _syscall0(int,fork)
 static inline _syscall0(int,idle)
 static inline _syscall3(int,open,const char *,file,int,flag,int,mode)
 
-// TODO WGJA panic
-void panic(const char * s)
-{
-	printk("TODO panic(): %s\nGiving up ...", s);
-	for (;;);
-}
+// TODO WGJA log_to_console & real prink
+int log_to_console = 1;
 
 // TODO WGJA do_signal
 extern "C" int do_signal(unsigned long oldmask, struct pt_regs * regs)
@@ -208,7 +204,7 @@ void test_memset() {
 void test_memcpy() {
 	char* to = "testing fkjlfdas jklfdsajklf dasjklfdaskjldfsa kjl fadsjklfd sakljfdsa kljfd sajklf ads";
 	char* from = "xxxxxxxxxxxxxxxxxxxx";
-	memcpy(to, from, 5);
+	memcpy(to, from, 8);
 	printk("%s\n", to);
 }
 
@@ -251,13 +247,6 @@ void test_dev_zero()
 void wait_for_keypress()
 {
 	printk("TODO: wait_for_keypress()\n");
-}
-
-// TODO WGJA floppy_change
-int floppy_change(struct buffer_head * bh)
-{
-	printk("TODO: floppy_change\n");
-	return 0;
 }
 
 // TODO WGJA do_wp_page

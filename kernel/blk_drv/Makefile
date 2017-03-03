@@ -20,7 +20,7 @@
 SUBDIRS	=
 # SUBDIRS	= scsi
 
-OBJS = ll_rw_blk.o ramdisk.o genhd.o
+OBJS = ll_rw_blk.o ramdisk.o genhd.o floppy.o
 # OBJS = xd.o hd.o ll_rw_blk.o floppy.o ramdisk.o genhd.o cdu31a.o mcd.o
 
 all: blk_drv.a scsisubdirs
