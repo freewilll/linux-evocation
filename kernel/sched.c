@@ -18,7 +18,7 @@
 #include <linux/timer.h>
 #include <linux/kernel.h>
 #include <linux/sys.h>
-// TODO WGJA WIP: #include <linux/fdreg.h>
+#include <linux/fdreg.h>
 #include <linux/errno.h>
 #include <linux/time.h>
 #include <linux/ptrace.h>

@@ -8,7 +8,7 @@
 #include <linux/errno.h>
 #include <linux/sched.h>
 #include <linux/kernel.h>
-// TODO WGJA WIP: #include <linux/tty.h>
+#include <linux/tty.h>
 // TODO WGJA WIP: #include <linux/mouse.h>
 // TODO WGJA WIP: #include <linux/tpqic02.h>
 

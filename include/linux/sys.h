@@ -12,7 +12,8 @@ extern int sys_setup();
 extern int sys_fork();
 extern int sys_read();
 extern int sys_write();
-extern int sys_open(const char * filename, int flags, int mode);
+extern int sys_open(const char *, int, int);
+
 // TODO WGJA WIP: extern int sys_close();
 // TODO WGJA WIP: extern int sys_waitpid();
 // TODO WGJA WIP: extern int sys_creat();
@@ -153,9 +154,9 @@ fn_ptr sys_call_table[] = {
   sys_setup, 			// #define __NR_setup		  0
   sys_todo, 			// #define __NR_exit		  1
   sys_fork, 			// #define __NR_fork		  2      Done
-  sys_read, 			// #define __NR_read		  3      Done
-  sys_write, 			// #define __NR_write		  4     Done
-  sys_open, 			// #define __NR_open		  5      Done
+  (fn_ptr) sys_read, 			// #define __NR_read		  3      Done
+  (fn_ptr) sys_write, 			// #define __NR_write		  4     Done
+  (fn_ptr) sys_open, 			// #define __NR_open		  5      Done
   sys_todo, 			// #define __NR_close		  6
   sys_todo, 			// #define __NR_waitpid		  7
   sys_todo, 			// #define __NR_creat		  8

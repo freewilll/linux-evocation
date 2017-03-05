@@ -4,7 +4,7 @@
  *  Copyright (C) 1991, 1992  Linus Torvalds
  */
 
-// TODO WGJA WIP: #include <linux/vfs.h>
+#include <linux/vfs.h>
 #include <linux/types.h>
 // TODO WGJA WIP: #include <linux/utime.h>
 #include <linux/errno.h>
@@ -14,7 +14,7 @@
 #include <linux/sched.h>
 #include <linux/kernel.h>
 #include <linux/signal.h>
-// TODO WGJA WIP: #include <linux/tty.h>
+#include <linux/tty.h>
 #include <linux/time.h>
 
 #include <asm/segment.h>

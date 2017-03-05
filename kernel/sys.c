@@ -6,7 +6,7 @@
 
 #include <linux/errno.h>
 #include <linux/sched.h>
-// TODO WGJA WIP: #include <linux/tty.h>
+#include <linux/tty.h>
 #include <linux/kernel.h>
 #include <linux/config.h>
 // TODO WGJA WIP: #include <linux/times.h>

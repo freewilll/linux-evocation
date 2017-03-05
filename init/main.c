@@ -23,7 +23,7 @@
 #include <linux/fs.h>
 #include <linux/ctype.h>
 // TODO WGJA WIP: #include <linux/delay.h>
-// TODO WGJA WIP: #include <linux/utsname.h>
+#include <linux/utsname.h>
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern unsigned long * prof_buffer;
 // TODO WGJA WIP: extern unsigned long prof_len;
