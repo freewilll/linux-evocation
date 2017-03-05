@@ -70,8 +70,7 @@ WARNING_CFLAGS=\
 	-Wno-unused-but-set-variable \
 	-Wno-narrowing \
 	-Wno-write-strings \
-	-Wno-sequence-point \
-	-fpermissive
+	-Wno-sequence-point
 CFLAGS= -Wall $(WARNING_CFLAGS) -O6 -fomit-frame-pointer -x c++ -fno-stack-protector -nostdinc
 
 ifdef CONFIG_M486

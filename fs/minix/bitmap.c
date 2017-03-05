@@ -46,7 +46,7 @@ static inline unsigned long ffz(unsigned long word)
 
 static inline int find_first_zero_bit(const void *vaddr, unsigned size)
 {
-	const unsigned short *p = vaddr, *addr = vaddr;
+	const unsigned short *p = (unsigned short *) vaddr, *addr = (unsigned short *) vaddr;
 	unsigned short num;
 
 	if (!size)
