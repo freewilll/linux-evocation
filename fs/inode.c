@@ -297,47 +297,47 @@ void sync_inodes(dev_t dev)
 	}
 }
 
-// TODO WGJA WIP: void iput(struct inode * inode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (!inode)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	wait_on_inode(inode);
-// TODO WGJA WIP: 	if (!inode->i_count) {
-// TODO WGJA WIP: 		printk("VFS: iput: trying to free free inode\n");
-// TODO WGJA WIP: 		printk("VFS: device %d/%d, inode %d, mode=0%07o\n",
-// TODO WGJA WIP: 			MAJOR(inode->i_rdev), MINOR(inode->i_rdev),
-// TODO WGJA WIP: 					inode->i_ino, inode->i_mode);
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (inode->i_pipe) {
-// TODO WGJA WIP: 		wake_up(&PIPE_READ_WAIT(*inode));
-// TODO WGJA WIP: 		wake_up(&PIPE_WRITE_WAIT(*inode));
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: repeat:
-// TODO WGJA WIP: 	if (inode->i_count>1) {
-// TODO WGJA WIP: 		inode->i_count--;
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	wake_up(&inode_wait);
-// TODO WGJA WIP: 	if (inode->i_pipe) {
-// TODO WGJA WIP: 		unsigned long page = (unsigned long) PIPE_BASE(*inode);
-// TODO WGJA WIP: 		PIPE_BASE(*inode) = NULL;
-// TODO WGJA WIP: 		free_page(page);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (inode->i_sb && inode->i_sb->s_op && inode->i_sb->s_op->put_inode) {
-// TODO WGJA WIP: 		inode->i_sb->s_op->put_inode(inode);
-// TODO WGJA WIP: 		if (!inode->i_nlink)
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (inode->i_dirt) {
-// TODO WGJA WIP: 		write_inode(inode);	/* we can sleep - so do again */
-// TODO WGJA WIP: 		wait_on_inode(inode);
-// TODO WGJA WIP: 		goto repeat;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	inode->i_count--;
-// TODO WGJA WIP: 	nr_free_inodes++;
-// TODO WGJA WIP: 	return;
-// TODO WGJA WIP: }
+void iput(struct inode * inode)
+{
+	if (!inode)
+		return;
+	wait_on_inode(inode);
+	if (!inode->i_count) {
+		printk("VFS: iput: trying to free free inode\n");
+		printk("VFS: device %d/%d, inode %d, mode=0%07o\n",
+			MAJOR(inode->i_rdev), MINOR(inode->i_rdev),
+					inode->i_ino, inode->i_mode);
+		return;
+	}
+	if (inode->i_pipe) {
+		wake_up(&PIPE_READ_WAIT(*inode));
+		wake_up(&PIPE_WRITE_WAIT(*inode));
+	}
+repeat:
+	if (inode->i_count>1) {
+		inode->i_count--;
+		return;
+	}
+	wake_up(&inode_wait);
+	if (inode->i_pipe) {
+		unsigned long page = (unsigned long) PIPE_BASE(*inode);
+		PIPE_BASE(*inode) = NULL;
+		free_page(page);
+	}
+	if (inode->i_sb && inode->i_sb->s_op && inode->i_sb->s_op->put_inode) {
+		inode->i_sb->s_op->put_inode(inode);
+		if (!inode->i_nlink)
+			return;
+	}
+	if (inode->i_dirt) {
+		write_inode(inode);	/* we can sleep - so do again */
+		wait_on_inode(inode);
+		goto repeat;
+	}
+	inode->i_count--;
+	nr_free_inodes++;
+	return;
+}
 
 struct inode * get_empty_inode(void)
 {

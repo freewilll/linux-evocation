@@ -58,24 +58,23 @@ unsigned long free_page_list = 0;
 int nr_secondary_pages = 0;
 unsigned long secondary_page_list = 0;
 
-// TODO WGJA WIP: #define copy_page(from,to) \
-// TODO WGJA WIP: __asm__("cld ; rep ; movsl": :"S" (from),"D" (to),"c" (1024):"cx","di","si")
+#define copy_page(to,from)	memcpy((void *)(to), (void *)(from), PAGE_SIZE)
 
 unsigned short * mem_map = (unsigned short *) NULL;
 
-// TODO WGJA WIP: #define CODE_SPACE(addr,p) ((addr) < (p)->end_code)
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * oom() prints a message (so that the user knows why the process died),
-// TODO WGJA WIP:  * and gives the process an untrappable SIGSEGV.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: void oom(struct task_struct * task)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	printk("\nout of memory\n");
-// TODO WGJA WIP: 	task->sigaction[SIGKILL-1].sa_handler = NULL;
-// TODO WGJA WIP: 	task->blocked &= ~(1<<(SIGKILL-1));
-// TODO WGJA WIP: 	send_sig(SIGKILL,task,1);
-// TODO WGJA WIP: }
+#define CODE_SPACE(addr,p) ((addr) < (p)->end_code)
+
+/*
+ * oom() prints a message (so that the user knows why the process died),
+ * and gives the process an untrappable SIGSEGV.
+ */
+void oom(struct task_struct * task)
+{
+	printk("\nout of memory\n");
+	task->sigaction[SIGKILL-1].sa_handler = NULL;
+	task->blocked &= ~(1<<(SIGKILL-1));
+	send_sig(SIGKILL,task,1);
+}
 
 static void free_one_table(unsigned long * page_dir)
 {
@@ -534,117 +533,117 @@ int copy_page_tables(struct task_struct * tsk)
 // TODO WGJA WIP: /* no need for invalidate */
 // TODO WGJA WIP: 	return page;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This routine handles present pages, when users try to write
-// TODO WGJA WIP:  * to a shared page. It is done by copying the page to a new address
-// TODO WGJA WIP:  * and decrementing the shared-page counter for the old page.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Note that we do many checks twice (look at do_wp_page()), as
-// TODO WGJA WIP:  * we have to be careful about race-conditions.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Goto-purists beware: the only reason for goto's here is that it results
-// TODO WGJA WIP:  * in better assembly code.. The "default" path will see no jumps at all.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: static void __do_wp_page(unsigned long error_code, unsigned long address,
-// TODO WGJA WIP: 	struct task_struct * tsk, unsigned long user_esp)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long *pde, pte, old_page, prot;
-// TODO WGJA WIP: 	unsigned long new_page;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	new_page = __get_free_page(GFP_KERNEL);
-// TODO WGJA WIP: 	pde = PAGE_DIR_OFFSET(tsk->tss.cr3,address);
-// TODO WGJA WIP: 	pte = *pde;
-// TODO WGJA WIP: 	if (!(pte & PAGE_PRESENT))
-// TODO WGJA WIP: 		goto end_wp_page;
-// TODO WGJA WIP: 	if ((pte & PAGE_TABLE) != PAGE_TABLE || pte >= high_memory)
-// TODO WGJA WIP: 		goto bad_wp_pagetable;
-// TODO WGJA WIP: 	pte &= PAGE_MASK;
-// TODO WGJA WIP: 	pte += PAGE_PTR(address);
-// TODO WGJA WIP: 	old_page = *(unsigned long *) pte;
-// TODO WGJA WIP: 	if (!(old_page & PAGE_PRESENT))
-// TODO WGJA WIP: 		goto end_wp_page;
-// TODO WGJA WIP: 	if (old_page >= high_memory)
-// TODO WGJA WIP: 		goto bad_wp_page;
-// TODO WGJA WIP: 	if (old_page & PAGE_RW)
-// TODO WGJA WIP: 		goto end_wp_page;
-// TODO WGJA WIP: 	tsk->min_flt++;
-// TODO WGJA WIP: 	prot = (old_page & ~PAGE_MASK) | PAGE_RW;
-// TODO WGJA WIP: 	old_page &= PAGE_MASK;
-// TODO WGJA WIP: 	if (mem_map[MAP_NR(old_page)] != 1) {
-// TODO WGJA WIP: 		if (new_page) {
-// TODO WGJA WIP: 			if (mem_map[MAP_NR(old_page)] & MAP_PAGE_RESERVED)
-// TODO WGJA WIP: 				++tsk->rss;
-// TODO WGJA WIP: 			copy_page(old_page,new_page);
-// TODO WGJA WIP: 			*(unsigned long *) pte = new_page | prot;
-// TODO WGJA WIP: 			free_page(old_page);
-// TODO WGJA WIP: 			invalidate();
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		free_page(old_page);
-// TODO WGJA WIP: 		oom(tsk);
-// TODO WGJA WIP: 		*(unsigned long *) pte = BAD_PAGE | prot;
-// TODO WGJA WIP: 		invalidate();
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	*(unsigned long *) pte |= PAGE_RW;
-// TODO WGJA WIP: 	invalidate();
-// TODO WGJA WIP: 	if (new_page)
-// TODO WGJA WIP: 		free_page(new_page);
-// TODO WGJA WIP: 	return;
-// TODO WGJA WIP: bad_wp_page:
-// TODO WGJA WIP: 	printk("do_wp_page: bogus page at address %08x (%08x)\n",address,old_page);
-// TODO WGJA WIP: 	*(unsigned long *) pte = BAD_PAGE | PAGE_SHARED;
-// TODO WGJA WIP: 	send_sig(SIGKILL, tsk, 1);
-// TODO WGJA WIP: 	goto end_wp_page;
-// TODO WGJA WIP: bad_wp_pagetable:
-// TODO WGJA WIP: 	printk("do_wp_page: bogus page-table at address %08x (%08x)\n",address,pte);
-// TODO WGJA WIP: 	*pde = BAD_PAGETABLE | PAGE_TABLE;
-// TODO WGJA WIP: 	send_sig(SIGKILL, tsk, 1);
-// TODO WGJA WIP: end_wp_page:
-// TODO WGJA WIP: 	if (new_page)
-// TODO WGJA WIP: 		free_page(new_page);
-// TODO WGJA WIP: 	return;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * check that a page table change is actually needed, and call
-// TODO WGJA WIP:  * the low-level function only in that case..
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: void do_wp_page(unsigned long error_code, unsigned long address,
-// TODO WGJA WIP: 	struct task_struct * tsk, unsigned long user_esp)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long page;
-// TODO WGJA WIP: 	unsigned long * pg_table;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	pg_table = PAGE_DIR_OFFSET(tsk->tss.cr3,address);
-// TODO WGJA WIP: 	page = *pg_table;
-// TODO WGJA WIP: 	if (!page)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	if ((page & PAGE_PRESENT) && page < high_memory) {
-// TODO WGJA WIP: 		pg_table = (unsigned long *) ((page & PAGE_MASK) + PAGE_PTR(address));
-// TODO WGJA WIP: 		page = *pg_table;
-// TODO WGJA WIP: 		if (!(page & PAGE_PRESENT))
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 		if (page & PAGE_RW)
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 		if (!(page & PAGE_COW)) {
-// TODO WGJA WIP: 			if (user_esp && tsk == current) {
-// TODO WGJA WIP: 				send_sig(SIGSEGV, tsk, 1);
-// TODO WGJA WIP: 				return;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (mem_map[MAP_NR(page)] == 1) {
-// TODO WGJA WIP: 			*pg_table |= PAGE_RW | PAGE_DIRTY;
-// TODO WGJA WIP: 			invalidate();
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		__do_wp_page(error_code, address, tsk, user_esp);
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	printk("bad page directory entry %08x\n",page);
-// TODO WGJA WIP: 	*pg_table = 0;
-// TODO WGJA WIP: }
+
+/*
+ * This routine handles present pages, when users try to write
+ * to a shared page. It is done by copying the page to a new address
+ * and decrementing the shared-page counter for the old page.
+ *
+ * Note that we do many checks twice (look at do_wp_page()), as
+ * we have to be careful about race-conditions.
+ *
+ * Goto-purists beware: the only reason for goto's here is that it results
+ * in better assembly code.. The "default" path will see no jumps at all.
+ */
+static void __do_wp_page(unsigned long error_code, unsigned long address,
+	struct task_struct * tsk, unsigned long user_esp)
+{
+	unsigned long *pde, pte, old_page, prot;
+	unsigned long new_page;
+
+	new_page = __get_free_page(GFP_KERNEL);
+	pde = PAGE_DIR_OFFSET(tsk->tss.cr3,address);
+	pte = *pde;
+	if (!(pte & PAGE_PRESENT))
+		goto end_wp_page;
+	if ((pte & PAGE_TABLE) != PAGE_TABLE || pte >= high_memory)
+		goto bad_wp_pagetable;
+	pte &= PAGE_MASK;
+	pte += PAGE_PTR(address);
+	old_page = *(unsigned long *) pte;
+	if (!(old_page & PAGE_PRESENT))
+		goto end_wp_page;
+	if (old_page >= high_memory)
+		goto bad_wp_page;
+	if (old_page & PAGE_RW)
+		goto end_wp_page;
+	tsk->min_flt++;
+	prot = (old_page & ~PAGE_MASK) | PAGE_RW;
+	old_page &= PAGE_MASK;
+	if (mem_map[MAP_NR(old_page)] != 1) {
+		if (new_page) {
+			if (mem_map[MAP_NR(old_page)] & MAP_PAGE_RESERVED)
+				++tsk->rss;
+			copy_page(old_page,new_page);
+			*(unsigned long *) pte = new_page | prot;
+			free_page(old_page);
+			invalidate();
+			return;
+		}
+		free_page(old_page);
+		oom(tsk);
+		*(unsigned long *) pte = BAD_PAGE | prot;
+		invalidate();
+		return;
+	}
+	*(unsigned long *) pte |= PAGE_RW;
+	invalidate();
+	if (new_page)
+		free_page(new_page);
+	return;
+bad_wp_page:
+	printk("do_wp_page: bogus page at address %08x (%08x)\n",address,old_page);
+	*(unsigned long *) pte = BAD_PAGE | PAGE_SHARED;
+	send_sig(SIGKILL, tsk, 1);
+	goto end_wp_page;
+bad_wp_pagetable:
+	printk("do_wp_page: bogus page-table at address %08x (%08x)\n",address,pte);
+	*pde = BAD_PAGETABLE | PAGE_TABLE;
+	send_sig(SIGKILL, tsk, 1);
+end_wp_page:
+	if (new_page)
+		free_page(new_page);
+	return;
+}
+
+/*
+ * check that a page table change is actually needed, and call
+ * the low-level function only in that case..
+ */
+void do_wp_page(unsigned long error_code, unsigned long address,
+	struct task_struct * tsk, unsigned long user_esp)
+{
+	unsigned long page;
+	unsigned long * pg_table;
+
+	pg_table = PAGE_DIR_OFFSET(tsk->tss.cr3,address);
+	page = *pg_table;
+	if (!page)
+		return;
+	if ((page & PAGE_PRESENT) && page < high_memory) {
+		pg_table = (unsigned long *) ((page & PAGE_MASK) + PAGE_PTR(address));
+		page = *pg_table;
+		if (!(page & PAGE_PRESENT))
+			return;
+		if (page & PAGE_RW)
+			return;
+		if (!(page & PAGE_COW)) {
+			if (user_esp && tsk == current) {
+				send_sig(SIGSEGV, tsk, 1);
+				return;
+			}
+		}
+		if (mem_map[MAP_NR(page)] == 1) {
+			*pg_table |= PAGE_RW | PAGE_DIRTY;
+			invalidate();
+			return;
+		}
+		__do_wp_page(error_code, address, tsk, user_esp);
+		return;
+	}
+	printk("bad page directory entry %08x\n",page);
+	*pg_table = 0;
+}
 
 int verify_area(int type, void * addr, unsigned long size)
 {
@@ -911,44 +910,45 @@ int verify_area(int type, void * addr, unsigned long size)
 // TODO WGJA WIP: 	die_if_kernel("Oops", regs, error_code);
 // TODO WGJA WIP: 	do_exit(SIGKILL);
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * BAD_PAGE is the page that is used for page faults when linux
-// TODO WGJA WIP:  * is out-of-memory. Older versions of linux just did a
-// TODO WGJA WIP:  * do_exit(), but using this instead means there is less risk
-// TODO WGJA WIP:  * for a process dying in kernel mode, possibly leaving a inode
-// TODO WGJA WIP:  * unused etc..
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * BAD_PAGETABLE is the accompanying page-table: it is initialized
-// TODO WGJA WIP:  * to point to BAD_PAGE entries.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * ZERO_PAGE is a special page that is used for zero-initialized
-// TODO WGJA WIP:  * data and COW.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: unsigned long __bad_pagetable(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	extern char empty_bad_page_table[PAGE_SIZE];
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	__asm__ __volatile__("cld ; rep ; stosl":
-// TODO WGJA WIP: 		:"a" (BAD_PAGE + PAGE_TABLE),
-// TODO WGJA WIP: 		 "D" ((long) empty_bad_page_table),
-// TODO WGJA WIP: 		 "c" (PTRS_PER_PAGE)
-// TODO WGJA WIP: 		:"di","cx");
-// TODO WGJA WIP: 	return (unsigned long) empty_bad_page_table;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: unsigned long __bad_page(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	extern char empty_bad_page[PAGE_SIZE];
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	__asm__ __volatile__("cld ; rep ; stosl":
-// TODO WGJA WIP: 		:"a" (0),
-// TODO WGJA WIP: 		 "D" ((long) empty_bad_page),
-// TODO WGJA WIP: 		 "c" (PTRS_PER_PAGE)
-// TODO WGJA WIP: 		:"di","cx");
-// TODO WGJA WIP: 	return (unsigned long) empty_bad_page;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+/*
+ * BAD_PAGE is the page that is used for page faults when linux
+ * is out-of-memory. Older versions of linux just did a
+ * do_exit(), but using this instead means there is less risk
+ * for a process dying in kernel mode, possibly leaving a inode
+ * unused etc..
+ *
+ * BAD_PAGETABLE is the accompanying page-table: it is initialized
+ * to point to BAD_PAGE entries.
+ *
+ * ZERO_PAGE is a special page that is used for zero-initialized
+ * data and COW.
+ */
+unsigned long __bad_pagetable(void)
+{
+	extern char empty_bad_page_table[PAGE_SIZE];
+
+	__asm__ __volatile__("cld ; rep ; stosl":
+		:"a" (BAD_PAGE + PAGE_TABLE),
+		 "D" ((long) empty_bad_page_table),
+		 "c" (PTRS_PER_PAGE)
+		:"di","cx");
+	return (unsigned long) empty_bad_page_table;
+}
+
+unsigned long __bad_page(void)
+{
+	printk("TODO __bad_page\n");for(;;); // TODO WGJA __bad_page
+	extern char empty_bad_page[PAGE_SIZE];
+
+	// __asm__ __volatile__("cld ; rep ; stosl":
+	// 	:"a" (0),
+	// 	 "D" ((long) empty_bad_page),
+	// 	 "c" (PTRS_PER_PAGE)
+	// 	:"di","cx");
+	return (unsigned long) empty_bad_page;
+}
+
 // TODO WGJA WIP: unsigned long __zero_page(void)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	extern char empty_zero_page[PAGE_SIZE];

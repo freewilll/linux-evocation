@@ -10,6 +10,8 @@
 static inline _syscall0(int,fork)
 static inline _syscall0(int,idle)
 static inline _syscall3(int,open,const char *,file,int,flag,int,mode)
+static inline _syscall3(int,read,unsigned int,fd,char *,buf,unsigned int,count)
+
 
 // TODO WGJA log_to_console & real prink
 int log_to_console = 1;
@@ -165,13 +167,6 @@ void test_kmalloc()
 	}
 }
 
-// TODO WGJA iput
-void iput(struct inode * inode)
-{
-	printk("TODO iput\n");
-	for (;;);
-}
-
 // TODO WGJA do_page_fault
 extern "C" void do_page_fault(struct pt_regs *regs, unsigned long error_code)
 {
@@ -238,23 +233,24 @@ void init_test_keyboard()
 
 void test_dev_zero()
 {
-	int fh;
-	fh = open("/dev/zero", O_RDWR, 0);
-	printk("fh=%d\n", fh);
+	int fd;
+	char buffer[16];
+	int c;
+
+	fd = open("/dev/zero", O_RDWR, 0);
+	if (fd < 0) panic("Bad /dev/zero\n");
+
+	printk("fd=%d\n", fd);
+	c = read(fd, buffer, 10);
+	printk("Read %d bytes\n", c);
+	printk("First byte: %d\n", buffer[0]);
+
 }
 
 // TODO WGJA wait_for_keypress
 void wait_for_keypress()
 {
 	printk("TODO: wait_for_keypress()\n");
-}
-
-// TODO WGJA do_wp_page
-void do_wp_page(unsigned long error_code, unsigned long address,
-	struct task_struct * tsk, unsigned long user_esp)
-{
-	printk("TODO: do_wp_page\n");
-	for (;;);
 }
 
 // TODO WGJA generic_mmap

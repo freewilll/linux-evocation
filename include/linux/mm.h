@@ -46,15 +46,15 @@ struct vm_area_struct {
 // TODO WGJA WIP: 	void (*wppage)(struct vm_area_struct * area, unsigned long address);
 // TODO WGJA WIP: 	int (*share)(struct vm_area_struct * from, struct vm_area_struct * to, unsigned long address);
 // TODO WGJA WIP: };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern unsigned long __bad_page(void);
-// TODO WGJA WIP: extern unsigned long __bad_pagetable(void);
+
+extern unsigned long __bad_page(void);
+extern unsigned long __bad_pagetable(void);
 // TODO WGJA WIP: extern unsigned long __zero_page(void);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define BAD_PAGETABLE __bad_pagetable()
-// TODO WGJA WIP: #define BAD_PAGE __bad_page()
-// TODO WGJA WIP: #define ZERO_PAGE __zero_page()
-// TODO WGJA WIP: 
+
+#define BAD_PAGETABLE __bad_pagetable()
+#define BAD_PAGE __bad_page()
+#define ZERO_PAGE __zero_page()
+
 // TODO WGJA WIP: extern volatile short free_page_ptr; /* used by malloc and tcp/ip. */
 // TODO WGJA WIP: 
 extern int nr_swap_pages;
@@ -112,7 +112,7 @@ extern unsigned long paging_init(unsigned long start_mem, unsigned long end_mem)
 extern void mem_init(unsigned long low_start_mem,
 		     unsigned long start_mem, unsigned long end_mem);
 // TODO WGJA WIP: extern void show_mem(void);
-// TODO WGJA WIP: extern void oom(struct task_struct * task);
+extern void oom(struct task_struct * task);
 // TODO WGJA WIP: extern void si_meminfo(struct sysinfo * val);
 
 /* swap.c */

@@ -10,8 +10,8 @@ extern int sys_todo();
 extern int sys_setup();
 // TODO WGJA WIP: extern int sys_exit();
 extern int sys_fork();
-// TODO WGJA WIP: extern int sys_read();
-// TODO WGJA WIP: extern int sys_write();
+extern int sys_read();
+extern int sys_write();
 extern int sys_open(const char * filename, int flags, int mode);
 // TODO WGJA WIP: extern int sys_close();
 // TODO WGJA WIP: extern int sys_waitpid();
@@ -26,7 +26,7 @@ extern int sys_open(const char * filename, int flags, int mode);
 // TODO WGJA WIP: extern int sys_chown();
 // TODO WGJA WIP: extern int sys_break();
 // TODO WGJA WIP: extern int sys_stat();
-// TODO WGJA WIP: extern int sys_lseek();
+extern int sys_lseek();
 // TODO WGJA WIP: extern int sys_getpid();
 // TODO WGJA WIP: extern int sys_mount();
 // TODO WGJA WIP: extern int sys_umount();
@@ -96,7 +96,7 @@ extern int sys_sync();
 // TODO WGJA WIP: extern int sys_uselib();
 // TODO WGJA WIP: extern int sys_swapon();
 // TODO WGJA WIP: extern int sys_reboot();
-// TODO WGJA WIP: extern int sys_readdir();
+extern int sys_readdir();
 // TODO WGJA WIP: extern int sys_mmap();
 // TODO WGJA WIP: extern int sys_munmap();
 // TODO WGJA WIP: extern int sys_truncate();
@@ -153,8 +153,8 @@ fn_ptr sys_call_table[] = {
   sys_setup, 			// #define __NR_setup		  0
   sys_todo, 			// #define __NR_exit		  1
   sys_fork, 			// #define __NR_fork		  2      Done
-  sys_todo, 			// #define __NR_read		  3
-  sys_todo, 			// #define __NR_write		  4
+  sys_read, 			// #define __NR_read		  3      Done
+  sys_write, 			// #define __NR_write		  4     Done
   sys_open, 			// #define __NR_open		  5      Done
   sys_todo, 			// #define __NR_close		  6
   sys_todo, 			// #define __NR_waitpid		  7
@@ -169,7 +169,7 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_chown		 16
   sys_todo, 			// #define __NR_break		 17
   sys_todo, 			// #define __NR_oldstat		 18
-  sys_todo, 			// #define __NR_lseek		 19
+  sys_lseek, 			// #define __NR_lseek		 19    Done
   sys_todo, 			// #define __NR_getpid		 20
   sys_todo, 			// #define __NR_mount		 21
   sys_todo, 			// #define __NR_umount		 22
@@ -239,7 +239,7 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_uselib		 86
   sys_todo, 			// #define __NR_swapon		 87
   sys_todo, 			// #define __NR_reboot		 88
-  sys_todo, 			// #define __NR_readdir		 89
+  sys_readdir, 			// #define __NR_readdir		 89    Done
   sys_todo, 			// #define __NR_mmap		 90
   sys_todo, 			// #define __NR_munmap		 91
   sys_todo, 			// #define __NR_truncate	 92

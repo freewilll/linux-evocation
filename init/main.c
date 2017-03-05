@@ -499,6 +499,8 @@ void init(void)
 
 	setup((void *) &drive_info);
 
+	test_dev_zero();
+
 	printk("TODO: rest of init()\n");
 	cli();asm("hlt");
 // TODO WGJA WIP: 	(void) open("/dev/tty1",O_RDWR,0);
