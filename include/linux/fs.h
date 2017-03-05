@@ -74,7 +74,7 @@ extern unsigned long file_table_init(unsigned long start, unsigned long end);
 #define MINOR(a) ((a)&0xff)
 
 #ifndef NULL
-#define NULL ((void *) 0)
+#define NULL 0
 #endif
 
 #define NIL_FILP	((struct file *)0)

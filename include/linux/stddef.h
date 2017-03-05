@@ -7,7 +7,7 @@ typedef unsigned int size_t;
 #endif
 
 #undef NULL
-#define NULL ((void *)0)
+#define NULL 0
 
 #undef offsetof
 #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)

@@ -3,9 +3,9 @@
 
 #include <linux/types.h>	/* for size_t */
 
-// TODO WGJA WIP: #ifndef NULL
-// TODO WGJA WIP: #define NULL ((void *) 0)
-// TODO WGJA WIP: #endif
+#ifndef NULL
+#define NULL 0
+#endif
 
 /*
  * This string-include defines all string functions as inline

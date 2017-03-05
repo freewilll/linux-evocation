@@ -27,7 +27,7 @@ typedef long time_t;
 // TODO WGJA WIP: #endif
 
 #ifndef NULL
-#define NULL ((void *) 0)
+#define NULL 0
 #endif
 
 typedef int pid_t;

@@ -75,7 +75,7 @@
 #define TASK_SWAPPING		5
 
 #ifndef NULL
-#define NULL ((void *) 0)
+#define NULL 0
 #endif
 
 #ifdef __KERNEL__
