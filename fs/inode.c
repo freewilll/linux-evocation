@@ -1,4 +1,3 @@
-#pragma GCC diagnostic ignored "-fpermissive"
 /*
  *  linux/fs/inode.c
  *

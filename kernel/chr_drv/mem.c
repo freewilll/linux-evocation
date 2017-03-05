@@ -1,4 +1,3 @@
-#pragma GCC diagnostic ignored "-fpermissive"
 /*
  *  linux/kernel/chr_drv/mem.c
  *

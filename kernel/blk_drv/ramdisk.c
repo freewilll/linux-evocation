@@ -1,4 +1,3 @@
-#pragma GCC diagnostic ignored "-fpermissive"
 /*
  *  linux/kernel/blk_drv/ramdisk.c
  *

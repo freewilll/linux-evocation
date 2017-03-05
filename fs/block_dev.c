@@ -1,4 +1,3 @@
-#pragma GCC diagnostic ignored "-fpermissive"
 /*
  *  linux/fs/block_dev.c
  *
