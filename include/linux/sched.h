@@ -27,32 +27,32 @@
  */
 #define IO_BITMAP_SIZE	32
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * These are the constant used to fake the fixed-point load-average
-// TODO WGJA WIP:  * counting. Some notes:
-// TODO WGJA WIP:  *  - 11 bit fractions expand to 22 bits by the multiplies: this gives
-// TODO WGJA WIP:  *    a load-average precision of 10 bits integer + 11 bits fractional
-// TODO WGJA WIP:  *  - if you want to count load-averages more often, you need more
-// TODO WGJA WIP:  *    precision, or rounding will get you. With 2-second counting freq,
-// TODO WGJA WIP:  *    the EXP_n values would be 1981, 2034 and 2043 if still using only
-// TODO WGJA WIP:  *    11 bit fractions.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: extern unsigned long avenrun[];		/* Load averages */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define FSHIFT		11		/* nr of bits of precision */
-// TODO WGJA WIP: #define FIXED_1		(1<<FSHIFT)	/* 1.0 as fixed-point */
-// TODO WGJA WIP: #define LOAD_FREQ	(5*HZ)		/* 5 sec intervals */
-// TODO WGJA WIP: #define EXP_1		1884		/* 1/exp(5sec/1min) as fixed-point */
-// TODO WGJA WIP: #define EXP_5		2014		/* 1/exp(5sec/5min) */
-// TODO WGJA WIP: #define EXP_15		2037		/* 1/exp(5sec/15min) */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define CALC_LOAD(load,exp,n) \
-// TODO WGJA WIP: 	load *= exp; \
-// TODO WGJA WIP: 	load += n*(FIXED_1-exp); \
-// TODO WGJA WIP: 	load >>= FSHIFT;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define CT_TO_SECS(x)	((x) / HZ)
-// TODO WGJA WIP: #define CT_TO_USECS(x)	(((x) % HZ) * 1000000/HZ)
+/*
+ * These are the constant used to fake the fixed-point load-average
+ * counting. Some notes:
+ *  - 11 bit fractions expand to 22 bits by the multiplies: this gives
+ *    a load-average precision of 10 bits integer + 11 bits fractional
+ *  - if you want to count load-averages more often, you need more
+ *    precision, or rounding will get you. With 2-second counting freq,
+ *    the EXP_n values would be 1981, 2034 and 2043 if still using only
+ *    11 bit fractions.
+ */
+extern unsigned long avenrun[];		/* Load averages */
+
+#define FSHIFT		11		/* nr of bits of precision */
+#define FIXED_1		(1<<FSHIFT)	/* 1.0 as fixed-point */
+#define LOAD_FREQ	(5*HZ)		/* 5 sec intervals */
+#define EXP_1		1884		/* 1/exp(5sec/1min) as fixed-point */
+#define EXP_5		2014		/* 1/exp(5sec/5min) */
+#define EXP_15		2037		/* 1/exp(5sec/15min) */
+
+#define CALC_LOAD(load,exp,n) \
+	load *= exp; \
+	load += n*(FIXED_1-exp); \
+	load >>= FSHIFT;
+
+#define CT_TO_SECS(x)	((x) / HZ)
+#define CT_TO_USECS(x)	(((x) % HZ) * 1000000/HZ)
 
 #define FIRST_TASK task[0]
 #define LAST_TASK task[NR_TASKS-1]
@@ -81,9 +81,9 @@
 #ifdef __KERNEL__
 
 extern void sched_init(void);
-// TODO WGJA WIP: extern void show_state(void);
+extern void show_state(void);
 extern void trap_init(void);
-// TODO WGJA WIP: extern void panic(const char * str);
+extern void panic(const char * str);
 
 extern "C" void schedule(void);
 
@@ -300,7 +300,7 @@ extern void interruptible_sleep_on(struct wait_queue ** p);
 extern void wake_up(struct wait_queue ** p);
 extern void wake_up_interruptible(struct wait_queue ** p);
 
-// TODO WGJA WIP: extern void notify_parent(struct task_struct * tsk);
+extern void notify_parent(struct task_struct * tsk);
 extern int send_sig(unsigned long sig,struct task_struct * p,int priv);
 extern int in_group_p(gid_t grp);
 
@@ -356,33 +356,33 @@ __asm__( \
 	 "b" (((char *)&tsk->tss.tr)-4) \
 	:)
 
-// TODO WGJA WIP: #define _set_base(addr,base) \
-// TODO WGJA WIP: __asm__("movw %%dx,%0\n\t" \
-// TODO WGJA WIP: 	"rorl $16,%%edx\n\t" \
-// TODO WGJA WIP: 	"movb %%dl,%1\n\t" \
-// TODO WGJA WIP: 	"movb %%dh,%2" \
-// TODO WGJA WIP: 	: /* no output */ \
-// TODO WGJA WIP: 	:"m" (*((addr)+2)), \
-// TODO WGJA WIP: 	 "m" (*((addr)+4)), \
-// TODO WGJA WIP: 	 "m" (*((addr)+7)), \
-// TODO WGJA WIP: 	 "d" (base) \
-// TODO WGJA WIP: 	:"dx")
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define _set_limit(addr,limit) \
-// TODO WGJA WIP: __asm__("movw %%dx,%0\n\t" \
-// TODO WGJA WIP: 	"rorl $16,%%edx\n\t" \
-// TODO WGJA WIP: 	"movb %1,%%dh\n\t" \
-// TODO WGJA WIP: 	"andb $0xf0,%%dh\n\t" \
-// TODO WGJA WIP: 	"orb %%dh,%%dl\n\t" \
-// TODO WGJA WIP: 	"movb %%dl,%1" \
-// TODO WGJA WIP: 	: /* no output */ \
-// TODO WGJA WIP: 	:"m" (*(addr)), \
-// TODO WGJA WIP: 	 "m" (*((addr)+6)), \
-// TODO WGJA WIP: 	 "d" (limit) \
-// TODO WGJA WIP: 	:"dx")
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define set_base(ldt,base) _set_base( ((char *)&(ldt)) , base )
-// TODO WGJA WIP: #define set_limit(ldt,limit) _set_limit( ((char *)&(ldt)) , (limit-1)>>12 )
+#define _set_base(addr,base) \
+__asm__("movw %%dx,%0\n\t" \
+	"rorl $16,%%edx\n\t" \
+	"movb %%dl,%1\n\t" \
+	"movb %%dh,%2" \
+	: /* no output */ \
+	:"m" (*((addr)+2)), \
+	 "m" (*((addr)+4)), \
+	 "m" (*((addr)+7)), \
+	 "d" (base) \
+	:"dx")
+
+#define _set_limit(addr,limit) \
+__asm__("movw %%dx,%0\n\t" \
+	"rorl $16,%%edx\n\t" \
+	"movb %1,%%dh\n\t" \
+	"andb $0xf0,%%dh\n\t" \
+	"orb %%dh,%%dl\n\t" \
+	"movb %%dl,%1" \
+	: /* no output */ \
+	:"m" (*(addr)), \
+	 "m" (*((addr)+6)), \
+	 "d" (limit) \
+	:"dx")
+
+#define set_base(ldt,base) _set_base( ((char *)&(ldt)) , base )
+#define set_limit(ldt,limit) _set_limit( ((char *)&(ldt)) , (limit-1)>>12 )
 
 /*
  * The wait-queues are circular lists, and you have to be *very* sure
@@ -468,29 +468,29 @@ extern inline void select_wait(struct wait_queue ** wait_address, select_table *
 	p->nr++;
 }
 
-// TODO WGJA WIP: static inline unsigned long _get_base(char * addr)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long __base;
-// TODO WGJA WIP: 	__asm__("movb %3,%%dh\n\t"
-// TODO WGJA WIP: 		"movb %2,%%dl\n\t"
-// TODO WGJA WIP: 		"shll $16,%%edx\n\t"
-// TODO WGJA WIP: 		"movw %1,%%dx"
-// TODO WGJA WIP: 		:"=&d" (__base)
-// TODO WGJA WIP: 		:"m" (*((addr)+2)),
-// TODO WGJA WIP: 		 "m" (*((addr)+4)),
-// TODO WGJA WIP: 		 "m" (*((addr)+7)));
-// TODO WGJA WIP: 	return __base;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define get_base(ldt) _get_base( ((char *)&(ldt)) )
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static inline unsigned long get_limit(unsigned long segment)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long __limit;
-// TODO WGJA WIP: 	__asm__("lsll %1,%0"
-// TODO WGJA WIP: 		:"=r" (__limit):"r" (segment));
-// TODO WGJA WIP: 	return __limit+1;
-// TODO WGJA WIP: }
+static inline unsigned long _get_base(char * addr)
+{
+	unsigned long __base;
+	__asm__("movb %3,%%dh\n\t"
+		"movb %2,%%dl\n\t"
+		"shll $16,%%edx\n\t"
+		"movw %1,%%dx"
+		:"=&d" (__base)
+		:"m" (*((addr)+2)),
+		 "m" (*((addr)+4)),
+		 "m" (*((addr)+7)));
+	return __base;
+}
+
+#define get_base(ldt) _get_base( ((char *)&(ldt)) )
+
+static inline unsigned long get_limit(unsigned long segment)
+{
+	unsigned long __limit;
+	__asm__("lsll %1,%0"
+		:"=r" (__limit):"r" (segment));
+	return __limit+1;
+}
 
 #define REMOVE_LINKS(p) do { unsigned long flags; \
 	save_flags(flags) ; cli(); \
