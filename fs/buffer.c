@@ -900,76 +900,76 @@ void grow_buffers(int size)
 	return;
 }
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * try_to_free() checks if all the buffers on this particular page
-// TODO WGJA WIP:  * are unused, and free's the page if so.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: static int try_to_free(struct buffer_head * bh, struct buffer_head ** bhp)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long page;
-// TODO WGJA WIP: 	struct buffer_head * tmp, * p;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	*bhp = bh;
-// TODO WGJA WIP: 	page = (unsigned long) bh->b_data;
-// TODO WGJA WIP: 	page &= PAGE_MASK;
-// TODO WGJA WIP: 	tmp = bh;
-// TODO WGJA WIP: 	do {
-// TODO WGJA WIP: 		if (!tmp)
-// TODO WGJA WIP: 			return 0;
-// TODO WGJA WIP: 		if (tmp->b_count || tmp->b_dirt || tmp->b_lock)
-// TODO WGJA WIP: 			return 0;
-// TODO WGJA WIP: 		tmp = tmp->b_this_page;
-// TODO WGJA WIP: 	} while (tmp != bh);
-// TODO WGJA WIP: 	tmp = bh;
-// TODO WGJA WIP: 	do {
-// TODO WGJA WIP: 		p = tmp;
-// TODO WGJA WIP: 		tmp = tmp->b_this_page;
-// TODO WGJA WIP: 		nr_buffers--;
-// TODO WGJA WIP: 		if (p == *bhp)
-// TODO WGJA WIP: 			*bhp = p->b_prev_free;
-// TODO WGJA WIP: 		remove_from_queues(p);
-// TODO WGJA WIP: 		put_unused_buffer_head(p);
-// TODO WGJA WIP: 	} while (tmp != bh);
-// TODO WGJA WIP: 	buffermem -= PAGE_SIZE;
-// TODO WGJA WIP: 	free_page(page);
-// TODO WGJA WIP: 	return !mem_map[MAP_NR(page)];
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Try to free up some pages by shrinking the buffer-cache
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Priority tells the routine how hard to try to shrink the
-// TODO WGJA WIP:  * buffers: 3 means "don't bother too much", while a value
-// TODO WGJA WIP:  * of 0 means "we'd better get some free pages now".
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: int shrink_buffers(unsigned int priority)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct buffer_head *bh;
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (priority < 2)
-// TODO WGJA WIP: 		sync_buffers(0,0);
-// TODO WGJA WIP: 	bh = free_list;
-// TODO WGJA WIP: 	i = nr_buffers >> priority;
-// TODO WGJA WIP: 	for ( ; i-- > 0 ; bh = bh->b_next_free) {
-// TODO WGJA WIP: 		if (bh->b_count || !bh->b_this_page)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (bh->b_lock)
-// TODO WGJA WIP: 			if (priority)
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 			else
-// TODO WGJA WIP: 				wait_on_buffer(bh);
-// TODO WGJA WIP: 		if (bh->b_dirt) {
-// TODO WGJA WIP: 			bh->b_count++;
-// TODO WGJA WIP: 			ll_rw_block(WRITEA, 1, &bh);
-// TODO WGJA WIP: 			bh->b_count--;
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (try_to_free(bh, &bh))
-// TODO WGJA WIP: 			return 1;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
+/*
+ * try_to_free() checks if all the buffers on this particular page
+ * are unused, and free's the page if so.
+ */
+static int try_to_free(struct buffer_head * bh, struct buffer_head ** bhp)
+{
+	unsigned long page;
+	struct buffer_head * tmp, * p;
+
+	*bhp = bh;
+	page = (unsigned long) bh->b_data;
+	page &= PAGE_MASK;
+	tmp = bh;
+	do {
+		if (!tmp)
+			return 0;
+		if (tmp->b_count || tmp->b_dirt || tmp->b_lock)
+			return 0;
+		tmp = tmp->b_this_page;
+	} while (tmp != bh);
+	tmp = bh;
+	do {
+		p = tmp;
+		tmp = tmp->b_this_page;
+		nr_buffers--;
+		if (p == *bhp)
+			*bhp = p->b_prev_free;
+		remove_from_queues(p);
+		put_unused_buffer_head(p);
+	} while (tmp != bh);
+	buffermem -= PAGE_SIZE;
+	free_page(page);
+	return !mem_map[MAP_NR(page)];
+}
+
+/*
+ * Try to free up some pages by shrinking the buffer-cache
+ *
+ * Priority tells the routine how hard to try to shrink the
+ * buffers: 3 means "don't bother too much", while a value
+ * of 0 means "we'd better get some free pages now".
+ */
+int shrink_buffers(unsigned int priority)
+{
+	struct buffer_head *bh;
+	int i;
+
+	if (priority < 2)
+		sync_buffers(0,0);
+	bh = free_list;
+	i = nr_buffers >> priority;
+	for ( ; i-- > 0 ; bh = bh->b_next_free) {
+		if (bh->b_count || !bh->b_this_page)
+			continue;
+		if (bh->b_lock)
+			if (priority)
+				continue;
+			else
+				wait_on_buffer(bh);
+		if (bh->b_dirt) {
+			bh->b_count++;
+			ll_rw_block(WRITEA, 1, &bh);
+			bh->b_count--;
+			continue;
+		}
+		if (try_to_free(bh, &bh))
+			return 1;
+	}
+	return 0;
+}
 
 /*
  * This initializes the initial buffer free list.  nr_buffers is set

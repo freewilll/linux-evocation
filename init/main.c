@@ -41,6 +41,7 @@ extern void test_page_map();
 extern void test_kmalloc();
 extern void init_test_keyboard();
 extern void test_dev_zero();
+extern void test_minix();
 
 /*
  * we need this inline - forking from kernel space will result
@@ -499,7 +500,8 @@ void init(void)
 
 	setup((void *) &drive_info);
 
-	test_dev_zero();
+	// test_dev_zero();
+	test_minix();cli(); // cli panics due to an unhandled trap
 
 	printk("TODO: rest of init()\n");
 	cli();asm("hlt");

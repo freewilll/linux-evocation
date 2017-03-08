@@ -11,6 +11,8 @@ static inline _syscall0(int,fork)
 static inline _syscall0(int,idle)
 static inline _syscall3(int,open,const char *,file,int,flag,int,mode)
 static inline _syscall3(int,read,unsigned int,fd,char *,buf,unsigned int,count)
+static inline _syscall3(int,readdir,unsigned int,fd,struct dirent *,dirent,unsigned int,count)
+static inline _syscall2(int,mkdir,const char *,pathname,int,mode)
 
 
 // TODO WGJA log_to_console & real prink
@@ -59,13 +61,6 @@ void sound_mem_init(void)
 int shm_swap(int prio)
 {
 	printk("TODO shm_swap\n");
-	return 0;
-}
-
-// TODO WGJA shrink_buffers
-int shrink_buffers(unsigned int prio)
-{
-	printk("TODO shrink_buffers\n");
 	return 0;
 }
 
@@ -238,7 +233,7 @@ void test_dev_zero()
 	int c;
 
 	fd = open("/dev/zero", O_RDWR, 0);
-	if (fd < 0) panic("Bad /dev/zero\n");
+	if (fd < 0) printk("Could not open /dev/zero: %d\n", fd);
 
 	printk("fd=%d\n", fd);
 	c = read(fd, buffer, 10);
@@ -260,4 +255,36 @@ int generic_mmap(struct inode * inode, struct file * file,
 	printk("TODO generic_mmap\n");
 	for (;;);
 
+}
+
+void test_minix_mkdir() {
+	int fd;
+	printk("\nmkdir\n");
+	fd = mkdir("/dir1", 0777);
+	printk("  fd=%d\n", fd);
+	fd = mkdir("/dir2", 0777);
+	printk("  fd=%d\n", fd);
+}
+
+void test_minix_readdir() 
+{
+	printk("\nreaddir\n");
+	int fd, c, i;
+	fd = open("/", O_RDONLY, 0);
+	if (fd < 0) printk("  Bad open\n");
+
+	dirent d[10];
+	c = 1;
+	while (c > 0) {
+		c = readdir(fd, d, 10);
+		if (c < 0) panic("Bad readdir");
+		if (c)
+			printk("   %d %s\n", d[i].d_ino, d[i].d_name);
+	}
+}
+
+void test_minix() 
+{
+	test_minix_mkdir();
+	test_minix_readdir();
 }
