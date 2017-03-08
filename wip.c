@@ -13,6 +13,7 @@ static inline _syscall3(int,open,const char *,file,int,flag,int,mode)
 static inline _syscall3(int,read,unsigned int,fd,char *,buf,unsigned int,count)
 static inline _syscall3(int,readdir,unsigned int,fd,struct dirent *,dirent,unsigned int,count)
 static inline _syscall2(int,mkdir,const char *,pathname,int,mode)
+static inline _syscall1(int,rmdir,const char*,pathname)
 
 
 // TODO WGJA log_to_console & real prink
@@ -283,8 +284,18 @@ void test_minix_readdir()
 	}
 }
 
+void test_minix_rmdir()
+{
+	printk("\nrmdir\n");
+	int r;
+	r = rmdir("/dir2");
+	if (r < 0) printk("  Bad rmdir\n");
+}
+
 void test_minix() 
 {
 	test_minix_mkdir();
+	test_minix_readdir();
+	test_minix_rmdir();
 	test_minix_readdir();
 }

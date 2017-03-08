@@ -466,47 +466,47 @@ extern "C" int sys_mkdir(const char * pathname, int mode)
 	return error;
 }
 
-// TODO WGJA WIP: static int do_rmdir(const char * name)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	const char * basename;
-// TODO WGJA WIP: 	int namelen, error;
-// TODO WGJA WIP: 	struct inode * dir;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	error = dir_namei(name,&namelen,&basename,NULL,&dir);
-// TODO WGJA WIP: 	if (error)
-// TODO WGJA WIP: 		return error;
-// TODO WGJA WIP: 	if (!namelen) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -ENOENT;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (IS_RDONLY(dir)) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EROFS;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!permission(dir,MAY_WRITE | MAY_EXEC)) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EACCES;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!dir->i_op || !dir->i_op->rmdir) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return dir->i_op->rmdir(dir,basename,namelen);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_rmdir(const char * pathname)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int error;
-// TODO WGJA WIP: 	char * tmp;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	error = getname(pathname,&tmp);
-// TODO WGJA WIP: 	if (!error) {
-// TODO WGJA WIP: 		error = do_rmdir(tmp);
-// TODO WGJA WIP: 		putname(tmp);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return error;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+static int do_rmdir(const char * name)
+{
+	const char * basename;
+	int namelen, error;
+	struct inode * dir;
+
+	error = dir_namei(name,&namelen,&basename,NULL,&dir);
+	if (error)
+		return error;
+	if (!namelen) {
+		iput(dir);
+		return -ENOENT;
+	}
+	if (IS_RDONLY(dir)) {
+		iput(dir);
+		return -EROFS;
+	}
+	if (!permission(dir,MAY_WRITE | MAY_EXEC)) {
+		iput(dir);
+		return -EACCES;
+	}
+	if (!dir->i_op || !dir->i_op->rmdir) {
+		iput(dir);
+		return -EPERM;
+	}
+	return dir->i_op->rmdir(dir,basename,namelen);
+}
+
+extern "C" int sys_rmdir(const char * pathname)
+{
+	int error;
+	char * tmp;
+
+	error = getname(pathname,&tmp);
+	if (!error) {
+		error = do_rmdir(tmp);
+		putname(tmp);
+	}
+	return error;
+}
+
 // TODO WGJA WIP: static int do_unlink(const char * name)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	const char * basename;

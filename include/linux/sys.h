@@ -48,7 +48,7 @@ extern int sys_sync();
 // TODO WGJA WIP: extern int sys_kill();
 // TODO WGJA WIP: extern int sys_rename();
 extern int sys_mkdir();
-// TODO WGJA WIP: extern int sys_rmdir();
+extern int sys_rmdir();
 // TODO WGJA WIP: extern int sys_dup();
 extern int sys_pipe();
 // TODO WGJA WIP: extern int sys_times();
@@ -191,7 +191,7 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_kill		 37
   sys_todo, 			// #define __NR_rename		 38
   sys_mkdir, 			// #define __NR_mkdir		 39   Done
-  sys_todo, 			// #define __NR_rmdir		 40
+  sys_rmdir, 			// #define __NR_rmdir		 40  Done
   sys_todo, 			// #define __NR_dup		 41
   sys_pipe, 			// #define __NR_pipe		 42	Done
   sys_todo, 			// #define __NR_times		 43
