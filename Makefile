@@ -83,7 +83,7 @@ endif
 #
 
 # RAMDISK =
-RAMDISK = -DRAMDISK=1024
+RAMDISK ?= -DRAMDISK=1024
 
 AS86	=as86 -0 -a
 LD86	=ld86 -0
