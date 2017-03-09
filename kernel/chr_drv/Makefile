@@ -20,7 +20,7 @@
 # SUBDIRS= sound
 SUBDIRS=
 
-OBJS = mem.o
+OBJS = mem.o tty_io.o
 # OBJS  = tty_io.o console.o keyboard.o serial.o \
 # 	tty_ioctl.o pty.o lp.o vt.o mem.o mouse.o \
 # 	busmouse.o psaux.o msbusmouse.o atixlmouse.o \

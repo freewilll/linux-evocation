@@ -501,14 +501,15 @@ void init(void)
 	setup((void *) &drive_info);
 
 	// test_dev_zero();
-	test_minix();cli(); // cli panics due to an unhandled trap
+	// test_minix();cli(); // cli panics due to an unhandled trap
+
+	(void) open("/dev/tty1",O_RDWR,0);
+// TODO WGJA WIP: 	(void) dup(0);
+// TODO WGJA WIP: 	(void) dup(0);
 
 	printk("TODO: rest of init()\n");
-	cli();asm("hlt");
-// TODO WGJA WIP: 	(void) open("/dev/tty1",O_RDWR,0);
-// TODO WGJA WIP: 	(void) dup(0);
-// TODO WGJA WIP: 	(void) dup(0);
-// TODO WGJA WIP: 
+	for(;;) idle();
+
 // TODO WGJA WIP: 	// system_utsname.machine[1] = '0' + x86;	// TODO utsname
 // TODO WGJA WIP: 	// printf(linux_banner);			// TODO linux_banner
 // TODO WGJA WIP: 

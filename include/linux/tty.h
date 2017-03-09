@@ -5,16 +5,16 @@
  * 'tty.h' defines some structures used by tty_io.c and some defines.
  */
 
-// TODO WGJA WIP: #include <linux/termios.h>
+#include <linux/termios.h>
 
 #include <asm/system.h>
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define NR_CONSOLES	8
-// TODO WGJA WIP: #define NR_LDISCS	16
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * These are set up by the setup-routine at boot-time:
-// TODO WGJA WIP:  */
+
+#define NR_CONSOLES	8
+#define NR_LDISCS	16
+
+/*
+ * These are set up by the setup-routine at boot-time:
+ */
 
 struct screen_info {
 	unsigned char  orig_x;
@@ -52,23 +52,23 @@ extern struct screen_info screen_info;
 // TODO WGJA WIP:  * isn't in use (eg VINTR ahs no character etc)
 // TODO WGJA WIP:  */
 // TODO WGJA WIP: #define __DISABLED_CHAR '\0'
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * See comment for the tty_struct structure before changing
-// TODO WGJA WIP:  * TTY_BUF_SIZE.  Actually, there should be different sized tty_queue
-// TODO WGJA WIP:  * structures for different purposes.  1024 bytes for the transmit
-// TODO WGJA WIP:  * queue is way overkill.  TYT, 9/14/92
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: #define TTY_BUF_SIZE 1024	/* Must be a power of 2 */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct tty_queue {
-// TODO WGJA WIP: 	unsigned long data;
-// TODO WGJA WIP: 	unsigned long head;
-// TODO WGJA WIP: 	unsigned long tail;
-// TODO WGJA WIP: 	struct wait_queue * proc_list;
-// TODO WGJA WIP: 	unsigned char buf[TTY_BUF_SIZE];
-// TODO WGJA WIP: };
-// TODO WGJA WIP: 
+
+/*
+ * See comment for the tty_struct structure before changing
+ * TTY_BUF_SIZE.  Actually, there should be different sized tty_queue
+ * structures for different purposes.  1024 bytes for the transmit
+ * queue is way overkill.  TYT, 9/14/92
+ */
+#define TTY_BUF_SIZE 1024	/* Must be a power of 2 */
+
+struct tty_queue {
+	unsigned long data;
+	unsigned long head;
+	unsigned long tail;
+	struct wait_queue * proc_list;
+	unsigned char buf[TTY_BUF_SIZE];
+};
+
 // TODO WGJA WIP: struct serial_struct {
 // TODO WGJA WIP: 	int	type;
 // TODO WGJA WIP: 	int	line;
@@ -195,75 +195,75 @@ extern struct screen_info screen_info;
 // TODO WGJA WIP: #define C_RTSCTS(tty)	_C_FLAG((tty),CRTSCTS)
 // TODO WGJA WIP: #define C_SPEED(tty)	((tty)->termios->c_cflag & CBAUD)
 // TODO WGJA WIP: #define C_HUP(tty)	(C_SPEED((tty)) == B0)
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Where all of the state associated with a tty is kept while the tty
-// TODO WGJA WIP:  * is open.  Since the termios state should be kept even if the tty
-// TODO WGJA WIP:  * has been closed --- for things like the baud rate, etc --- it is
-// TODO WGJA WIP:  * not stored here, but rather a pointer to the real state is stored
-// TODO WGJA WIP:  * here.  Possible the winsize structure should have the same
-// TODO WGJA WIP:  * treatment, but (1) the default 80x24 is usually right and (2) it's
-// TODO WGJA WIP:  * most often used by a windowing system, which will set the correct
-// TODO WGJA WIP:  * size each time the window is created or resized anyway.
-// TODO WGJA WIP:  * IMPORTANT: since this structure is dynamically allocated, it must
-// TODO WGJA WIP:  * be no larger than 4096 bytes.  Changing TTY_BUF_SIZE will change
-// TODO WGJA WIP:  * the size of this structure, and it needs to be done with care.
-// TODO WGJA WIP:  * 						- TYT, 9/14/92
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: struct tty_struct {
-// TODO WGJA WIP: 	struct termios *termios;
-// TODO WGJA WIP: 	int pgrp;
-// TODO WGJA WIP: 	int session;
-// TODO WGJA WIP: 	unsigned char stopped:1, status_changed:1, packet:1, lnext:1;
-// TODO WGJA WIP: 	unsigned char char_error:2;
-// TODO WGJA WIP: 	unsigned char ctrl_status;
-// TODO WGJA WIP: 	short line;
-// TODO WGJA WIP: 	int disc;
-// TODO WGJA WIP: 	int flags;
-// TODO WGJA WIP: 	int count;
-// TODO WGJA WIP: 	int column;
-// TODO WGJA WIP: 	struct winsize winsize;
-// TODO WGJA WIP: 	int  (*open)(struct tty_struct * tty, struct file * filp);
-// TODO WGJA WIP: 	void (*close)(struct tty_struct * tty, struct file * filp);
-// TODO WGJA WIP: 	void (*write)(struct tty_struct * tty);
-// TODO WGJA WIP: 	int  (*ioctl)(struct tty_struct *tty, struct file * file,
-// TODO WGJA WIP: 		    unsigned int cmd, unsigned long arg);
-// TODO WGJA WIP: 	void (*throttle)(struct tty_struct * tty, int status);
-// TODO WGJA WIP: 	void (*set_termios)(struct tty_struct *tty, struct termios * old);
-// TODO WGJA WIP: 	void (*stop)(struct tty_struct *tty);
-// TODO WGJA WIP: 	void (*start)(struct tty_struct *tty);
-// TODO WGJA WIP: 	struct tty_struct *link;
-// TODO WGJA WIP: 	unsigned char *write_data_ptr;
-// TODO WGJA WIP: 	int write_data_cnt;
-// TODO WGJA WIP: 	void (*write_data_callback)(void * data);
-// TODO WGJA WIP: 	void * write_data_arg;
-// TODO WGJA WIP: 	int readq_flags[TTY_BUF_SIZE/32];
-// TODO WGJA WIP: 	struct tty_queue read_q;
-// TODO WGJA WIP: 	struct tty_queue write_q;
-// TODO WGJA WIP: 	struct tty_queue secondary;
-// TODO WGJA WIP: };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct tty_ldisc {
-// TODO WGJA WIP: 	int	flags;
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * The following routines are called from above.
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	int	(*open)(struct tty_struct *);
-// TODO WGJA WIP: 	void	(*close)(struct tty_struct *);
-// TODO WGJA WIP: 	int	(*read)(struct tty_struct * tty, struct file * file,
-// TODO WGJA WIP: 			char * buf, int nr);
-// TODO WGJA WIP: 	int	(*write)(struct tty_struct * tty, struct file * file,
-// TODO WGJA WIP: 			 char * buf, int nr);	
-// TODO WGJA WIP: 	int	(*ioctl)(struct tty_struct * tty, struct file * file,
-// TODO WGJA WIP: 			 unsigned int cmd, unsigned long arg);
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * The following routines are called from below.
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	void	(*handler)(struct tty_struct *);
-// TODO WGJA WIP: };
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define LDISC_FLAG_DEFINED	0x00000001
-// TODO WGJA WIP: 
+
+/*
+ * Where all of the state associated with a tty is kept while the tty
+ * is open.  Since the termios state should be kept even if the tty
+ * has been closed --- for things like the baud rate, etc --- it is
+ * not stored here, but rather a pointer to the real state is stored
+ * here.  Possible the winsize structure should have the same
+ * treatment, but (1) the default 80x24 is usually right and (2) it's
+ * most often used by a windowing system, which will set the correct
+ * size each time the window is created or resized anyway.
+ * IMPORTANT: since this structure is dynamically allocated, it must
+ * be no larger than 4096 bytes.  Changing TTY_BUF_SIZE will change
+ * the size of this structure, and it needs to be done with care.
+ * 						- TYT, 9/14/92
+ */
+struct tty_struct {
+	struct termios *termios;
+	int pgrp;
+	int session;
+	unsigned char stopped:1, status_changed:1, packet:1, lnext:1;
+	unsigned char char_error:2;
+	unsigned char ctrl_status;
+	short line;
+	int disc;
+	int flags;
+	int count;
+	int column;
+	struct winsize winsize;
+	int  (*open)(struct tty_struct * tty, struct file * filp);
+	void (*close)(struct tty_struct * tty, struct file * filp);
+	void (*write)(struct tty_struct * tty);
+	int  (*ioctl)(struct tty_struct *tty, struct file * file,
+		    unsigned int cmd, unsigned long arg);
+	void (*throttle)(struct tty_struct * tty, int status);
+	void (*set_termios)(struct tty_struct *tty, struct termios * old);
+	void (*stop)(struct tty_struct *tty);
+	void (*start)(struct tty_struct *tty);
+	struct tty_struct *link;
+	unsigned char *write_data_ptr;
+	int write_data_cnt;
+	void (*write_data_callback)(void * data);
+	void * write_data_arg;
+	int readq_flags[TTY_BUF_SIZE/32];
+	struct tty_queue read_q;
+	struct tty_queue write_q;
+	struct tty_queue secondary;
+};
+
+struct tty_ldisc {
+	int	flags;
+	/*
+	 * The following routines are called from above.
+	 */
+	int	(*open)(struct tty_struct *);
+	void	(*close)(struct tty_struct *);
+	int	(*read)(struct tty_struct * tty, struct file * file,
+			char * buf, int nr);
+	int	(*write)(struct tty_struct * tty, struct file * file,
+			 char * buf, int nr);	
+	int	(*ioctl)(struct tty_struct * tty, struct file * file,
+			 unsigned int cmd, unsigned long arg);
+	/*
+	 * The following routines are called from below.
+	 */
+	void	(*handler)(struct tty_struct *);
+};
+
+#define LDISC_FLAG_DEFINED	0x00000001
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * These are the different types of thottle status which can be sent
 // TODO WGJA WIP:  * to the low-level tty driver.  The tty_io.c layer is responsible for
@@ -351,13 +351,13 @@ extern struct screen_info screen_info;
 // TODO WGJA WIP: extern long rs_init(long);
 // TODO WGJA WIP: extern long lp_init(long);
 // TODO WGJA WIP: extern long con_init(long);
-// TODO WGJA WIP: extern long tty_init(long);
-// TODO WGJA WIP: 
+extern long tty_init(long);
+
 // TODO WGJA WIP: extern void flush_input(struct tty_struct * tty);
 // TODO WGJA WIP: extern void flush_output(struct tty_struct * tty);
 // TODO WGJA WIP: extern void wait_until_sent(struct tty_struct * tty);
 // TODO WGJA WIP: extern void copy_to_cooked(struct tty_struct * tty);
-// TODO WGJA WIP: extern int tty_register_ldisc(int disc, struct tty_ldisc *new_ldisc);
+extern int tty_register_ldisc(int disc, struct tty_ldisc *new_ldisc);
 // TODO WGJA WIP: extern int tty_read_raw_data(struct tty_struct *tty, unsigned char *bufp,
 // TODO WGJA WIP: 			     int buflen);
 // TODO WGJA WIP: extern int tty_write_data(struct tty_struct *tty, char *bufp, int buflen,
