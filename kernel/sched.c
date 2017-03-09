@@ -207,31 +207,31 @@ void wake_up(struct wait_queue **q)
 	} while (tmp != *q);
 }
 
-// TODO WGJA WIP: void wake_up_interruptible(struct wait_queue **q)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct wait_queue *tmp;
-// TODO WGJA WIP: 	struct task_struct * p;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!q || !(tmp = *q))
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	do {
-// TODO WGJA WIP: 		if ((p = tmp->task) != NULL) {
-// TODO WGJA WIP: 			if (p->state == TASK_INTERRUPTIBLE) {
-// TODO WGJA WIP: 				p->state = TASK_RUNNING;
-// TODO WGJA WIP: 				if (p->counter > current->counter)
-// TODO WGJA WIP: 					need_resched = 1;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (!tmp->next) {
-// TODO WGJA WIP: 			printk("wait_queue is bad (eip = %08x)\n",((unsigned long *) q)[-1]);
-// TODO WGJA WIP: 			printk("        q = %08x\n",q);
-// TODO WGJA WIP: 			printk("       *q = %08x\n",*q);
-// TODO WGJA WIP: 			printk("      tmp = %08x\n",tmp);
-// TODO WGJA WIP: 			break;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		tmp = tmp->next;
-// TODO WGJA WIP: 	} while (tmp != *q);
-// TODO WGJA WIP: }
+void wake_up_interruptible(struct wait_queue **q)
+{
+	struct wait_queue *tmp;
+	struct task_struct * p;
+
+	if (!q || !(tmp = *q))
+		return;
+	do {
+		if ((p = tmp->task) != NULL) {
+			if (p->state == TASK_INTERRUPTIBLE) {
+				p->state = TASK_RUNNING;
+				if (p->counter > current->counter)
+					need_resched = 1;
+			}
+		}
+		if (!tmp->next) {
+			printk("wait_queue is bad (eip = %08x)\n",((unsigned long *) q)[-1]);
+			printk("        q = %08x\n",q);
+			printk("       *q = %08x\n",*q);
+			printk("      tmp = %08x\n",tmp);
+			break;
+		}
+		tmp = tmp->next;
+	} while (tmp != *q);
+}
 
 static inline void __sleep_on(struct wait_queue **p, int state)
 {

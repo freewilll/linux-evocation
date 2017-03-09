@@ -711,7 +711,7 @@ void hard_reset_now(void)
 				/* nothing */;
 			outb(0xfe,0x64);	 /* pulse reset low */
 		}
-		__asm__("\tlidt _no_idt");
+		__asm__("\tlidt no_idt");
 	}
 }
 

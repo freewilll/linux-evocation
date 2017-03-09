@@ -96,7 +96,7 @@ extern int sys_pipe();
 // TODO WGJA WIP: extern int sys_readlink();
 // TODO WGJA WIP: extern int sys_uselib();
 // TODO WGJA WIP: extern int sys_swapon();
-// TODO WGJA WIP: extern int sys_reboot();
+extern int sys_reboot();
 extern int sys_readdir();
 // TODO WGJA WIP: extern int sys_mmap();
 // TODO WGJA WIP: extern int sys_munmap();
@@ -239,8 +239,8 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_readlink	 85
   sys_todo, 			// #define __NR_uselib		 86
   sys_todo, 			// #define __NR_swapon		 87
-  sys_todo, 			// #define __NR_reboot		 88
-  sys_readdir, 			// #define __NR_readdir		 89	Done
+  sys_reboot, 		// #define __NR_reboot		 88
+  sys_readdir, 		// #define __NR_readdir		 89	Done
   sys_todo, 			// #define __NR_mmap		 90
   sys_todo, 			// #define __NR_munmap		 91
   sys_todo, 			// #define __NR_truncate	 92

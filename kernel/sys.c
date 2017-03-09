@@ -21,11 +21,11 @@
 #include <asm/segment.h>
 #include <asm/io.h>
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * this indicates wether you can reboot with ctrl-alt-del: the default is yes
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: static int C_A_D = 1;
-// TODO WGJA WIP: 
+/*
+ * this indicates wether you can reboot with ctrl-alt-del: the default is yes
+ */
+static int C_A_D = 1;
+
 // TODO WGJA WIP: /* 
 // TODO WGJA WIP:  * The timezone where the local system is located.  Used as a default by some
 // TODO WGJA WIP:  * programs who obtain this value by using gettimeofday.
@@ -205,48 +205,48 @@
 // TODO WGJA WIP: 		:"g" ((long) &(info.regs)),"a" (info.regs.eax));
 // TODO WGJA WIP: 	return 0;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern void hard_reset_now(void);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Reboot system call: for obvious reasons only root may call it,
-// TODO WGJA WIP:  * and even root needs to set up some magic numbers in the registers
-// TODO WGJA WIP:  * so that some mistake won't make this reboot the whole machine.
-// TODO WGJA WIP:  * You can also set the meaning of the ctrl-alt-del-key here.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * reboot doesn't sync: do that yourself before calling this.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: extern "C" int sys_reboot(int magic, int magic_too, int flag)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (!suser())
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	if (magic != 0xfee1dead || magic_too != 672274793)
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	if (flag == 0x01234567)
-// TODO WGJA WIP: 		hard_reset_now();
-// TODO WGJA WIP: 	else if (flag == 0x89ABCDEF)
-// TODO WGJA WIP: 		C_A_D = 1;
-// TODO WGJA WIP: 	else if (!flag)
-// TODO WGJA WIP: 		C_A_D = 0;
-// TODO WGJA WIP: 	else
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	return (0);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This function gets called by ctrl-alt-del - ie the keyboard interrupt.
-// TODO WGJA WIP:  * As it's called within an interrupt, it may NOT sync: the only choice
-// TODO WGJA WIP:  * is wether to reboot at once, or just ignore the ctrl-alt-del.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: void ctrl_alt_del(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (C_A_D)
-// TODO WGJA WIP: 		hard_reset_now();
-// TODO WGJA WIP: 	else
-// TODO WGJA WIP: 		send_sig(SIGINT,task[1],1);
-// TODO WGJA WIP: }
-	// TODO WGJA WIP: 
-// TODO WGJA WIP: 
+
+extern void hard_reset_now(void);
+
+/*
+ * Reboot system call: for obvious reasons only root may call it,
+ * and even root needs to set up some magic numbers in the registers
+ * so that some mistake won't make this reboot the whole machine.
+ * You can also set the meaning of the ctrl-alt-del-key here.
+ *
+ * reboot doesn't sync: do that yourself before calling this.
+ */
+extern "C" int sys_reboot(int magic, int magic_too, int flag)
+{
+	if (!suser())
+		return -EPERM;
+	if (magic != 0xfee1dead || magic_too != 672274793)
+		return -EINVAL;
+	if (flag == 0x01234567)
+		hard_reset_now();
+	else if (flag == 0x89ABCDEF)
+		C_A_D = 1;
+	else if (!flag)
+		C_A_D = 0;
+	else
+		return -EINVAL;
+	return (0);
+}
+
+/*
+ * This function gets called by ctrl-alt-del - ie the keyboard interrupt.
+ * As it's called within an interrupt, it may NOT sync: the only choice
+ * is wether to reboot at once, or just ignore the ctrl-alt-del.
+ */
+void ctrl_alt_del(void)
+{
+	if (C_A_D)
+		hard_reset_now();
+	else
+		send_sig(SIGINT,task[1],1);
+}
+
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * This is done BSD-style, with no consideration of the saved gid, except
 // TODO WGJA WIP:  * that if you set the effective gid, it sets the saved gid too.  This 

@@ -960,34 +960,34 @@ unsigned long __bad_page(void)
 // TODO WGJA WIP: 		:"di","cx");
 // TODO WGJA WIP: 	return (unsigned long) empty_zero_page;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void show_mem(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i,free = 0,total = 0,reserved = 0;
-// TODO WGJA WIP: 	int shared = 0;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	printk("Mem-info:\n");
-// TODO WGJA WIP: 	printk("Free pages:      %6dkB\n",nr_free_pages<<PAGE_SHIFT-10);
-// TODO WGJA WIP: 	printk("Secondary pages: %6dkB\n",nr_secondary_pages<<PAGE_SHIFT-10);
-// TODO WGJA WIP: 	printk("Free swap:       %6dkB\n",nr_swap_pages<<PAGE_SHIFT-10);
-// TODO WGJA WIP: 	printk("Buffer memory:   %6dkB\n",buffermem>>10);
-// TODO WGJA WIP: 	printk("Buffer heads:    %6d\n",nr_buffer_heads);
-// TODO WGJA WIP: 	printk("Buffer blocks:   %6d\n",nr_buffers);
-// TODO WGJA WIP: 	i = high_memory >> PAGE_SHIFT;
-// TODO WGJA WIP: 	while (i-- > 0) {
-// TODO WGJA WIP: 		total++;
-// TODO WGJA WIP: 		if (mem_map[i] & MAP_PAGE_RESERVED)
-// TODO WGJA WIP: 			reserved++;
-// TODO WGJA WIP: 		else if (!mem_map[i])
-// TODO WGJA WIP: 			free++;
-// TODO WGJA WIP: 		else
-// TODO WGJA WIP: 			shared += mem_map[i]-1;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	printk("%d pages of RAM\n",total);
-// TODO WGJA WIP: 	printk("%d free pages\n",free);
-// TODO WGJA WIP: 	printk("%d reserved pages\n",reserved);
-// TODO WGJA WIP: 	printk("%d pages shared\n",shared);
-// TODO WGJA WIP: }
+
+void show_mem(void)
+{
+	int i,free = 0,total = 0,reserved = 0;
+	int shared = 0;
+
+	printk("Mem-info:\n");
+	printk("Free pages:      %6dkB\n",nr_free_pages<<PAGE_SHIFT-10);
+	printk("Secondary pages: %6dkB\n",nr_secondary_pages<<PAGE_SHIFT-10);
+	printk("Free swap:       %6dkB\n",nr_swap_pages<<PAGE_SHIFT-10);
+	printk("Buffer memory:   %6dkB\n",buffermem>>10);
+	printk("Buffer heads:    %6d\n",nr_buffer_heads);
+	printk("Buffer blocks:   %6d\n",nr_buffers);
+	i = high_memory >> PAGE_SHIFT;
+	while (i-- > 0) {
+		total++;
+		if (mem_map[i] & MAP_PAGE_RESERVED)
+			reserved++;
+		else if (!mem_map[i])
+			free++;
+		else
+			shared += mem_map[i]-1;
+	}
+	printk("%d pages of RAM\n",total);
+	printk("%d free pages\n",free);
+	printk("%d reserved pages\n",reserved);
+	printk("%d pages shared\n",shared);
+}
 
 /*
  * paging_init() sets up the page tables - note that the first 4MB are

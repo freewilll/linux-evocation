@@ -6,8 +6,10 @@
 #include <linux/sched.h>
 #include <asm/io.h>
 #include <linux/fcntl.h>
+#include <linux/tty.h>
 
 static inline _syscall0(int,fork)
+static inline _syscall3(int,reboot,int,magic,int,magic_too,int,flag)
 static inline _syscall0(int,idle)
 static inline _syscall3(int,open,const char *,file,int,flag,int,mode)
 static inline _syscall3(int,read,unsigned int,fd,char *,buf,unsigned int,count)
@@ -15,6 +17,7 @@ static inline _syscall3(int,readdir,unsigned int,fd,struct dirent *,dirent,unsig
 static inline _syscall2(int,mkdir,const char *,pathname,int,mode)
 static inline _syscall1(int,rmdir,const char*,pathname)
 
+extern unsigned long timer_active;
 
 // TODO WGJA log_to_console & real prink
 int log_to_console = 1;
@@ -243,12 +246,6 @@ void test_dev_zero()
 
 }
 
-// TODO WGJA wait_for_keypress
-void wait_for_keypress()
-{
-	printk("TODO: wait_for_keypress()\n");
-}
-
 // TODO WGJA generic_mmap
 int generic_mmap(struct inode * inode, struct file * file,
 	unsigned long addr, size_t len, int prot, unsigned long off)
@@ -298,4 +295,110 @@ void test_minix()
 	test_minix_readdir();
 	test_minix_rmdir();
 	test_minix_readdir();
+}
+
+void test_tty1_read()
+{
+	int stdin, c;
+	stdin = open("/dev/tty1",O_RDWR,0);
+	printk("stdin=%d\n", stdin);
+
+	// printk("Trying to read from tty1\n");
+	char buf[10];
+	for(;;) {
+		c = read(stdin, buf, 10);
+		if (c < 0) {
+			printk("Got %d\n", c);
+			panic("Bad shit: c < 0");
+		}
+		buf[c - 1] = 0; // Strip \n
+		printk("Read: %02d bytes: '%s'\n", c, buf);
+		
+		if (!strcmp("reboot\n", buf)) {
+			// To test hard_reset_now()
+			reboot(0xfee1dead, 672274793, 0x01234567);
+		}
+	}
+}
+
+void do_keyboard_interrupt(void)
+{
+	// printk("do_keyboard_interrupt\n");
+	TTY_READ_FLUSH(TTY_TABLE(0));
+	timer_active &= ~(1<<0);
+	// printk("do_keyboard_interrupt done\n");
+	// TODO WGJA, rest of do_keyboard_interrupt
+	return;
+}
+
+// TODO WGJA scrollback
+void scrollback(int i)
+{
+	printk("TODO: scrollback\n");
+}
+
+// TODO WGJA scrollfront
+void scrollfront(int i)
+{
+	printk("TODO: scrollfront\n");
+}
+
+// TODO WGJA change_console
+void change_console(unsigned int)
+{
+	printk("TODO: change_console\n");
+}
+
+// TODO WGJA con_write
+void con_write(struct tty_struct * tty)
+{
+	// printk("TODO WGJA con_write\n");
+}
+
+// TODO WGJA con_open
+int con_open(struct tty_struct *tty, struct file * filp)
+{
+	printk("// TODO WGJA con_open\n");
+	tty->write = con_write;
+	return 0;
+}
+
+unsigned long video_num_lines;
+unsigned long video_num_columns;
+
+
+// TODO WGJA rs_open
+int rs_open(struct tty_struct *tty, struct file * filp)
+{
+	printk("// TODO WGJA rs_open\n");
+	tty->write = con_write;
+	return 0;
+}
+
+// TODO WGJA pty_open
+int pty_open(struct tty_struct *tty, struct file * filp)
+{
+	printk("// TODO WGJA pty_open\n");
+	tty->write = con_write;
+	return 0;
+}
+
+// TODO WGJA con_init
+long con_init(long kmem_start)
+{
+	printk("TODO WGJA con_init\n");
+	return kmem_start;
+}
+
+// TODO WGJA rs_init
+long rs_init(long kmem_start)
+{
+	printk("TODO WGJA rs_init\n");
+	return kmem_start;
+}
+
+// TODO WGJA do_screendump
+int do_screendump(int arg)
+{
+	printk("TODO WGJA do_screendump\n");
 }

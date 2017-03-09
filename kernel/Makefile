@@ -20,7 +20,7 @@
 SUBDIRS	=	chr_drv blk_drv
 # SUBDIRS	= chr_drv blk_drv FPU-emu
 
-OBJS  = sched.o sys_call.o traps.o irq.o vsprintf.o early_printk.o fork.o sys.o dma.o panic.o
+OBJS  = sched.o sys_call.o traps.o irq.o vsprintf.o early_printk.o fork.o sys.o dma.o panic.o exit.o
 # OBJS  = sched.o sys_call.o traps.o irq.o dma.o fork.o \
 # 	panic.o printk.o sys.o exit.o \
 # 	signal.o mktime.o ptrace.o ioport.o itimer.o \

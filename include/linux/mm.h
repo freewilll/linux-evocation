@@ -111,7 +111,7 @@ extern void do_wp_page(unsigned long error_code, unsigned long address,
 extern unsigned long paging_init(unsigned long start_mem, unsigned long end_mem);
 extern void mem_init(unsigned long low_start_mem,
 		     unsigned long start_mem, unsigned long end_mem);
-// TODO WGJA WIP: extern void show_mem(void);
+extern void show_mem(void);
 extern void oom(struct task_struct * task);
 // TODO WGJA WIP: extern void si_meminfo(struct sysinfo * val);
 

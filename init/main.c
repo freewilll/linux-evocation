@@ -42,6 +42,7 @@ extern void test_kmalloc();
 extern void init_test_keyboard();
 extern void test_dev_zero();
 extern void test_minix();
+extern void test_tty1_read();
 
 /*
  * we need this inline - forking from kernel space will result
@@ -502,6 +503,7 @@ void init(void)
 
 	// test_dev_zero();
 	// test_minix();cli(); // cli panics due to an unhandled trap
+	test_tty1_read();
 
 	(void) open("/dev/tty1",O_RDWR,0);
 // TODO WGJA WIP: 	(void) dup(0);
