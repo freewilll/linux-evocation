@@ -271,7 +271,7 @@ fn_ptr sys_call_table[] = {
 	sys_todo, 			// #define __NR_ipc		117	todo
 	sys_fsync, 			// #define __NR_fsync		118
 	sys_sigreturn, 			// #define __NR_sigreturn	119
-	sys_todo, 			// #define __NR_clone		120	todo
+	sys_clone, 			// #define __NR_clone		120
 	sys_setdomainname, 		// #define __NR_setdomainname	121
 	sys_uname, 			// #define __NR_uname		122
 	sys_todo, 			// #define __NR_modify_ldt	123	todo
