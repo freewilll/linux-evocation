@@ -95,5 +95,5 @@ void init_early_printk() {
 	// For when the kernel is stil in its infancy.
 	lines = SCREEN_INFO.orig_video_lines;
 	cols = SCREEN_INFO.orig_video_cols;
-	eprintk("Early kernel printk initialized\n");
+	// eprintk("Early kernel printk initialized\n");
 }
