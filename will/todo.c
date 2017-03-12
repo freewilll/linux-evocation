@@ -10,13 +10,6 @@ extern "C" void syscall_trace(void)
 	for (;;);
 }
 
-// TODO WGJA save_v86_state
-extern "C" unsigned long save_v86_state(struct vm86_regs * regs)
-{
-	printk("TODO: save_v86_state\n");
-	for (;;);
-}
-
 // TODO WGJA syscalls
 extern "C" int sys_todo(void)
 {

@@ -527,7 +527,7 @@ void init(void)
 	printf("TODO: rest of init()\n");
 	for(;;) idle();
 
-// TODO WGJA WIP: 	// system_utsname.machine[1] = '0' + x86;	// TODO utsname
+	system_utsname.machine[1] = '0' + x86;
 // TODO WGJA WIP: 	// printf(linux_banner);			// TODO linux_banner
 // TODO WGJA WIP: 
 // TODO WGJA WIP: 	execve("/etc/init",argv_init,envp_init);
