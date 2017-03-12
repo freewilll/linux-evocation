@@ -1,13 +1,12 @@
 #include <stdarg.h>
 #include <linux/kernel.h>
-#include <linux/errno.h>
-#include <linux/mm.h>
 #include <linux/unistd.h>
 #include <linux/string.h>
 #include <linux/sched.h>
 #include <asm/io.h>
 #include <linux/fcntl.h>
-#include <linux/tty.h>
+
+extern "C" int vsprintf(char *,const char *,va_list);
 
 static inline _syscall0(int,fork)
 static inline _syscall3(int,reboot,int,magic,int,magic_too,int,flag)
@@ -20,70 +19,37 @@ static inline _syscall2(int,mkdir,const char *,pathname,int,mode)
 static inline _syscall1(int,rmdir,const char*,pathname)
 static inline _syscall1(int,dup,int,fd)
 
-static char printbuf[1024];
-extern "C" int vsprintf(char *,const char *,va_list);
 extern inline void * memmove(void * dest,const void * src, size_t n);
 
-extern unsigned long timer_active;
+static char printbuf[1024];
 
-// TODO WGJA do_signal
-extern "C" int do_signal(unsigned long oldmask, struct pt_regs * regs)
+// WGJA Add a temporary keyboard handler to be able to check aliveness
+#define KEYBOARD_IRQ 1
+static void keyboard_interrupt(int int_pt_regs)
 {
-	printk("TODO: do_signal\n");
-	for (;;);
+	// If we don't read the scan code, they keyboard controller won't send another one
+	unsigned char scancode;
+	char *vidmem = (char *)0xb8000;
+
+	if (!(inb_p(0x64) & 0x01)) {
+		printk("Keyboard interrupt - bad keyb read.\n");
+		goto end_kbd_intr;
+	}
+	scancode = inb(0x60);
+	printk("%c", scancode);
+
+	vidmem[0] = scancode;
+
+	end_kbd_intr:
+	return;
 }
 
-// TODO WGJA syscall_trace
-extern "C" void syscall_trace(void)
+void init_test_keyboard()
 {
-	printk("TODO: syscall_trace\n");
-	for (;;);
-}
+	// WGJA Add a temporary keyboard handler to be able to check aliveness
+	request_irq(KEYBOARD_IRQ, keyboard_interrupt);
 
-// TODO WGJA save_v86_state
-extern "C" unsigned long save_v86_state(struct vm86_regs * regs)
-{
-	printk("TODO: save_v86_state\n");
-	for (;;);
 }
-
-// TODO WGJA send_sig
-int send_sig(unsigned long sig,struct task_struct * p,int priv)
-{
-	return 0;
-}
-
-// TODO WGJA syscalls
-extern "C" int sys_todo(void)
-{
-	printk("todo syscall.\n");
-	return -ENOSYS;
-}
-
-// TODO WGJA move sound_mem_init to real thing
-void sound_mem_init(void)
-{
-}
-
-// TODO WGJA shm_swap
-int shm_swap(int prio)
-{
-	printk("TODO shm_swap\n");
-	return 0;
-}
-
-static inline void * __memset_generic(void * s, char c,size_t count)
-{
-int d0, d1;
-__asm__ __volatile__(
-	"rep\n\t"
-	"stosb"
-	: "=&c" (d0), "=&D" (d1)
-	:"a" (c),"1" (s),"0" (count)
-	:"memory");
-return s;
-}
-
 
 void test_fork() {
 	int pid;
@@ -170,25 +136,6 @@ void test_kmalloc()
 	}
 }
 
-// TODO WGJA do_page_fault
-extern "C" void do_page_fault(struct pt_regs *regs, unsigned long error_code)
-{
-	unsigned long address;
-	unsigned long user_esp = 0;
-	unsigned long stack_limit;
-	unsigned int bit;
-
-	char *vidmem = (char *)0xb8000;
-	vidmem[79 * 2] = 'P';
-	vidmem[79 * 2 + 1] = 0x40;
-
-	/* get the address */
-	__asm__("movl %%cr2,%0":"=r" (address));
-	printk("Unable to handle kernel paging request at address %08x\n",address);
-
-	for (;;);
-}
-
 void test_memset() {
 	char* foo = "testing fkjlfdas jklfdsajklf dasjklfdaskjldfsa kjl fadsjklfd sakljfdsa kljfd sajklf ads";
 	int c;
@@ -206,34 +153,6 @@ void test_memcpy() {
 	printk("%s\n", to);
 }
 
-// WGJA Add a temporary keyboard handler to be able to check aliveness
-#define KEYBOARD_IRQ 1
-static void keyboard_interrupt(int int_pt_regs)
-{
-	// If we don't read the scan code, they keyboard controller won't send another one
-	unsigned char scancode;
-	char *vidmem = (char *)0xb8000;
-
-	if (!(inb_p(0x64) & 0x01)) {
-		printk("Keyboard interrupt - bad keyb read.\n");
-		goto end_kbd_intr;
-	}
-	scancode = inb(0x60);
-	printk("%c", scancode);
-
-	vidmem[0] = scancode;
-
-	end_kbd_intr:
-	return;
-}
-
-void init_test_keyboard()
-{
-	// WGJA Add a temporary keyboard handler to be able to check aliveness
-	request_irq(KEYBOARD_IRQ, keyboard_interrupt);
-
-}
-
 void test_dev_zero()
 {
 	int fd;
@@ -247,15 +166,6 @@ void test_dev_zero()
 	c = read(fd, buffer, 10);
 	printk("Read %d bytes\n", c);
 	printk("First byte: %d\n", buffer[0]);
-
-}
-
-// TODO WGJA generic_mmap
-int generic_mmap(struct inode * inode, struct file * file,
-	unsigned long addr, size_t len, int prot, unsigned long off)
-{
-	printk("TODO generic_mmap\n");
-	for (;;);
 
 }
 
@@ -337,29 +247,6 @@ void test_tty1_read()
 			reboot(0xfee1dead, 672274793, 0x01234567);
 		}
 	}
-}
-
-// TODO WGJA rs_open
-int rs_open(struct tty_struct *tty, struct file * filp)
-{
-	printk("// TODO WGJA rs_open\n");
-	tty->write = con_write;
-	return 0;
-}
-
-// TODO WGJA pty_open
-int pty_open(struct tty_struct *tty, struct file * filp)
-{
-	printk("// TODO WGJA pty_open\n");
-	tty->write = con_write;
-	return 0;
-}
-
-// TODO WGJA rs_init
-long rs_init(long kmem_start)
-{
-	printk("TODO WGJA rs_init\n");
-	return kmem_start;
 }
 
 void test_printf() 

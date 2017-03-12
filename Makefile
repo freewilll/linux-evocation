@@ -200,10 +200,11 @@ zlilo: $(CONFIGURE) zImage
 	/etc/lilo/install
 
 # TODO WGJA: Work in progress build
-tools/zSystem:	will/wip.o will/early_printk.o boot/head.o init/main.o linuxsubdirs
+tools/zSystem:	will/todo.o will/tests.o will/early_printk.o boot/head.o init/main.o linuxsubdirs
 	$(LD) $(LDFLAGS) -Ttext 100000 -M boot/head.o \
-		will/wip.o \
+		will/todo.o \
 		will/early_printk.o \
+		will/tests.o \
 		init/main.o \
 		kernel/kernel.o \
 		ibcs/ibcs.o \
