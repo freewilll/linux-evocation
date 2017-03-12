@@ -24,7 +24,7 @@
 #include <linux/ptrace.h>
 #include <linux/segment.h>
 // TODO WGJA WIP: #include <linux/delay.h>
-// TODO WGJA WIP: 
+ 
 #include <asm/system.h>
 #include <asm/io.h>
 #include <asm/system.h>
@@ -40,7 +40,7 @@ int hard_math = 0;		/* set by boot/head.S */
 int x86 = 0;			/* set by boot/head.S to 3 or 4 */
 int ignore_irq13 = 0;		/* set if exception 16 works */
 // TODO WGJA WIP: int wp_works_ok = 0;		/* not used currently */
-// TODO WGJA WIP: 
+
 // TODO WGJA WIP: extern int _setitimer(int, struct itimerval *, struct itimerval *);
 // TODO WGJA WIP: unsigned long * prof_buffer = NULL;
 // TODO WGJA WIP: unsigned long prof_len = 0;
@@ -436,51 +436,51 @@ static void do_timer(struct pt_regs * regs)
 // TODO WGJA WIP: 	_setitimer(ITIMER_REAL, &it_new, &it_old);
 // TODO WGJA WIP: 	return(it_old.it_value.tv_sec + (it_old.it_value.tv_usec / 1000000));
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_getpid(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	return current->pid;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_getppid(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	return current->p_pptr->pid;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_getuid(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	return current->uid;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_geteuid(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	return current->euid;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_getgid(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	return current->gid;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_getegid(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	return current->egid;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_nice(long increment)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int newprio;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (increment < 0 && !suser())
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	newprio = current->priority - increment;
-// TODO WGJA WIP: 	if (newprio < 1)
-// TODO WGJA WIP: 		newprio = 1;
-// TODO WGJA WIP: 	if (newprio > 35)
-// TODO WGJA WIP: 		newprio = 35;
-// TODO WGJA WIP: 	current->priority = newprio;
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
+
+extern "C" int sys_getpid(void)
+{
+	return current->pid;
+}
+
+extern "C" int sys_getppid(void)
+{
+	return current->p_pptr->pid;
+}
+
+extern "C" int sys_getuid(void)
+{
+	return current->uid;
+}
+
+extern "C" int sys_geteuid(void)
+{
+	return current->euid;
+}
+
+extern "C" int sys_getgid(void)
+{
+	return current->gid;
+}
+
+extern "C" int sys_getegid(void)
+{
+	return current->egid;
+}
+
+extern "C" int sys_nice(long increment)
+{
+	int newprio;
+
+	if (increment < 0 && !suser())
+		return -EPERM;
+	newprio = current->priority - increment;
+	if (newprio < 1)
+		newprio = 1;
+	if (newprio > 35)
+		newprio = 35;
+	current->priority = newprio;
+	return 0;
+}
 
 static void show_task(int nr,struct task_struct * p)
 {

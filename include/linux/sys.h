@@ -28,7 +28,7 @@ extern int sys_chown();
 // TODO WGJA WIP: extern int sys_break();
 // TODO WGJA WIP: extern int sys_stat();
 extern int sys_lseek();
-// TODO WGJA WIP: extern int sys_getpid();
+extern int sys_getpid();
 // TODO WGJA WIP: extern int sys_mount();
 // TODO WGJA WIP: extern int sys_umount();
 // TODO WGJA WIP: extern int sys_setuid();
@@ -42,7 +42,7 @@ extern int sys_utime();
 // TODO WGJA WIP: extern int sys_stty();
 // TODO WGJA WIP: extern int sys_gtty();
 extern int sys_access();
-// TODO WGJA WIP: extern int sys_nice();
+extern int sys_nice(long int);
 // TODO WGJA WIP: extern int sys_ftime();
 extern int sys_sync();
 extern int sys_kill();
@@ -55,10 +55,10 @@ extern int sys_pipe();
 // TODO WGJA WIP: extern int sys_prof();
 // TODO WGJA WIP: extern int sys_brk();
 // TODO WGJA WIP: extern int sys_setgid();
-// TODO WGJA WIP: extern int sys_getgid();
+extern int sys_getgid();
 extern int sys_signal();
-// TODO WGJA WIP: extern int sys_geteuid();
-// TODO WGJA WIP: extern int sys_getegid();
+extern int sys_geteuid();
+extern int sys_getegid();
 // TODO WGJA WIP: extern int sys_acct();
 // TODO WGJA WIP: extern int sys_phys();
 // TODO WGJA WIP: extern int sys_lock();
@@ -72,7 +72,7 @@ extern int sys_signal();
 extern int sys_chroot();
 extern int sys_ustat();
 // TODO WGJA WIP: extern int sys_dup2();
-// TODO WGJA WIP: extern int sys_getppid();
+extern int sys_getppid();
 // TODO WGJA WIP: extern int sys_getpgrp();
 // TODO WGJA WIP: extern int sys_setsid();
 extern int sys_sigaction();
@@ -171,7 +171,7 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_break		 17
   sys_todo, 			// #define __NR_oldstat		 18
   sys_lseek, 			// #define __NR_lseek		 19	Done
-  sys_todo, 			// #define __NR_getpid		 20
+  sys_getpid, 			// #define __NR_getpid		 20	Done
   sys_todo, 			// #define __NR_mount		 21
   sys_todo, 			// #define __NR_umount		 22
   sys_todo, 			// #define __NR_setuid		 23
@@ -185,7 +185,7 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_stty		 31
   sys_todo, 			// #define __NR_gtty		 32
   sys_access, 			// #define __NR_access		 33	Done
-  sys_todo, 			// #define __NR_nice		 34
+  (fn_ptr) sys_nice, 		// #define __NR_nice		 34	Done
   sys_todo, 			// #define __NR_ftime		 35
   sys_sync, 			// #define __NR_sync		 36	Done
   sys_kill, 			// #define __NR_kill		 37	Done
@@ -198,10 +198,10 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_prof		 44
   sys_todo, 			// #define __NR_brk		 45
   sys_todo, 			// #define __NR_setgid		 46
-  sys_todo, 			// #define __NR_getgid		 47
+  sys_getgid, 			// #define __NR_getgid		 47	Done
   sys_signal, 			// #define __NR_signal		 48	Done
-  sys_todo, 			// #define __NR_geteuid		 49
-  sys_todo, 			// #define __NR_getegid		 50
+  sys_geteuid, 			// #define __NR_geteuid		 49	Done
+  sys_getegid, 			// #define __NR_getegid		 50	Done
   sys_todo, 			// #define __NR_acct		 51
   sys_todo, 			// #define __NR_phys		 52
   sys_todo, 			// #define __NR_lock		 53
@@ -215,7 +215,7 @@ fn_ptr sys_call_table[] = {
   sys_chroot, 			// #define __NR_chroot		 61
   sys_ustat, 			// #define __NR_ustat		 62	Done
   sys_todo, 			// #define __NR_dup2		 63
-  sys_todo, 			// #define __NR_getppid		 64
+  sys_getppid, 			// #define __NR_getppid		 64	Done
   sys_todo, 			// #define __NR_getpgrp		 65
   sys_todo, 			// #define __NR_setsid		 66
   sys_sigaction, 		// #define __NR_sigaction	 67	Done
