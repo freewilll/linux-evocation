@@ -261,7 +261,9 @@ void test_printf()
 	// print_vc_cons_mem_situation();
 
 	// Line feed test
-	// for(i=0;i<250;i++)
+	// The 180 isn't coincidental. It tests both code paths of the video memory
+	// filling up and being full in scrup(). Line 176 triggers full memory.
+	// for(i=0;i<180;i++)
 	// 	printf("%d\n", i);
 
 	// Clear screen

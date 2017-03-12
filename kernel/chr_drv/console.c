@@ -394,19 +394,20 @@ static void scrup(int currcons, unsigned int t, unsigned int b)
 		pos += video_size_row;
 		scr_end += video_size_row;
 		if (scr_end > video_mem_end) {
-			int d0, d1, d2;
+			int d0, d1, d2, d3;
 			__asm__ __volatile__(
 				"cld\n\t"
 				"rep\n\t"
 				"movsl\n\t"
-				"movl video_num_columns,%1\n\t"
+				"movl video_num_columns,%0\n\t"
 				"rep\n\t"
 				"stosw"
-				: "=&c" (d0), "=&D" (d1), "=&S" (d2)
-				:"a" ("video_erase_char"),
-				"0" ((video_num_lines-1)*video_num_columns>>1),
-				"1" (video_mem_start),
-				"2" (origin));
+				: "=&c" (d0), "=&D" (d1), "=&S" (d2), "=&a" (d3)
+				:"3" (video_erase_char),
+				 "0" ((video_num_lines-1)*video_num_columns>>1),
+				 "1" (video_mem_start),
+				 "2" (origin)
+				:"memory");
  			scr_end -= origin-video_mem_start;
  			pos -= origin-video_mem_start;
  			origin = video_mem_start;
