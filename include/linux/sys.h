@@ -20,11 +20,11 @@ extern int sys_creat();
 extern int sys_link();
 extern int sys_unlink();
 // TODO WGJA WIP: extern int sys_execve();
-// TODO WGJA WIP: extern int sys_chdir();
+extern int sys_chdir();
 // TODO WGJA WIP: extern int sys_time();
 extern int sys_mknod();
-// TODO WGJA WIP: extern int sys_chmod();
-// TODO WGJA WIP: extern int sys_chown();
+extern int sys_chmod();
+extern int sys_chown();
 // TODO WGJA WIP: extern int sys_break();
 // TODO WGJA WIP: extern int sys_stat();
 extern int sys_lseek();
@@ -38,10 +38,10 @@ extern int sys_lseek();
 // TODO WGJA WIP: extern int sys_alarm();
 // TODO WGJA WIP: extern int sys_fstat();
 // TODO WGJA WIP: extern int sys_pause();
-// TODO WGJA WIP: extern int sys_utime();
+extern int sys_utime();
 // TODO WGJA WIP: extern int sys_stty();
 // TODO WGJA WIP: extern int sys_gtty();
-// TODO WGJA WIP: extern int sys_access();
+extern int sys_access();
 // TODO WGJA WIP: extern int sys_nice();
 // TODO WGJA WIP: extern int sys_ftime();
 extern int sys_sync();
@@ -69,8 +69,8 @@ extern int sys_signal();
 // TODO WGJA WIP: extern int sys_ulimit();
 // TODO WGJA WIP: extern int sys_uname();
 // TODO WGJA WIP: extern int sys_umask();
-// TODO WGJA WIP: extern int sys_chroot();
-// TODO WGJA WIP: extern int sys_ustat();
+extern int sys_chroot();
+extern int sys_ustat();
 // TODO WGJA WIP: extern int sys_dup2();
 // TODO WGJA WIP: extern int sys_getppid();
 // TODO WGJA WIP: extern int sys_getpgrp();
@@ -100,15 +100,15 @@ extern int sys_reboot();
 extern int sys_readdir();
 // TODO WGJA WIP: extern int sys_mmap();
 // TODO WGJA WIP: extern int sys_munmap();
-// TODO WGJA WIP: extern int sys_truncate();
-// TODO WGJA WIP: extern int sys_ftruncate();
-// TODO WGJA WIP: extern int sys_fchmod();
-// TODO WGJA WIP: extern int sys_fchown();
+extern int sys_truncate();
+extern int sys_ftruncate();
+extern int sys_fchmod();
+extern int sys_fchown();
 // TODO WGJA WIP: extern int sys_getpriority();
 // TODO WGJA WIP: extern int sys_setpriority();
 // TODO WGJA WIP: extern int sys_profil();
-// TODO WGJA WIP: extern int sys_statfs();
-// TODO WGJA WIP: extern int sys_fstatfs();
+extern int sys_statfs();
+extern int sys_fstatfs();
 extern int sys_ioperm();
 // TODO WGJA WIP: extern int sys_socketcall();
 // TODO WGJA WIP: extern int sys_syslog();
@@ -119,7 +119,7 @@ extern int sys_ioperm();
 // TODO WGJA WIP: extern int sys_newfstat();
 // TODO WGJA WIP: extern int sys_newuname();
 extern int sys_iopl();
-// TODO WGJA WIP: extern int sys_vhangup();
+extern int sys_vhangup();
 extern int sys_idle();
 // TODO WGJA WIP: extern int sys_vm86();
 extern int sys_wait4();
@@ -166,8 +166,8 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_chdir		 12
   sys_todo, 			// #define __NR_time		 13
   sys_mknod, 			// #define __NR_mknod		 14	Done
-  sys_todo, 			// #define __NR_chmod		 15
-  sys_todo, 			// #define __NR_chown		 16
+  sys_chmod, 			// #define __NR_chmod		 15	Done
+  sys_chown, 			// #define __NR_chown		 16	Done
   sys_todo, 			// #define __NR_break		 17
   sys_todo, 			// #define __NR_oldstat		 18
   sys_lseek, 			// #define __NR_lseek		 19	Done
@@ -181,10 +181,10 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_alarm		 27
   sys_todo, 			// #define __NR_oldfstat	 28
   sys_todo, 			// #define __NR_pause		 29
-  sys_todo, 			// #define __NR_utime		 30
+  sys_utime, 			// #define __NR_utime		 30	Done
   sys_todo, 			// #define __NR_stty		 31
   sys_todo, 			// #define __NR_gtty		 32
-  sys_todo, 			// #define __NR_access		 33
+  sys_access, 			// #define __NR_access		 33	Done
   sys_todo, 			// #define __NR_nice		 34
   sys_todo, 			// #define __NR_ftime		 35
   sys_sync, 			// #define __NR_sync		 36	Done
@@ -212,8 +212,8 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_ulimit		 58
   sys_todo, 			// #define __NR_oldolduname	 59
   sys_todo, 			// #define __NR_umask		 60
-  sys_todo, 			// #define __NR_chroot		 61
-  sys_todo, 			// #define __NR_ustat		 62
+  sys_chroot, 			// #define __NR_chroot		 61
+  sys_ustat, 			// #define __NR_ustat		 62	Done
   sys_todo, 			// #define __NR_dup2		 63
   sys_todo, 			// #define __NR_getppid		 64
   sys_todo, 			// #define __NR_getpgrp		 65
@@ -243,15 +243,15 @@ fn_ptr sys_call_table[] = {
   sys_readdir, 			// #define __NR_readdir		 89	Done
   sys_todo, 			// #define __NR_mmap		 90
   sys_todo, 			// #define __NR_munmap		 91
-  sys_todo, 			// #define __NR_truncate	 92
-  sys_todo, 			// #define __NR_ftruncate	 93
-  sys_todo, 			// #define __NR_fchmod		 94
-  sys_todo, 			// #define __NR_fchown		 95
+  sys_truncate, 		// #define __NR_truncate	 92	Done
+  sys_ftruncate, 		// #define __NR_ftruncate	 93	Done
+  sys_fchmod, 			// #define __NR_fchmod		 94	Done
+  sys_fchown, 			// #define __NR_fchown		 95	Done
   sys_todo, 			// #define __NR_getpriority	 96
   sys_todo, 			// #define __NR_setpriority	 97
   sys_todo, 			// #define __NR_profil		 98
-  sys_todo, 			// #define __NR_statfs		 99
-  sys_todo, 			// #define __NR_fstatfs		100
+  sys_statfs, 			// #define __NR_statfs		 99	Done
+  sys_fstatfs, 			// #define __NR_fstatfs		100	Done
   sys_ioperm, 			// #define __NR_ioperm		101	Done
   sys_todo, 			// #define __NR_socketcall	102
   sys_todo, 			// #define __NR_syslog		103
@@ -262,7 +262,7 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_fstat		108
   sys_todo, 			// #define __NR_olduname	109
   sys_iopl, 			// #define __NR_iopl		110	Done
-  sys_todo, 			// #define __NR_vhangup		111
+  sys_vhangup, 			// #define __NR_vhangup		111	Done
   sys_idle, 			// #define __NR_idle		112	Done
   sys_todo, 			// #define __NR_vm86		113
   sys_wait4, 			// #define __NR_wait4		114	Done
