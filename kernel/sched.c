@@ -160,8 +160,6 @@ confuse_gcc2:
 		for_each_task(p)
 			p->counter = (p->counter >> 1) + p->priority;
 	}
-	char *vidmem = (char *)0xb8000;
-	vidmem[78 * 2 + 1] ^= 0x80;  // TODO WGJA visual display of aliveness
 	switch_to(next);
 }
 
