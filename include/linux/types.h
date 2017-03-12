@@ -16,11 +16,11 @@ typedef unsigned int size_t;
 typedef long time_t;
 #endif
 
-// TODO WGJA WIP: #ifndef _CLOCK_T
-// TODO WGJA WIP: #define _CLOCK_T
-// TODO WGJA WIP: typedef long clock_t;
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 
+#ifndef _CLOCK_T
+#define _CLOCK_T
+typedef long clock_t;
+#endif
+
 // TODO WGJA WIP: #ifndef _PTRDIFF_T
 // TODO WGJA WIP: #define _PTRDIFF_T
 // TODO WGJA WIP: typedef int ptrdiff_t;

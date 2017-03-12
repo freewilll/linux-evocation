@@ -194,7 +194,7 @@ fn_ptr sys_call_table[] = {
 	sys_rmdir, 			// #define __NR_rmdir		 40
 	sys_dup, 			// #define __NR_dup		 41
 	sys_pipe, 			// #define __NR_pipe		 42
-	sys_todo, 			// #define __NR_times		 43	todo
+	sys_times, 			// #define __NR_times		 43
 	sys_prof, 			// #define __NR_prof		 44
 	sys_todo, 			// #define __NR_brk		 45	todo
 	sys_setgid, 			// #define __NR_setgid		 46

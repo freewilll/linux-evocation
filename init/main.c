@@ -9,7 +9,7 @@
 #include <asm/system.h>
 #include <asm/io.h>
 
-// TODO WGJA WIP: #include <linux/mktime.h>
+#include <linux/mktime.h>
 #include <linux/mm.h>
 #include <linux/types.h>
 #include <linux/fcntl.h>
@@ -90,7 +90,7 @@ extern long chr_dev_init(long,long);
 extern void floppy_init(void);
 // TODO WGJA WIP: extern void sock_init(void);
 extern long rd_init(long mem_start, int length);
-// TODO WGJA WIP: extern long kernel_mktime(struct mktime * time);
+extern long kernel_mktime(struct mktime * time);
 extern unsigned long simple_strtoul(const char *,char **,unsigned int);
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern void hd_setup(char *str, int *ints);
@@ -123,45 +123,45 @@ extern unsigned long simple_strtoul(const char *,char **,unsigned int);
 #define MAX_INIT_ENVS 8
 #define COMMAND_LINE ((char *) (PARAM+2048))
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Yeah, yeah, it's ugly, but I cannot find how to do this correctly
-// TODO WGJA WIP:  * and this seems to work. I anybody has more info on the real-time
-// TODO WGJA WIP:  * clock I'd be interested. Most of this was trial and error, and some
-// TODO WGJA WIP:  * bios-listing reading. Urghh.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define CMOS_READ(addr) ({ \
-// TODO WGJA WIP: outb_p(addr,0x70); \
-// TODO WGJA WIP: inb_p(0x71); \
-// TODO WGJA WIP: })
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define BCD_TO_BIN(val) ((val)=((val)&15) + ((val)>>4)*10)
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static void time_init(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct mktime time;
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	for (i = 0 ; i < 1000000 ; i++)
-// TODO WGJA WIP: 		if (!(CMOS_READ(10) & 0x80))
-// TODO WGJA WIP: 			break;
-// TODO WGJA WIP: 	do {
-// TODO WGJA WIP: 		time.sec = CMOS_READ(0);
-// TODO WGJA WIP: 		time.min = CMOS_READ(2);
-// TODO WGJA WIP: 		time.hour = CMOS_READ(4);
-// TODO WGJA WIP: 		time.day = CMOS_READ(7);
-// TODO WGJA WIP: 		time.mon = CMOS_READ(8);
-// TODO WGJA WIP: 		time.year = CMOS_READ(9);
-// TODO WGJA WIP: 	} while (time.sec != CMOS_READ(0));
-// TODO WGJA WIP: 	BCD_TO_BIN(time.sec);
-// TODO WGJA WIP: 	BCD_TO_BIN(time.min);
-// TODO WGJA WIP: 	BCD_TO_BIN(time.hour);
-// TODO WGJA WIP: 	BCD_TO_BIN(time.day);
-// TODO WGJA WIP: 	BCD_TO_BIN(time.mon);
-// TODO WGJA WIP: 	BCD_TO_BIN(time.year);
-// TODO WGJA WIP: 	time.mon--;
-// TODO WGJA WIP: 	startup_time = kernel_mktime(&time);
-// TODO WGJA WIP: }
+/*
+ * Yeah, yeah, it's ugly, but I cannot find how to do this correctly
+ * and this seems to work. I anybody has more info on the real-time
+ * clock I'd be interested. Most of this was trial and error, and some
+ * bios-listing reading. Urghh.
+ */
+
+#define CMOS_READ(addr) ({ \
+outb_p(addr,0x70); \
+inb_p(0x71); \
+})
+
+#define BCD_TO_BIN(val) ((val)=((val)&15) + ((val)>>4)*10)
+
+static void time_init(void)
+{
+	struct mktime time;
+	int i;
+
+	for (i = 0 ; i < 1000000 ; i++)
+		if (!(CMOS_READ(10) & 0x80))
+			break;
+	do {
+		time.sec = CMOS_READ(0);
+		time.min = CMOS_READ(2);
+		time.hour = CMOS_READ(4);
+		time.day = CMOS_READ(7);
+		time.mon = CMOS_READ(8);
+		time.year = CMOS_READ(9);
+	} while (time.sec != CMOS_READ(0));
+	BCD_TO_BIN(time.sec);
+	BCD_TO_BIN(time.min);
+	BCD_TO_BIN(time.hour);
+	BCD_TO_BIN(time.day);
+	BCD_TO_BIN(time.mon);
+	BCD_TO_BIN(time.year);
+	time.mon--;
+	startup_time = kernel_mktime(&time);
+}
 
 static unsigned long memory_start = 0;	/* After mem_init, stores the */
 					/* amount of free user memory */
@@ -401,7 +401,7 @@ extern "C" void start_kernel(void)
 	memory_start = file_table_init(memory_start,memory_end);
 	mem_init(low_memory_start,memory_start,memory_end);
 	buffer_init();
-	// time_init(); 	// WGJA TODO time_init()
+	time_init();
 	floppy_init();	
 	// sock_init();		// WGJA TODO sock_init()
 #ifdef CONFIG_SYSVIPC

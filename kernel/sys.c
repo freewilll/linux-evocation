@@ -9,7 +9,7 @@
 #include <linux/tty.h>
 #include <linux/kernel.h>
 #include <linux/config.h>
-// TODO WGJA WIP: #include <linux/times.h>
+#include <linux/times.h>
 #include <linux/utsname.h>
 #include <linux/param.h>
 #include <linux/resource.h>
@@ -412,19 +412,19 @@ extern "C" int sys_stime(long * tptr)
 	return 0;
 }
 
-// TODO WGJA WIP: extern "C" int sys_times(struct tms * tbuf)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (tbuf) {
-// TODO WGJA WIP: 		int error = verify_area(VERIFY_WRITE,tbuf,sizeof *tbuf);
-// TODO WGJA WIP: 		if (error)
-// TODO WGJA WIP: 			return error;
-// TODO WGJA WIP: 		put_fs_long(current->utime,(unsigned long *)&tbuf->tms_utime);
-// TODO WGJA WIP: 		put_fs_long(current->stime,(unsigned long *)&tbuf->tms_stime);
-// TODO WGJA WIP: 		put_fs_long(current->cutime,(unsigned long *)&tbuf->tms_cutime);
-// TODO WGJA WIP: 		put_fs_long(current->cstime,(unsigned long *)&tbuf->tms_cstime);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return jiffies;
-// TODO WGJA WIP: }
+extern "C" int sys_times(struct tms * tbuf)
+{
+	if (tbuf) {
+		int error = verify_area(VERIFY_WRITE,tbuf,sizeof *tbuf);
+		if (error)
+			return error;
+		put_fs_long(current->utime,(unsigned long *)&tbuf->tms_utime);
+		put_fs_long(current->stime,(unsigned long *)&tbuf->tms_stime);
+		put_fs_long(current->cutime,(unsigned long *)&tbuf->tms_cutime);
+		put_fs_long(current->cstime,(unsigned long *)&tbuf->tms_cstime);
+	}
+	return jiffies;
+}
 
 // TODO WGJA WIP: extern "C" int sys_brk(unsigned long brk)
 // TODO WGJA WIP: {
