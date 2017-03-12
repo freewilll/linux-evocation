@@ -35,28 +35,28 @@ static int dupfd(unsigned int fd, unsigned int arg)
 	return arg;
 }
 
-// TODO WGJA WIP: extern "C" int sys_dup2(unsigned int oldfd, unsigned int newfd)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (oldfd >= NR_OPEN || !current->filp[oldfd])
-// TODO WGJA WIP: 		return -EBADF;
-// TODO WGJA WIP: 	if (newfd == oldfd)
-// TODO WGJA WIP: 		return newfd;
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * errno's for dup2() are slightly different than for fcntl(F_DUPFD)
-// TODO WGJA WIP: 	 * for historical reasons.
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	if (newfd > NR_OPEN)	/* historical botch - should have been >= */
-// TODO WGJA WIP: 		return -EBADF;	/* dupfd() would return -EINVAL */
-// TODO WGJA WIP: #if 1
-// TODO WGJA WIP: 	if (newfd == NR_OPEN)
-// TODO WGJA WIP: 		return -EBADF;	/* dupfd() does return -EINVAL and that may
-// TODO WGJA WIP: 				 * even be the standard!  But that is too
-// TODO WGJA WIP: 				 * weird for now.
-// TODO WGJA WIP: 				 */
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 	sys_close(newfd);
-// TODO WGJA WIP: 	return dupfd(oldfd,newfd);
-// TODO WGJA WIP: }
+extern "C" int sys_dup2(unsigned int oldfd, unsigned int newfd)
+{
+	if (oldfd >= NR_OPEN || !current->filp[oldfd])
+		return -EBADF;
+	if (newfd == oldfd)
+		return newfd;
+	/*
+	 * errno's for dup2() are slightly different than for fcntl(F_DUPFD)
+	 * for historical reasons.
+	 */
+	if (newfd > NR_OPEN)	/* historical botch - should have been >= */
+		return -EBADF;	/* dupfd() would return -EINVAL */
+#if 1
+	if (newfd == NR_OPEN)
+		return -EBADF;	/* dupfd() does return -EINVAL and that may
+				 * even be the standard!  But that is too
+				 * weird for now.
+				 */
+#endif
+	sys_close(newfd);
+	return dupfd(oldfd,newfd);
+}
 
 extern "C" int sys_dup(unsigned int fildes)
 {

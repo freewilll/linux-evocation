@@ -214,7 +214,7 @@ fn_ptr sys_call_table[] = {
 	sys_umask, 			// #define __NR_umask		 60
 	sys_chroot, 			// #define __NR_chroot		 61
 	sys_ustat, 			// #define __NR_ustat		 62
-	sys_todo, 			// #define __NR_dup2		 63	todo
+	sys_dup2, 			// #define __NR_dup2		 63
 	sys_getppid, 			// #define __NR_getppid		 64
 	sys_getpgrp, 			// #define __NR_getpgrp		 65
 	sys_setsid, 			// #define __NR_setsid		 66
