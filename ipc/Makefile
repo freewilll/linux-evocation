@@ -18,7 +18,6 @@ SUBDIRS =
 
 OBJS	=  util.o 
 
-# TODO WGJA: Work in progress build
 # ifdef CONFIG_SYSVIPC
 # OBJS	:= $(OBJS) msg.o sem.o shm.o
 # endif
