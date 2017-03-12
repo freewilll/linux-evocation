@@ -319,156 +319,156 @@ int vt_waitactive(void)
 
 extern int kill_proc(int pid, int sig, int priv);
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Performs the back end of a vt switch
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: void complete_change_console(unsigned int new_console)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned char old_vc_mode;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (new_console == fg_console || new_console >= NR_CONSOLES)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * If we're switching, we could be going from KD_GRAPHICS to
-// TODO WGJA WIP: 	 * KD_TEXT mode or vice versa, which means we need to blank or
-// TODO WGJA WIP: 	 * unblank the screen later.
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	old_vc_mode = vt_cons[fg_console].vc_mode;
-// TODO WGJA WIP: 	update_screen(new_console);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * If this new console is under process control, send it a signal
-// TODO WGJA WIP: 	 * telling it that it has acquired. Also check if it has died and
-// TODO WGJA WIP: 	 * clean up (similar to logic employed in change_console())
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	if (vt_cons[new_console].vt_mode.mode == VT_PROCESS)
-// TODO WGJA WIP: 	{
-// TODO WGJA WIP: 		/*
-// TODO WGJA WIP: 		 * Send the signal as privileged - kill_proc() will
-// TODO WGJA WIP: 		 * tell us if the process has gone or something else
-// TODO WGJA WIP: 		 * is awry
-// TODO WGJA WIP: 		 */
-// TODO WGJA WIP: 		if (kill_proc(vt_cons[new_console].vt_pid,
-// TODO WGJA WIP: 			      vt_cons[new_console].vt_mode.acqsig,
-// TODO WGJA WIP: 			      1) != 0)
-// TODO WGJA WIP: 		{
-// TODO WGJA WIP: 		/*
-// TODO WGJA WIP: 		 * The controlling process has died, so we revert back to
-// TODO WGJA WIP: 		 * normal operation. In this case, we'll also change back
-// TODO WGJA WIP: 		 * to KD_TEXT mode. I'm not sure if this is strictly correct
-// TODO WGJA WIP: 		 * but it saves the agony when the X server dies and the screen
-// TODO WGJA WIP: 		 * remains blanked due to KD_GRAPHICS! It would be nice to do
-// TODO WGJA WIP: 		 * this outside of VT_PROCESS but there is no single process
-// TODO WGJA WIP: 		 * to account for and tracking tty count may be undesirable.
-// TODO WGJA WIP: 		 */
-// TODO WGJA WIP: 			vt_cons[new_console].vc_mode = KD_TEXT;
-// TODO WGJA WIP: 			clr_vc_kbd_flag(kbd_table + new_console, VC_RAW);
-// TODO WGJA WIP:  			vt_cons[new_console].vt_mode.mode = VT_AUTO;
-// TODO WGJA WIP:  			vt_cons[new_console].vt_mode.waitv = 0;
-// TODO WGJA WIP:  			vt_cons[new_console].vt_mode.relsig = 0;
-// TODO WGJA WIP: 			vt_cons[new_console].vt_mode.acqsig = 0;
-// TODO WGJA WIP: 			vt_cons[new_console].vt_mode.frsig = 0;
-// TODO WGJA WIP: 			vt_cons[new_console].vt_pid = -1;
-// TODO WGJA WIP: 			vt_cons[new_console].vt_newvt = -1;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * We do this here because the controlling process above may have
-// TODO WGJA WIP: 	 * gone, and so there is now a new vc_mode
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	if (old_vc_mode != vt_cons[new_console].vc_mode)
-// TODO WGJA WIP: 	{
-// TODO WGJA WIP: 		if (vt_cons[new_console].vc_mode == KD_TEXT)
-// TODO WGJA WIP: 			unblank_screen();
-// TODO WGJA WIP: 		else {
-// TODO WGJA WIP: 			timer_active &= ~(1<<BLANK_TIMER);
-// TODO WGJA WIP: 			blank_screen();
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * Wake anyone waiting for their VT to activate
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	vt_wake_waitactive();
-// TODO WGJA WIP: 	return;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Performs the front-end of a vt switch
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: void change_console(unsigned int new_console)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (new_console == fg_console || new_console >= NR_CONSOLES)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * If this vt is in process mode, then we need to handshake with
-// TODO WGJA WIP: 	 * that process before switching. Essentially, we store where that
-// TODO WGJA WIP: 	 * vt wants to switch to and wait for it to tell us when it's done
-// TODO WGJA WIP: 	 * (via VT_RELDISP ioctl).
-// TODO WGJA WIP: 	 *
-// TODO WGJA WIP: 	 * We also check to see if the controlling process still exists.
-// TODO WGJA WIP: 	 * If it doesn't, we reset this vt to auto mode and continue.
-// TODO WGJA WIP: 	 * This is a cheap way to track process control. The worst thing
-// TODO WGJA WIP: 	 * that can happen is: we send a signal to a process, it dies, and
-// TODO WGJA WIP: 	 * the switch gets "lost" waiting for a response; hopefully, the
-// TODO WGJA WIP: 	 * user will try again, we'll detect the process is gone (unless
-// TODO WGJA WIP: 	 * the user waits just the right amount of time :-) and revert the
-// TODO WGJA WIP: 	 * vt to auto control.
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	if (vt_cons[fg_console].vt_mode.mode == VT_PROCESS)
-// TODO WGJA WIP: 	{
-// TODO WGJA WIP: 		/*
-// TODO WGJA WIP: 		 * Send the signal as privileged - kill_proc() will
-// TODO WGJA WIP: 		 * tell us if the process has gone or something else
-// TODO WGJA WIP: 		 * is awry
-// TODO WGJA WIP: 		 */
-// TODO WGJA WIP: 		if (kill_proc(vt_cons[fg_console].vt_pid,
-// TODO WGJA WIP: 			      vt_cons[fg_console].vt_mode.relsig,
-// TODO WGJA WIP: 			      1) == 0)
-// TODO WGJA WIP: 		{
-// TODO WGJA WIP: 			/*
-// TODO WGJA WIP: 			 * It worked. Mark the vt to switch to and
-// TODO WGJA WIP: 			 * return. The process needs to send us a
-// TODO WGJA WIP: 			 * VT_RELDISP ioctl to complete the switch.
-// TODO WGJA WIP: 			 */
-// TODO WGJA WIP: 			vt_cons[fg_console].vt_newvt = new_console;
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 		/*
-// TODO WGJA WIP: 		 * The controlling process has died, so we revert back to
-// TODO WGJA WIP: 		 * normal operation. In this case, we'll also change back
-// TODO WGJA WIP: 		 * to KD_TEXT mode. I'm not sure if this is strictly correct
-// TODO WGJA WIP: 		 * but it saves the agony when the X server dies and the screen
-// TODO WGJA WIP: 		 * remains blanked due to KD_GRAPHICS! It would be nice to do
-// TODO WGJA WIP: 		 * this outside of VT_PROCESS but there is no single process
-// TODO WGJA WIP: 		 * to account for and tracking tty count may be undesirable.
-// TODO WGJA WIP: 		 */
-// TODO WGJA WIP: 		vt_cons[fg_console].vc_mode = KD_TEXT;
-// TODO WGJA WIP: 		clr_vc_kbd_flag(kbd_table + fg_console, VC_RAW);
-// TODO WGJA WIP: 		vt_cons[fg_console].vt_mode.mode = VT_AUTO;
-// TODO WGJA WIP: 		vt_cons[fg_console].vt_mode.waitv = 0;
-// TODO WGJA WIP: 		vt_cons[fg_console].vt_mode.relsig = 0;
-// TODO WGJA WIP: 		vt_cons[fg_console].vt_mode.acqsig = 0;
-// TODO WGJA WIP: 		vt_cons[fg_console].vt_mode.frsig = 0;
-// TODO WGJA WIP: 		vt_cons[fg_console].vt_pid = -1;
-// TODO WGJA WIP: 		vt_cons[fg_console].vt_newvt = -1;
-// TODO WGJA WIP: 		/*
-// TODO WGJA WIP: 		 * Fall through to normal (VT_AUTO) handling of the switch...
-// TODO WGJA WIP: 		 */
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * Ignore all switches in KD_GRAPHICS+VT_AUTO mode
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	if (vt_cons[fg_console].vc_mode == KD_GRAPHICS)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	complete_change_console(new_console);
-// TODO WGJA WIP: }
+/*
+ * Performs the back end of a vt switch
+ */
+void complete_change_console(unsigned int new_console)
+{
+	unsigned char old_vc_mode;
+
+	if (new_console == fg_console || new_console >= NR_CONSOLES)
+		return;
+
+	/*
+	 * If we're switching, we could be going from KD_GRAPHICS to
+	 * KD_TEXT mode or vice versa, which means we need to blank or
+	 * unblank the screen later.
+	 */
+	old_vc_mode = vt_cons[fg_console].vc_mode;
+	update_screen(new_console);
+
+	/*
+	 * If this new console is under process control, send it a signal
+	 * telling it that it has acquired. Also check if it has died and
+	 * clean up (similar to logic employed in change_console())
+	 */
+	if (vt_cons[new_console].vt_mode.mode == VT_PROCESS)
+	{
+		/*
+		 * Send the signal as privileged - kill_proc() will
+		 * tell us if the process has gone or something else
+		 * is awry
+		 */
+		if (kill_proc(vt_cons[new_console].vt_pid,
+			      vt_cons[new_console].vt_mode.acqsig,
+			      1) != 0)
+		{
+		/*
+		 * The controlling process has died, so we revert back to
+		 * normal operation. In this case, we'll also change back
+		 * to KD_TEXT mode. I'm not sure if this is strictly correct
+		 * but it saves the agony when the X server dies and the screen
+		 * remains blanked due to KD_GRAPHICS! It would be nice to do
+		 * this outside of VT_PROCESS but there is no single process
+		 * to account for and tracking tty count may be undesirable.
+		 */
+			vt_cons[new_console].vc_mode = KD_TEXT;
+			clr_vc_kbd_flag(kbd_table + new_console, VC_RAW);
+ 			vt_cons[new_console].vt_mode.mode = VT_AUTO;
+ 			vt_cons[new_console].vt_mode.waitv = 0;
+ 			vt_cons[new_console].vt_mode.relsig = 0;
+			vt_cons[new_console].vt_mode.acqsig = 0;
+			vt_cons[new_console].vt_mode.frsig = 0;
+			vt_cons[new_console].vt_pid = -1;
+			vt_cons[new_console].vt_newvt = -1;
+		}
+	}
+
+	/*
+	 * We do this here because the controlling process above may have
+	 * gone, and so there is now a new vc_mode
+	 */
+	if (old_vc_mode != vt_cons[new_console].vc_mode)
+	{
+		if (vt_cons[new_console].vc_mode == KD_TEXT)
+			unblank_screen();
+		else {
+			timer_active &= ~(1<<BLANK_TIMER);
+			blank_screen();
+		}
+	}
+
+	/*
+	 * Wake anyone waiting for their VT to activate
+	 */
+	vt_wake_waitactive();
+	return;
+}
+
+/*
+ * Performs the front-end of a vt switch
+ */
+void change_console(unsigned int new_console)
+{
+	if (new_console == fg_console || new_console >= NR_CONSOLES)
+		return;
+
+	/*
+	 * If this vt is in process mode, then we need to handshake with
+	 * that process before switching. Essentially, we store where that
+	 * vt wants to switch to and wait for it to tell us when it's done
+	 * (via VT_RELDISP ioctl).
+	 *
+	 * We also check to see if the controlling process still exists.
+	 * If it doesn't, we reset this vt to auto mode and continue.
+	 * This is a cheap way to track process control. The worst thing
+	 * that can happen is: we send a signal to a process, it dies, and
+	 * the switch gets "lost" waiting for a response; hopefully, the
+	 * user will try again, we'll detect the process is gone (unless
+	 * the user waits just the right amount of time :-) and revert the
+	 * vt to auto control.
+	 */
+	if (vt_cons[fg_console].vt_mode.mode == VT_PROCESS)
+	{
+		/*
+		 * Send the signal as privileged - kill_proc() will
+		 * tell us if the process has gone or something else
+		 * is awry
+		 */
+		if (kill_proc(vt_cons[fg_console].vt_pid,
+			      vt_cons[fg_console].vt_mode.relsig,
+			      1) == 0)
+		{
+			/*
+			 * It worked. Mark the vt to switch to and
+			 * return. The process needs to send us a
+			 * VT_RELDISP ioctl to complete the switch.
+			 */
+			vt_cons[fg_console].vt_newvt = new_console;
+			return;
+		}
+
+		/*
+		 * The controlling process has died, so we revert back to
+		 * normal operation. In this case, we'll also change back
+		 * to KD_TEXT mode. I'm not sure if this is strictly correct
+		 * but it saves the agony when the X server dies and the screen
+		 * remains blanked due to KD_GRAPHICS! It would be nice to do
+		 * this outside of VT_PROCESS but there is no single process
+		 * to account for and tracking tty count may be undesirable.
+		 */
+		vt_cons[fg_console].vc_mode = KD_TEXT;
+		clr_vc_kbd_flag(kbd_table + fg_console, VC_RAW);
+		vt_cons[fg_console].vt_mode.mode = VT_AUTO;
+		vt_cons[fg_console].vt_mode.waitv = 0;
+		vt_cons[fg_console].vt_mode.relsig = 0;
+		vt_cons[fg_console].vt_mode.acqsig = 0;
+		vt_cons[fg_console].vt_mode.frsig = 0;
+		vt_cons[fg_console].vt_pid = -1;
+		vt_cons[fg_console].vt_newvt = -1;
+		/*
+		 * Fall through to normal (VT_AUTO) handling of the switch...
+		 */
+	}
+
+	/*
+	 * Ignore all switches in KD_GRAPHICS+VT_AUTO mode
+	 */
+	if (vt_cons[fg_console].vc_mode == KD_GRAPHICS)
+		return;
+
+	complete_change_console(new_console);
+}
 
 void wait_for_keypress(void)
 {
@@ -1272,7 +1272,6 @@ static void release_dev(int dev, struct file * filp)
  */
 static int tty_open(struct inode * inode, struct file * filp)
 {
-	printk("tty_open 1\n");
 	struct tty_struct *tty;
 	int major, minor;
 	int noctty, retval;

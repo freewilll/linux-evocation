@@ -349,10 +349,34 @@ __asm__ __volatile__(
 	"je 2f\n\t"
 	"movsb\n"
 	"2:"
-	: "=&c" (d0), "=&D" (d1), "=&S" (d2)
+	:"=&c" (d0), "=&D" (d1), "=&S" (d2)
 	:"0" (n/4), "q" (n),"1" ((long) to),"2" ((long) from)
 	: "memory");
 return (to);
+}
+
+static inline void * memmove(void * dest,const void * src, size_t n)
+{
+int d0, d1, d2;
+if (dest<src)
+__asm__ __volatile__(
+	"rep\n\t"
+	"movsb"
+	: "=&c" (d0), "=&S" (d1), "=&D" (d2)
+	:"0" (n),"1" (src),"2" (dest)
+	: "memory");
+else
+__asm__ __volatile__(
+	"std\n\t"
+	"rep\n\t"
+	"movsb\n\t"
+	"cld"
+	: "=&c" (d0), "=&S" (d1), "=&D" (d2)
+	:"0" (n),
+	 "1" (n-1+(const char *)src),
+	 "2" (n-1+(char *)dest)
+	:"memory");
+return dest;
 }
 
 static inline int memcmp(const void * cs,const void * ct,size_t count)

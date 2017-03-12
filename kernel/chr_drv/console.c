@@ -394,45 +394,47 @@ static void scrup(int currcons, unsigned int t, unsigned int b)
 		pos += video_size_row;
 		scr_end += video_size_row;
 		if (scr_end > video_mem_end) {
-			__asm__("cld\n\t"
+			int d0, d1, d2;
+			__asm__ __volatile__(
+				"cld\n\t"
 				"rep\n\t"
 				"movsl\n\t"
-				"movl _video_num_columns,%1\n\t"
+				"movl video_num_columns,%1\n\t"
 				"rep\n\t"
 				"stosw"
-				: /* no output */
-				:"a" (video_erase_char),
-				"c" ((video_num_lines-1)*video_num_columns>>1),
-				"D" (video_mem_start),
-				"S" (origin)
-				:"cx","di","si");
-			scr_end -= origin-video_mem_start;
-			pos -= origin-video_mem_start;
-			origin = video_mem_start;
+				: "=&c" (d0), "=&D" (d1), "=&S" (d2)
+				:"a" ("video_erase_char"),
+				"0" ((video_num_lines-1)*video_num_columns>>1),
+				"1" (video_mem_start),
+				"2" (origin));
+ 			scr_end -= origin-video_mem_start;
+ 			pos -= origin-video_mem_start;
+ 			origin = video_mem_start;
 		} else {
-			__asm__("cld\n\t"
+			int d0, d1;
+			__asm__ __volatile__(
+				"cld\n\t"
 				"rep\n\t"
 				"stosw"
-				: /* no output */
-				:"a" (video_erase_char),
-				"c" (video_num_columns),
-				"D" (scr_end-video_size_row)
-				:"cx","di");
+				: "=&c" (d0), "=&D" (d1)
+				:"a" (video_erase_char),"1" (scr_end-video_size_row),"0" (video_num_columns)
+				:"memory");
 		}
 		set_origin(currcons);
 	} else {
-		__asm__("cld\n\t"
+		int d0, d1, d2, d3;
+		__asm__ __volatile__(
+			"cld\n\t"
 			"rep\n\t"
 			"movsl\n\t"
-			"movl _video_num_columns,%%ecx\n\t"
+			"movl video_num_columns,%%ecx\n\t"
 			"rep\n\t"
 			"stosw"
-			: /* no output */
-			:"a" (video_erase_char),
-			"c" ((b-t-1)*video_num_columns>>1),
-			"D" (origin+video_size_row*t),
-			"S" (origin+video_size_row*(t+1))
-			:"cx","di","si");
+			:"=&c" (d0), "=&D" (d1), "=&S" (d2), "=&ax" (d3)
+			:"3" (video_erase_char),
+			"0" ((b-t-1)*video_num_columns>>1),
+			"1" (origin+video_size_row*t),
+			"2" (origin+video_size_row*(t+1)));
 	}
 }
 
@@ -440,20 +442,23 @@ static void scrdown(int currcons, unsigned int t, unsigned int b)
 {
 	if (b > video_num_lines || t >= b)
 		return;
-	__asm__("std\n\t"
+
+	int d0, d1, d2, d3;
+	__asm__ __volatile__(
+		"std\n\t"
 		"rep\n\t"
 		"movsl\n\t"
 		"addl $2,%%edi\n\t"	/* %edi has been decremented by 4 */
-		"movl _video_num_columns,%%ecx\n\t"
+		"movl video_num_columns,%%ecx\n\t"
 		"rep\n\t"
 		"stosw\n\t"
 		"cld"
-		: /* no output */
-		:"a" (video_erase_char),
-		"c" ((b-t-1)*video_num_columns>>1),
-		"D" (origin+video_size_row*b-4),
-		"S" (origin+video_size_row*(b-1)-4)
-		:"ax","cx","di","si");
+		:"=&c" (d0), "=&D" (d1), "=&S" (d2), "=&ax" (d3)
+		:"3" (video_erase_char),
+		"0" ((b-t-1)*video_num_columns>>1),
+		"1" (origin+video_size_row*b-4),
+		"2" (origin+video_size_row*(b-1)-4)
+		:"memory");
 }
 
 static void lf(int currcons)
@@ -524,13 +529,16 @@ static void csi_J(int currcons, int vpar)
 		default:
 			return;
 	}
-	__asm__("cld\n\t"
+
+	int d0, d1;
+	__asm__ __volatile__(
+		"cld\n\t"
 		"rep\n\t"
-		"stosw\n\t"
-		: /* no output */
-		:"c" (count),
-		"D" (start),"a" (video_erase_char)
-		:"cx","di");
+		"stosw"
+		: "=&c" (d0), "=&D" (d1)
+		:"a" (video_erase_char),"1" (start),"0" (count)
+		:"memory");
+
 	need_wrap = 0;
 }
 
@@ -555,13 +563,15 @@ static void csi_K(int currcons, int vpar)
 		default:
 			return;
 	}
-	__asm__("cld\n\t"
+	int d0, d1, d2;
+	__asm__ __volatile(
+		"cld\n\t"
 		"rep\n\t"
 		"stosw\n\t"
-		: /* no output */
-		:"c" (count),
-		"D" (start),"a" (video_erase_char)
-		:"cx","di");
+		:"=&c" (d0), "=&D" (d1), "=&ax" (d2)
+		:"0" (count),
+		"1" (start),
+		"2" (video_erase_char));
 	need_wrap = 0;
 }
 
@@ -1288,13 +1298,15 @@ void do_keyboard_interrupt(void)
 
 void * memsetw(void * s,unsigned short c,int count)
 {
-__asm__("cld\n\t"
-	"rep\n\t"
-	"stosw"
-	: /* no output */
-	:"a" (c),"D" (s),"c" (count)
-	:"cx","di");
-return s;
+	int d0, d1;
+	__asm__ __volatile__(
+		"cld\n\t"
+		"rep\n\t"
+		"stosw"
+		: "=&c" (d0), "=&D" (d1)
+		:"a" (c),"1" (s),"0" (count)
+		:"memory");
+	return s;
 }
 
 void console_print(const char * b)

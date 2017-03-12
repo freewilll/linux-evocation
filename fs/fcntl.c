@@ -35,69 +35,69 @@ static int dupfd(unsigned int fd, unsigned int arg)
 	return arg;
 }
 
-extern "C" int sys_dup2(unsigned int oldfd, unsigned int newfd)
-{
-	if (oldfd >= NR_OPEN || !current->filp[oldfd])
-		return -EBADF;
-	if (newfd == oldfd)
-		return newfd;
-	/*
-	 * errno's for dup2() are slightly different than for fcntl(F_DUPFD)
-	 * for historical reasons.
-	 */
-	if (newfd > NR_OPEN)	/* historical botch - should have been >= */
-		return -EBADF;	/* dupfd() would return -EINVAL */
-#if 1
-	if (newfd == NR_OPEN)
-		return -EBADF;	/* dupfd() does return -EINVAL and that may
-				 * even be the standard!  But that is too
-				 * weird for now.
-				 */
-#endif
-	sys_close(newfd);
-	return dupfd(oldfd,newfd);
-}
+// TODO WGJA WIP: extern "C" int sys_dup2(unsigned int oldfd, unsigned int newfd)
+// TODO WGJA WIP: {
+// TODO WGJA WIP: 	if (oldfd >= NR_OPEN || !current->filp[oldfd])
+// TODO WGJA WIP: 		return -EBADF;
+// TODO WGJA WIP: 	if (newfd == oldfd)
+// TODO WGJA WIP: 		return newfd;
+// TODO WGJA WIP: 	/*
+// TODO WGJA WIP: 	 * errno's for dup2() are slightly different than for fcntl(F_DUPFD)
+// TODO WGJA WIP: 	 * for historical reasons.
+// TODO WGJA WIP: 	 */
+// TODO WGJA WIP: 	if (newfd > NR_OPEN)	/* historical botch - should have been >= */
+// TODO WGJA WIP: 		return -EBADF;	/* dupfd() would return -EINVAL */
+// TODO WGJA WIP: #if 1
+// TODO WGJA WIP: 	if (newfd == NR_OPEN)
+// TODO WGJA WIP: 		return -EBADF;	/* dupfd() does return -EINVAL and that may
+// TODO WGJA WIP: 				 * even be the standard!  But that is too
+// TODO WGJA WIP: 				 * weird for now.
+// TODO WGJA WIP: 				 */
+// TODO WGJA WIP: #endif
+// TODO WGJA WIP: 	sys_close(newfd);
+// TODO WGJA WIP: 	return dupfd(oldfd,newfd);
+// TODO WGJA WIP: }
 
 extern "C" int sys_dup(unsigned int fildes)
 {
 	return dupfd(fildes,0);
 }
 
-extern "C" int sys_fcntl(unsigned int fd, unsigned int cmd, unsigned long arg)
-{	
-	struct file * filp;
-
-	if (fd >= NR_OPEN || !(filp = current->filp[fd]))
-		return -EBADF;
-	switch (cmd) {
-		case F_DUPFD:
-			return dupfd(fd,arg);
-		case F_GETFD:
-			return FD_ISSET(fd, &current->close_on_exec);
-		case F_SETFD:
-			if (arg&1)
-				FD_SET(fd, &current->close_on_exec);
-			else
-				FD_CLR(fd, &current->close_on_exec);
-			return 0;
-		case F_GETFL:
-			return filp->f_flags;
-		case F_SETFL:
-			filp->f_flags &= ~(O_APPEND | O_NONBLOCK);
-			filp->f_flags |= arg & (O_APPEND | O_NONBLOCK);
-			return 0;
-		case F_GETLK:
-			return fcntl_getlk(fd, (struct flock *) arg);
-		case F_SETLK:
-			return fcntl_setlk(fd, cmd, (struct flock *) arg);
-		case F_SETLKW:
-			return fcntl_setlk(fd, cmd, (struct flock *) arg);
-		default:
-			/* sockets need a few special fcntls. */
-			if (S_ISSOCK (filp->f_inode->i_mode))
-			  {
-			     return (sock_fcntl (filp, cmd, arg));
-			  }
-			return -EINVAL;
-	}
-}
+// TODO WGJA WIP: extern "C" int sys_fcntl(unsigned int fd, unsigned int cmd, unsigned long arg)
+// TODO WGJA WIP: {	
+// TODO WGJA WIP: 	struct file * filp;
+// TODO WGJA WIP: 
+// TODO WGJA WIP: 	if (fd >= NR_OPEN || !(filp = current->filp[fd]))
+// TODO WGJA WIP: 		return -EBADF;
+// TODO WGJA WIP: 	switch (cmd) {
+// TODO WGJA WIP: 		case F_DUPFD:
+// TODO WGJA WIP: 			return dupfd(fd,arg);
+// TODO WGJA WIP: 		case F_GETFD:
+// TODO WGJA WIP: 			return FD_ISSET(fd, &current->close_on_exec);
+// TODO WGJA WIP: 		case F_SETFD:
+// TODO WGJA WIP: 			if (arg&1)
+// TODO WGJA WIP: 				FD_SET(fd, &current->close_on_exec);
+// TODO WGJA WIP: 			else
+// TODO WGJA WIP: 				FD_CLR(fd, &current->close_on_exec);
+// TODO WGJA WIP: 			return 0;
+// TODO WGJA WIP: 		case F_GETFL:
+// TODO WGJA WIP: 			return filp->f_flags;
+// TODO WGJA WIP: 		case F_SETFL:
+// TODO WGJA WIP: 			filp->f_flags &= ~(O_APPEND | O_NONBLOCK);
+// TODO WGJA WIP: 			filp->f_flags |= arg & (O_APPEND | O_NONBLOCK);
+// TODO WGJA WIP: 			return 0;
+// TODO WGJA WIP: 		case F_GETLK:
+// TODO WGJA WIP: 			return fcntl_getlk(fd, (struct flock *) arg);
+// TODO WGJA WIP: 		case F_SETLK:
+// TODO WGJA WIP: 			return fcntl_setlk(fd, cmd, (struct flock *) arg);
+// TODO WGJA WIP: 		case F_SETLKW:
+// TODO WGJA WIP: 			return fcntl_setlk(fd, cmd, (struct flock *) arg);
+// TODO WGJA WIP: 		default:
+// TODO WGJA WIP: 			/* sockets need a few special fcntls. */
+// TODO WGJA WIP: 			if (S_ISSOCK (filp->f_inode->i_mode))
+// TODO WGJA WIP: 			  {
+// TODO WGJA WIP: 			     return (sock_fcntl (filp, cmd, arg));
+// TODO WGJA WIP: 			  }
+// TODO WGJA WIP: 			return -EINVAL;
+// TODO WGJA WIP: 	}
+// TODO WGJA WIP: }

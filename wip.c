@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <linux/kernel.h>
 #include <linux/errno.h>
 #include <linux/mm.h>
@@ -13,14 +14,17 @@ static inline _syscall3(int,reboot,int,magic,int,magic_too,int,flag)
 static inline _syscall0(int,idle)
 static inline _syscall3(int,open,const char *,file,int,flag,int,mode)
 static inline _syscall3(int,read,unsigned int,fd,char *,buf,unsigned int,count)
+static inline _syscall3(int,write,int,fd,const char *,buf,off_t,count)
 static inline _syscall3(int,readdir,unsigned int,fd,struct dirent *,dirent,unsigned int,count)
 static inline _syscall2(int,mkdir,const char *,pathname,int,mode)
 static inline _syscall1(int,rmdir,const char*,pathname)
+static inline _syscall1(int,dup,int,fd)
+
+static char printbuf[1024];
+extern "C" int vsprintf(char *,const char *,va_list);
+extern inline void * memmove(void * dest,const void * src, size_t n);
 
 extern unsigned long timer_active;
-
-// TODO WGJA log_to_console & real prink
-int log_to_console = 1;
 
 // TODO WGJA do_signal
 extern "C" int do_signal(unsigned long oldmask, struct pt_regs * regs)
@@ -297,22 +301,36 @@ void test_minix()
 	test_minix_readdir();
 }
 
+static int printf(const char *fmt, ...)
+{
+	va_list args;
+	int i;
+
+	va_start(args, fmt);
+	write(1,printbuf,i=vsprintf(printbuf, fmt, args));
+	va_end(args);
+	return i;
+}
+
 void test_tty1_read()
 {
 	int stdin, c;
 	stdin = open("/dev/tty1",O_RDWR,0);
-	printk("stdin=%d\n", stdin);
+	(void) dup(0);
+	(void) dup(0);
+
+	printf("stdin=%d\n", stdin);
 
 	// printk("Trying to read from tty1\n");
 	char buf[10];
 	for(;;) {
 		c = read(stdin, buf, 10);
 		if (c < 0) {
-			printk("Got %d\n", c);
+			printf("Got %d\n", c);
 			panic("Bad shit: c < 0");
 		}
 		buf[c - 1] = 0; // Strip \n
-		printk("Read: %02d bytes: '%s'\n", c, buf);
+		printf("Read: %02d bytes: '%s'\n", c, buf);
 		
 		if (!strcmp("reboot\n", buf)) {
 			// To test hard_reset_now()
@@ -320,52 +338,6 @@ void test_tty1_read()
 		}
 	}
 }
-
-void do_keyboard_interrupt(void)
-{
-	// printk("do_keyboard_interrupt\n");
-	TTY_READ_FLUSH(TTY_TABLE(0));
-	timer_active &= ~(1<<0);
-	// printk("do_keyboard_interrupt done\n");
-	// TODO WGJA, rest of do_keyboard_interrupt
-	return;
-}
-
-// TODO WGJA scrollback
-void scrollback(int i)
-{
-	printk("TODO: scrollback\n");
-}
-
-// TODO WGJA scrollfront
-void scrollfront(int i)
-{
-	printk("TODO: scrollfront\n");
-}
-
-// TODO WGJA change_console
-void change_console(unsigned int)
-{
-	printk("TODO: change_console\n");
-}
-
-// TODO WGJA con_write
-void con_write(struct tty_struct * tty)
-{
-	// printk("TODO WGJA con_write\n");
-}
-
-// TODO WGJA con_open
-int con_open(struct tty_struct *tty, struct file * filp)
-{
-	printk("// TODO WGJA con_open\n");
-	tty->write = con_write;
-	return 0;
-}
-
-unsigned long video_num_lines;
-unsigned long video_num_columns;
-
 
 // TODO WGJA rs_open
 int rs_open(struct tty_struct *tty, struct file * filp)
@@ -383,13 +355,6 @@ int pty_open(struct tty_struct *tty, struct file * filp)
 	return 0;
 }
 
-// TODO WGJA con_init
-long con_init(long kmem_start)
-{
-	printk("TODO WGJA con_init\n");
-	return kmem_start;
-}
-
 // TODO WGJA rs_init
 long rs_init(long kmem_start)
 {
@@ -397,8 +362,77 @@ long rs_init(long kmem_start)
 	return kmem_start;
 }
 
-// TODO WGJA do_screendump
-int do_screendump(int arg)
+void test_printf() 
 {
-	printk("TODO WGJA do_screendump\n");
+	int i;
+
+	// Reverse linefeed (RI) test
+	// for(i=0;i<50;i++)
+	// 	printf("\eM");  // Esc-M  = RI       Reverse linefeed
+	// 	// printf("x");
+
+	// print_vc_cons_mem_situation();
+
+	// Line feed test
+	// for(i=0;i<250;i++)
+	// 	printf("%d\n", i);
+
+	// Clear screen
+	// printf("\e[2J");
+
+	// ESC-K test
+	// printf("Hello\n\e[1A"); // Print hello & move cursor up
+	// printf("\e[0K");  // Clear from cursor to EOL
+	// for(;;) idle();
+
+	// // Color test
+	// printf("\e[%dmBlack\n",  30 + 0);  // Not really black?
+	// printf("\e[%dmRed\n", 	 30 + 1);  
+	// printf("\e[%dmGreen\n",  30 + 2);
+	// printf("\e[%dmYellow\n", 30 + 3);
+	// printf("\e[%dmBlue\n",   30 + 4);
+	// printf("\e[%dmMagenta\n",30 + 5);
+	// printf("\e[%dmCyan\n",   30 + 6);
+	// printf("\e[%dmWhite\n",  30 + 7);
+	// printf("\e[0m"); // Reset
+}
+
+void test_memmove() 
+{
+	char* buf1 = "foo\0";
+	char* buf2 = "bar\0";
+
+	printf("\n");
+	printf("1 %s\n", buf1);  
+	printf("1 %s\n", buf2);
+
+	// Move buf1 -> buf2
+	memmove(buf2, buf1, 3);  // dest, src, size
+	printf("\n");
+	printf("2 %s\n", buf1);  
+	printf("2 %s\n", buf2);
+	if (memcmp(buf1, buf2, 3) != 0)
+		panic("Buffers are the same (1)");
+	if (memcmp(buf1, "foo", 3) != 0)
+		panic("Bad buffer contents (1)");
+
+	// Note: tempting as it may be to call this "bar\0", that 
+	// leads to incorrect code, since gcc optimizes things so that
+	// both "bar\0" strings point at the same memory address. This will
+	// lead to buf2 being "foo\0", even with a buf2 = "bar\n" statement.
+	buf2 = "baz\0";
+
+	printf("\n");
+	printf("3 %s\n", buf1);  
+	printf("3 %s\n", buf2);
+
+	// Move buf2 -> buf1
+	memmove(buf1, buf2, 3);  // dest, src, size
+	printf("\n");
+	printf("4 %s\n", buf1);  
+	printf("4 %s\n", buf2);
+	if (memcmp(buf1, buf2, 3) != 0)
+		panic("Buffers are the same (2)");
+	if (memcmp(buf1, "baz", 3) != 0)
+		panic("Bad buffer contents (2)");
 }

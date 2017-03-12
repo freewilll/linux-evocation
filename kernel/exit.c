@@ -257,19 +257,19 @@ int kill_sl(int sess, int sig, int priv)
 	return(found ? 0 : retval);
 }
 
-// TODO WGJA WIP: int kill_proc(int pid, int sig, int priv)
-// TODO WGJA WIP: {
-// TODO WGJA WIP:  	struct task_struct *p;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (sig<0 || sig>32)
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	for_each_task(p) {
-// TODO WGJA WIP: 		if (p && p->pid == pid)
-// TODO WGJA WIP: 			return send_sig(sig,p,priv);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return(-ESRCH);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+int kill_proc(int pid, int sig, int priv)
+{
+ 	struct task_struct *p;
+
+	if (sig<0 || sig>32)
+		return -EINVAL;
+	for_each_task(p) {
+		if (p && p->pid == pid)
+			return send_sig(sig,p,priv);
+	}
+	return(-ESRCH);
+}
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * POSIX specifies that kill(-1,sig) is unspecified, but what we have
 // TODO WGJA WIP:  * is probably wrong.  Should make it like BSD or SYSV.

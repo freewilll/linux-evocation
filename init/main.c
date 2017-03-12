@@ -43,6 +43,8 @@ extern void init_test_keyboard();
 extern void test_dev_zero();
 extern void test_minix();
 extern void test_tty1_read();
+extern void test_printf();
+extern void test_memmove();
 
 /*
  * we need this inline - forking from kernel space will result
@@ -439,6 +441,12 @@ extern "C" void start_kernel(void)
 // TODO WGJA WIP: 		for (;;) ;
 // TODO WGJA WIP: 	}
 // TODO WGJA WIP: #endif
+	// blank_screen();
+	// panic("foo");
+	// blank_screen(); 
+	// // panic("foo");
+	// for(;;) idle();
+
 	move_to_user_mode();
 	if (!fork())		/* we count on this going ok */
 		init();
@@ -506,10 +514,15 @@ void init(void)
 	test_tty1_read();
 
 	(void) open("/dev/tty1",O_RDWR,0);
-// TODO WGJA WIP: 	(void) dup(0);
-// TODO WGJA WIP: 	(void) dup(0);
+	(void) dup(0);
+	(void) dup(0);
 
-	printk("TODO: rest of init()\n");
+	// for(;;) idle();
+
+	// test_printf();
+	// test_memmove();
+	
+	printf("TODO: rest of init()\n");
 	for(;;) idle();
 
 // TODO WGJA WIP: 	// system_utsname.machine[1] = '0' + x86;	// TODO utsname

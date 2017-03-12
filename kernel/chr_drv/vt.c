@@ -269,7 +269,7 @@ int vt_ioctl(struct tty_struct *tty, struct file * file,
 		verify_area(VERIFY_WRITE, (void *)a, sizeof(struct kbsentry));
 		if ((i = get_fs_byte(&a->kb_func)) >= NR_FUNC)
 			return -EINVAL;
-		q = a->kb_string;
+		q = (unsigned char*) a->kb_string;
 		for (p = func_table[i]; *p; p++)
 			put_fs_byte(*p, q++);
 		put_fs_byte(0, q);
