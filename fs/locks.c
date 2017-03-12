@@ -27,7 +27,7 @@
 // TODO WGJA WIP: static int overlap(struct file_lock *fl1, struct file_lock *fl2);
 // TODO WGJA WIP: static int lock_it(struct file *filp, struct file_lock *caller);
 // TODO WGJA WIP: static struct file_lock *alloc_lock(struct file_lock **pos, struct file_lock *fl);
-// TODO WGJA WIP: static void free_lock(struct file_lock **fl);
+static void free_lock(struct file_lock **fl);
 
 static struct file_lock file_lock_table[NR_FILE_LOCKS];
 static struct file_lock *file_lock_free_list;
@@ -163,28 +163,28 @@ void fcntl_init_locks(void)
 // TODO WGJA WIP: 
 // TODO WGJA WIP: 	return lock_it(filp, &file_lock);
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This function is called when the file is closed.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void fcntl_remove_locks(struct task_struct *task, struct file *filp)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct file_lock *fl;
-// TODO WGJA WIP: 	struct file_lock **before;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	/* Find first lock owned by caller ... */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	before = &filp->f_inode->i_flock;
-// TODO WGJA WIP: 	while ((fl = *before) && task != fl->fl_owner)
-// TODO WGJA WIP: 		before = &fl->fl_next;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	/* The list is sorted by owner ... */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	while ((fl = *before) && task == fl->fl_owner)
-// TODO WGJA WIP: 		free_lock(before);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+/*
+ * This function is called when the file is closed.
+ */
+
+void fcntl_remove_locks(struct task_struct *task, struct file *filp)
+{
+	struct file_lock *fl;
+	struct file_lock **before;
+
+	/* Find first lock owned by caller ... */
+
+	before = &filp->f_inode->i_flock;
+	while ((fl = *before) && task != fl->fl_owner)
+		before = &fl->fl_next;
+
+	/* The list is sorted by owner ... */
+
+	while ((fl = *before) && task == fl->fl_owner)
+		free_lock(before);
+}
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * Verify a "struct flock" and copy it to a "struct file_lock" ...
 // TODO WGJA WIP:  * Result is a boolean indicating success.
@@ -420,24 +420,24 @@ void fcntl_init_locks(void)
 // TODO WGJA WIP: 	tmp->fl_wait = NULL;
 // TODO WGJA WIP: 	return tmp;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Add a lock to the free list ...
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static void free_lock(struct file_lock **fl_p)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct file_lock *fl;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	fl = *fl_p;
-// TODO WGJA WIP: 	if (fl->fl_owner == NULL)	/* sanity check */
-// TODO WGJA WIP: 		panic("free_lock: broken lock list\n");
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	*fl_p = (*fl_p)->fl_next;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	fl->fl_next = file_lock_free_list;	/* add to free list */
-// TODO WGJA WIP: 	file_lock_free_list = fl;
-// TODO WGJA WIP: 	fl->fl_owner = NULL;			/* for sanity checks */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	wake_up(&fl->fl_wait);
-// TODO WGJA WIP: }
+
+/*
+ * Add a lock to the free list ...
+ */
+
+static void free_lock(struct file_lock **fl_p)
+{
+	struct file_lock *fl;
+
+	fl = *fl_p;
+	if (fl->fl_owner == NULL)	/* sanity check */
+		panic("free_lock: broken lock list\n");
+
+	*fl_p = (*fl_p)->fl_next;
+
+	fl->fl_next = file_lock_free_list;	/* add to free list */
+	file_lock_free_list = fl;
+	fl->fl_owner = NULL;			/* for sanity checks */
+
+	wake_up(&fl->fl_wait);
+}

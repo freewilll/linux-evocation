@@ -22,20 +22,20 @@ __asm__ __volatile__ ("movl %%esp,%%eax\n\t" \
 #define cli() __asm__ __volatile__ ("cli": : :"memory")
 #define nop() __asm__ __volatile__ ("nop")
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Clear and set 'TS' bit respectively
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: #define clts() __asm__ __volatile__ ("clts")
-// TODO WGJA WIP: #define stts() \
-// TODO WGJA WIP: __asm__ __volatile__ ( \
-// TODO WGJA WIP: 	"movl %%cr0,%%eax\n\t" \
-// TODO WGJA WIP: 	"orl $8,%%eax\n\t" \
-// TODO WGJA WIP: 	"movl %%eax,%%cr0" \
-// TODO WGJA WIP: 	: /* no outputs */ \
-// TODO WGJA WIP: 	: /* no inputs */ \
-// TODO WGJA WIP: 	:"ax")
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 
+/*
+ * Clear and set 'TS' bit respectively
+ */
+#define clts() __asm__ __volatile__ ("clts")
+#define stts() \
+__asm__ __volatile__ ( \
+	"movl %%cr0,%%eax\n\t" \
+	"orl $8,%%eax\n\t" \
+	"movl %%eax,%%cr0" \
+	: /* no outputs */ \
+	: /* no inputs */ \
+	:"ax")
+
+
 // TODO WGJA WIP: extern inline int tas(char * m)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	char res;

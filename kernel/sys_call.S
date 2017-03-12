@@ -79,12 +79,12 @@ errno		= 24
 ENOSYS = 38
 
 .globl system_call,lcall7
-.globl _device_not_available, _coprocessor_error
-.globl _divide_error,_debug,_nmi,_int3,_overflow,_bounds,_invalid_op
-.globl _double_fault,_coprocessor_segment_overrun
-.globl _invalid_TSS,_segment_not_present,_stack_segment
-.globl _general_protection,_reserved
-.globl _alignment_check,page_fault
+.globl device_not_available, coprocessor_error
+.globl divide_error,debug,nmi,int3,overflow,bounds,invalid_op
+.globl double_fault,coprocessor_segment_overrun
+.globl invalid_TSS,segment_not_present,stack_segment
+.globl general_protection,reserved
+.globl alignment_check,page_fault
 .globl ret_from_sys_call
 
 #define SAVE_ALL \
@@ -237,10 +237,10 @@ v86_signal_return:
 	popl %ebx
 	RESTORE_ALL
 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _divide_error:
-# TODO WGJA WIP: 	pushl $0		# no error code
-# TODO WGJA WIP: 	pushl $_do_divide_error
+.align 4
+divide_error:
+	pushl $0		# no error code
+	pushl $do_divide_error
 .align 4,0x90
 error_code:
 	push %fs
@@ -271,103 +271,103 @@ error_code:
 	addl $8,%esp
 	jmp ret_from_sys_call
 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _coprocessor_error:
-# TODO WGJA WIP: 	pushl $0
-# TODO WGJA WIP: 	pushl $_do_coprocessor_error
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _device_not_available:
-# TODO WGJA WIP: 	pushl $-1		# mark this as an int
-# TODO WGJA WIP: 	SAVE_ALL
-# TODO WGJA WIP: 	pushl $ret_from_sys_call
-# TODO WGJA WIP: 	movl %cr0,%eax
-# TODO WGJA WIP: 	testl $0x4,%eax			# EM (math emulation bit)
-# TODO WGJA WIP: 	je _math_state_restore
-# TODO WGJA WIP: 	pushl $0		# temporary storage for ORIG_EIP
-# TODO WGJA WIP: 	call _math_emulate
-# TODO WGJA WIP: 	addl $4,%esp
-# TODO WGJA WIP: 	ret
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _debug:
-# TODO WGJA WIP: 	pushl $0
-# TODO WGJA WIP: 	pushl $_do_debug
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _nmi:
-# TODO WGJA WIP: 	pushl $0
-# TODO WGJA WIP: 	pushl $_do_nmi
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _int3:
-# TODO WGJA WIP: 	pushl $0
-# TODO WGJA WIP: 	pushl $_do_int3
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _overflow:
-# TODO WGJA WIP: 	pushl $0
-# TODO WGJA WIP: 	pushl $_do_overflow
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _bounds:
-# TODO WGJA WIP: 	pushl $0
-# TODO WGJA WIP: 	pushl $_do_bounds
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _invalid_op:
-# TODO WGJA WIP: 	pushl $0
-# TODO WGJA WIP: 	pushl $_do_invalid_op
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _coprocessor_segment_overrun:
-# TODO WGJA WIP: 	pushl $0
-# TODO WGJA WIP: 	pushl $_do_coprocessor_segment_overrun
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _reserved:
-# TODO WGJA WIP: 	pushl $0
-# TODO WGJA WIP: 	pushl $_do_reserved
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _double_fault:
-# TODO WGJA WIP: 	pushl $_do_double_fault
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _invalid_TSS:
-# TODO WGJA WIP: 	pushl $_do_invalid_TSS
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _segment_not_present:
-# TODO WGJA WIP: 	pushl $_do_segment_not_present
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _stack_segment:
-# TODO WGJA WIP: 	pushl $_do_stack_segment
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _general_protection:
-# TODO WGJA WIP: 	pushl $_do_general_protection
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
-# TODO WGJA WIP: .align 4
-# TODO WGJA WIP: _alignment_check:
-# TODO WGJA WIP: 	pushl $_do_alignment_check
-# TODO WGJA WIP: 	jmp error_code
-# TODO WGJA WIP: 
+.align 4
+coprocessor_error:
+	pushl $0
+	pushl $do_coprocessor_error
+	jmp error_code
+
+.align 4
+device_not_available:
+	pushl $-1		# mark this as an int
+	SAVE_ALL
+	pushl $ret_from_sys_call
+	movl %cr0,%eax
+	testl $0x4,%eax			# EM (math emulation bit)
+	je math_state_restore
+	pushl $0		# temporary storage for ORIG_EIP
+	call math_emulate
+	addl $4,%esp
+	ret
+
+.align 4
+debug:
+	pushl $0
+	pushl $do_debug
+	jmp error_code
+
+.align 4
+nmi:
+	pushl $0
+	pushl $do_nmi
+	jmp error_code
+
+.align 4
+int3:
+	pushl $0
+	pushl $do_int3
+	jmp error_code
+
+.align 4
+overflow:
+	pushl $0
+	pushl $do_overflow
+	jmp error_code
+
+.align 4
+bounds:
+	pushl $0
+	pushl $do_bounds
+	jmp error_code
+
+.align 4
+invalid_op:
+	pushl $0
+	pushl $do_invalid_op
+	jmp error_code
+
+.align 4
+coprocessor_segment_overrun:
+	pushl $0
+	pushl $do_coprocessor_segment_overrun
+	jmp error_code
+
+.align 4
+reserved:
+	pushl $0
+	pushl $do_reserved
+	jmp error_code
+
+.align 4
+double_fault:
+	pushl $do_double_fault
+	jmp error_code
+
+.align 4
+invalid_TSS:
+	pushl $do_invalid_TSS
+	jmp error_code
+
+.align 4
+segment_not_present:
+	pushl $do_segment_not_present
+	jmp error_code
+
+.align 4
+stack_segment:
+	pushl $do_stack_segment
+	jmp error_code
+
+.align 4
+general_protection:
+	pushl $do_general_protection
+	jmp error_code
+
+.align 4
+alignment_check:
+	pushl $do_alignment_check
+	jmp error_code
+
 .align 4
 page_fault:
 	pushl $do_page_fault

@@ -55,49 +55,49 @@ static unsigned long last_free_pages[NR_LAST_FREE_PAGES] = {0,};
 
 #define SWAP_BITS PAGE_SIZE
 
-// TODO WGJA WIP: void rw_swap_page(int rw, unsigned long entry, char * buf)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long type, offset;
-// TODO WGJA WIP: 	struct swap_info_struct * p;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	type = SWP_TYPE(entry);
-// TODO WGJA WIP: 	if (type >= nr_swapfiles) {
-// TODO WGJA WIP: 		printk("Internal error: bad swap-device\n");
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	p = &swap_info[type];
-// TODO WGJA WIP: 	offset = SWP_OFFSET(entry);
-// TODO WGJA WIP: 	if (offset >= SWAP_BITS) {
-// TODO WGJA WIP: 		printk("rw_swap_page: weirdness\n");
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!(p->flags & SWP_USED)) {
-// TODO WGJA WIP: 		printk("Trying to swap to unused swap-device\n");
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	while (set_bit(offset,p->swap_lockmap))
-// TODO WGJA WIP: 		sleep_on(&lock_queue);
-// TODO WGJA WIP: 	if (p->swap_device) {
-// TODO WGJA WIP: 		ll_rw_page(rw,p->swap_device,offset,buf);
-// TODO WGJA WIP: 	} else if (p->swap_file) {
-// TODO WGJA WIP: 		unsigned int zones[8];
-// TODO WGJA WIP: 		unsigned int block;
-// TODO WGJA WIP: 		int i, j;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 		block = offset << (12 - p->swap_file->i_sb->s_blocksize_bits);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 		for (i=0, j=0; j< PAGE_SIZE ; i++, j +=p->swap_file->i_sb->s_blocksize)
-// TODO WGJA WIP: 			if (!(zones[i] = bmap(p->swap_file,block++))) {
-// TODO WGJA WIP: 				printk("rw_swap_page: bad swap file\n");
-// TODO WGJA WIP: 				return;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 		ll_rw_swap_file(rw,p->swap_file->i_dev, zones, i,buf);
-// TODO WGJA WIP: 	} else
-// TODO WGJA WIP: 		printk("re_swap_page: no swap file or device\n");
-// TODO WGJA WIP: 	if (!clear_bit(offset,p->swap_lockmap))
-// TODO WGJA WIP: 		printk("rw_swap_page: lock already cleared\n");
-// TODO WGJA WIP: 	wake_up(&lock_queue);
-// TODO WGJA WIP: }
+void rw_swap_page(int rw, unsigned long entry, char * buf)
+{
+	unsigned long type, offset;
+	struct swap_info_struct * p;
+
+	type = SWP_TYPE(entry);
+	if (type >= nr_swapfiles) {
+		printk("Internal error: bad swap-device\n");
+		return;
+	}
+	p = &swap_info[type];
+	offset = SWP_OFFSET(entry);
+	if (offset >= SWAP_BITS) {
+		printk("rw_swap_page: weirdness\n");
+		return;
+	}
+	if (!(p->flags & SWP_USED)) {
+		printk("Trying to swap to unused swap-device\n");
+		return;
+	}
+	while (set_bit(offset,p->swap_lockmap))
+		sleep_on(&lock_queue);
+	if (p->swap_device) {
+		ll_rw_page(rw,p->swap_device,offset,buf);
+	} else if (p->swap_file) {
+		unsigned int zones[8];
+		unsigned int block;
+		int i, j;
+
+		block = offset << (12 - p->swap_file->i_sb->s_blocksize_bits);
+
+		for (i=0, j=0; j< PAGE_SIZE ; i++, j +=p->swap_file->i_sb->s_blocksize)
+			if (!(zones[i] = bmap(p->swap_file,block++))) {
+				printk("rw_swap_page: bad swap file\n");
+				return;
+			}
+		ll_rw_swap_file(rw,p->swap_file->i_dev, zones, i,buf);
+	} else
+		printk("re_swap_page: no swap file or device\n");
+	if (!clear_bit(offset,p->swap_lockmap))
+		printk("rw_swap_page: lock already cleared\n");
+	wake_up(&lock_queue);
+}
 
 unsigned int get_swap_page(void)
 {
@@ -190,36 +190,36 @@ void swap_free(unsigned long entry)
 	wake_up(&lock_queue);
 }
 
-// TODO WGJA WIP: void swap_in(unsigned long *table_ptr)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long entry;
-// TODO WGJA WIP: 	unsigned long page;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	entry = *table_ptr;
-// TODO WGJA WIP: 	if (PAGE_PRESENT & entry) {
-// TODO WGJA WIP: 		printk("trying to swap in present page\n");
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!entry) {
-// TODO WGJA WIP: 		printk("No swap page in swap_in\n");
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (SWP_TYPE(entry) == SHM_SWP_TYPE) {
-// TODO WGJA WIP: 		shm_no_page ((unsigned long *) table_ptr);
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!(page = get_free_page(GFP_KERNEL))) {
-// TODO WGJA WIP: 		oom(current);
-// TODO WGJA WIP: 		page = BAD_PAGE;
-// TODO WGJA WIP: 	} else	
-// TODO WGJA WIP: 		read_swap_page(entry, (char *) page);
-// TODO WGJA WIP: 	if (*table_ptr != entry) {
-// TODO WGJA WIP: 		free_page(page);
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	*table_ptr = page | (PAGE_DIRTY | PAGE_PRIVATE);
-// TODO WGJA WIP: 	swap_free(entry);
-// TODO WGJA WIP: }
+void swap_in(unsigned long *table_ptr)
+{
+	unsigned long entry;
+	unsigned long page;
+
+	entry = *table_ptr;
+	if (PAGE_PRESENT & entry) {
+		printk("trying to swap in present page\n");
+		return;
+	}
+	if (!entry) {
+		printk("No swap page in swap_in\n");
+		return;
+	}
+	if (SWP_TYPE(entry) == SHM_SWP_TYPE) {
+		shm_no_page ((unsigned long *) table_ptr);
+		return;
+	}
+	if (!(page = get_free_page(GFP_KERNEL))) {
+		oom(current);
+		page = BAD_PAGE;
+	} else	
+		read_swap_page(entry, (char *) page);
+	if (*table_ptr != entry) {
+		free_page(page);
+		return;
+	}
+	*table_ptr = page | (PAGE_DIRTY | PAGE_PRIVATE);
+	swap_free(entry);
+}
 
 static inline int try_to_swap_out(unsigned long * table_ptr)
 {

@@ -16,9 +16,9 @@
 #include <linux/tty.h>
 
 #include <asm/segment.h>
-// TODO WGJA WIP: extern void shm_exit (void);
-// TODO WGJA WIP: extern void sem_exit (void);
-// TODO WGJA WIP: 
+extern void shm_exit (void);
+extern void sem_exit (void);
+
 // TODO WGJA WIP: int getrusage(struct task_struct *, int, struct rusage *);
 // TODO WGJA WIP: 
 // TODO WGJA WIP: static int generate(unsigned long sig, struct task_struct * p)
@@ -65,15 +65,15 @@
 // TODO WGJA WIP: 	generate(sig,p);
 // TODO WGJA WIP: 	return 0;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void notify_parent(struct task_struct * tsk)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (tsk->p_pptr == task[1])
-// TODO WGJA WIP: 		tsk->exit_signal = SIGCHLD;
-// TODO WGJA WIP: 	send_sig(tsk->exit_signal, tsk->p_pptr, 1);
-// TODO WGJA WIP: 	wake_up_interruptible(&tsk->p_pptr->wait_chldexit);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+void notify_parent(struct task_struct * tsk)
+{
+	if (tsk->p_pptr == task[1])
+		tsk->exit_signal = SIGCHLD;
+	send_sig(tsk->exit_signal, tsk->p_pptr, 1);
+	wake_up_interruptible(&tsk->p_pptr->wait_chldexit);
+}
+
 // TODO WGJA WIP: void release(struct task_struct * p)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	int i;
@@ -94,99 +94,99 @@
 // TODO WGJA WIP: 		}
 // TODO WGJA WIP: 	panic("trying to release non-existent task");
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #ifdef DEBUG_PROC_TREE
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Check to see if a task_struct pointer is present in the task[] array
-// TODO WGJA WIP:  * Return 0 if found, and 1 if not found.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: int bad_task_ptr(struct task_struct *p)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int 	i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!p)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	for (i=0 ; i<NR_TASKS ; i++)
-// TODO WGJA WIP: 		if (task[i] == p)
-// TODO WGJA WIP: 			return 0;
-// TODO WGJA WIP: 	return 1;
-// TODO WGJA WIP: }
-	// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This routine scans the pid tree and make sure the rep invarient still
-// TODO WGJA WIP:  * holds.  Used for debugging only, since it's very slow....
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * It looks a lot scarier than it really is.... we're doing nothing more
-// TODO WGJA WIP:  * than verifying the doubly-linked list found in p_ysptr and p_osptr, 
-// TODO WGJA WIP:  * and checking it corresponds with the process tree defined by p_cptr and 
-// TODO WGJA WIP:  * p_pptr;
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: void audit_ptree(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int	i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	for (i=1 ; i<NR_TASKS ; i++) {
-// TODO WGJA WIP: 		if (!task[i])
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (bad_task_ptr(task[i]->p_pptr))
-// TODO WGJA WIP: 			printk("Warning, pid %d's parent link is bad\n",
-// TODO WGJA WIP: 				task[i]->pid);
-// TODO WGJA WIP: 		if (bad_task_ptr(task[i]->p_cptr))
-// TODO WGJA WIP: 			printk("Warning, pid %d's child link is bad\n",
-// TODO WGJA WIP: 				task[i]->pid);
-// TODO WGJA WIP: 		if (bad_task_ptr(task[i]->p_ysptr))
-// TODO WGJA WIP: 			printk("Warning, pid %d's ys link is bad\n",
-// TODO WGJA WIP: 				task[i]->pid);
-// TODO WGJA WIP: 		if (bad_task_ptr(task[i]->p_osptr))
-// TODO WGJA WIP: 			printk("Warning, pid %d's os link is bad\n",
-// TODO WGJA WIP: 				task[i]->pid);
-// TODO WGJA WIP: 		if (task[i]->p_pptr == task[i])
-// TODO WGJA WIP: 			printk("Warning, pid %d parent link points to self\n",
-// TODO WGJA WIP: 				task[i]->pid);
-// TODO WGJA WIP: 		if (task[i]->p_cptr == task[i])
-// TODO WGJA WIP: 			printk("Warning, pid %d child link points to self\n",
-// TODO WGJA WIP: 				task[i]->pid);
-// TODO WGJA WIP: 		if (task[i]->p_ysptr == task[i])
-// TODO WGJA WIP: 			printk("Warning, pid %d ys link points to self\n",
-// TODO WGJA WIP: 				task[i]->pid);
-// TODO WGJA WIP: 		if (task[i]->p_osptr == task[i])
-// TODO WGJA WIP: 			printk("Warning, pid %d os link points to self\n",
-// TODO WGJA WIP: 				task[i]->pid);
-// TODO WGJA WIP: 		if (task[i]->p_osptr) {
-// TODO WGJA WIP: 			if (task[i]->p_pptr != task[i]->p_osptr->p_pptr)
-// TODO WGJA WIP: 				printk(
-// TODO WGJA WIP: 			"Warning, pid %d older sibling %d parent is %d\n",
-// TODO WGJA WIP: 				task[i]->pid, task[i]->p_osptr->pid,
-// TODO WGJA WIP: 				task[i]->p_osptr->p_pptr->pid);
-// TODO WGJA WIP: 			if (task[i]->p_osptr->p_ysptr != task[i])
-// TODO WGJA WIP: 				printk(
-// TODO WGJA WIP: 		"Warning, pid %d older sibling %d has mismatched ys link\n",
-// TODO WGJA WIP: 				task[i]->pid, task[i]->p_osptr->pid);
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (task[i]->p_ysptr) {
-// TODO WGJA WIP: 			if (task[i]->p_pptr != task[i]->p_ysptr->p_pptr)
-// TODO WGJA WIP: 				printk(
-// TODO WGJA WIP: 			"Warning, pid %d younger sibling %d parent is %d\n",
-// TODO WGJA WIP: 				task[i]->pid, task[i]->p_osptr->pid,
-// TODO WGJA WIP: 				task[i]->p_osptr->p_pptr->pid);
-// TODO WGJA WIP: 			if (task[i]->p_ysptr->p_osptr != task[i])
-// TODO WGJA WIP: 				printk(
-// TODO WGJA WIP: 		"Warning, pid %d younger sibling %d has mismatched os link\n",
-// TODO WGJA WIP: 				task[i]->pid, task[i]->p_ysptr->pid);
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (task[i]->p_cptr) {
-// TODO WGJA WIP: 			if (task[i]->p_cptr->p_pptr != task[i])
-// TODO WGJA WIP: 				printk(
-// TODO WGJA WIP: 			"Warning, pid %d youngest child %d has mismatched parent link\n",
-// TODO WGJA WIP: 				task[i]->pid, task[i]->p_cptr->pid);
-// TODO WGJA WIP: 			if (task[i]->p_cptr->p_ysptr)
-// TODO WGJA WIP: 				printk(
-// TODO WGJA WIP: 			"Warning, pid %d youngest child %d has non-NULL ys link\n",
-// TODO WGJA WIP: 				task[i]->pid, task[i]->p_cptr->pid);
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: }
-// TODO WGJA WIP: #endif /* DEBUG_PROC_TREE */
+
+#ifdef DEBUG_PROC_TREE
+/*
+ * Check to see if a task_struct pointer is present in the task[] array
+ * Return 0 if found, and 1 if not found.
+ */
+int bad_task_ptr(struct task_struct *p)
+{
+	int 	i;
+
+	if (!p)
+		return 0;
+	for (i=0 ; i<NR_TASKS ; i++)
+		if (task[i] == p)
+			return 0;
+	return 1;
+}
+
+/*
+ * This routine scans the pid tree and make sure the rep invarient still
+ * holds.  Used for debugging only, since it's very slow....
+ *
+ * It looks a lot scarier than it really is.... we're doing nothing more
+ * than verifying the doubly-linked list found in p_ysptr and p_osptr, 
+ * and checking it corresponds with the process tree defined by p_cptr and 
+ * p_pptr;
+ */
+void audit_ptree(void)
+{
+	int	i;
+
+	for (i=1 ; i<NR_TASKS ; i++) {
+		if (!task[i])
+			continue;
+		if (bad_task_ptr(task[i]->p_pptr))
+			printk("Warning, pid %d's parent link is bad\n",
+				task[i]->pid);
+		if (bad_task_ptr(task[i]->p_cptr))
+			printk("Warning, pid %d's child link is bad\n",
+				task[i]->pid);
+		if (bad_task_ptr(task[i]->p_ysptr))
+			printk("Warning, pid %d's ys link is bad\n",
+				task[i]->pid);
+		if (bad_task_ptr(task[i]->p_osptr))
+			printk("Warning, pid %d's os link is bad\n",
+				task[i]->pid);
+		if (task[i]->p_pptr == task[i])
+			printk("Warning, pid %d parent link points to self\n",
+				task[i]->pid);
+		if (task[i]->p_cptr == task[i])
+			printk("Warning, pid %d child link points to self\n",
+				task[i]->pid);
+		if (task[i]->p_ysptr == task[i])
+			printk("Warning, pid %d ys link points to self\n",
+				task[i]->pid);
+		if (task[i]->p_osptr == task[i])
+			printk("Warning, pid %d os link points to self\n",
+				task[i]->pid);
+		if (task[i]->p_osptr) {
+			if (task[i]->p_pptr != task[i]->p_osptr->p_pptr)
+				printk(
+			"Warning, pid %d older sibling %d parent is %d\n",
+				task[i]->pid, task[i]->p_osptr->pid,
+				task[i]->p_osptr->p_pptr->pid);
+			if (task[i]->p_osptr->p_ysptr != task[i])
+				printk(
+		"Warning, pid %d older sibling %d has mismatched ys link\n",
+				task[i]->pid, task[i]->p_osptr->pid);
+		}
+		if (task[i]->p_ysptr) {
+			if (task[i]->p_pptr != task[i]->p_ysptr->p_pptr)
+				printk(
+			"Warning, pid %d younger sibling %d parent is %d\n",
+				task[i]->pid, task[i]->p_osptr->pid,
+				task[i]->p_osptr->p_pptr->pid);
+			if (task[i]->p_ysptr->p_osptr != task[i])
+				printk(
+		"Warning, pid %d younger sibling %d has mismatched os link\n",
+				task[i]->pid, task[i]->p_ysptr->pid);
+		}
+		if (task[i]->p_cptr) {
+			if (task[i]->p_cptr->p_pptr != task[i])
+				printk(
+			"Warning, pid %d youngest child %d has mismatched parent link\n",
+				task[i]->pid, task[i]->p_cptr->pid);
+			if (task[i]->p_cptr->p_ysptr)
+				printk(
+			"Warning, pid %d youngest child %d has non-NULL ys link\n",
+				task[i]->pid, task[i]->p_cptr->pid);
+		}
+	}
+}
+#endif /* DEBUG_PROC_TREE */
 
 /*
  * This checks not only the pgrp, but falls back on the pid if no
@@ -321,181 +321,181 @@ int is_orphaned_pgrp(int pgrp)
 	return(1);	/* (sighing) "Often!" */
 }
 
-// TODO WGJA WIP: static int has_stopped_jobs(int pgrp)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct task_struct * p;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	for_each_task(p) {
-// TODO WGJA WIP: 		if (p->pgrp != pgrp)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (p->state == TASK_STOPPED)
-// TODO WGJA WIP: 			return(1);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return(0);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static void forget_original_parent(struct task_struct * father)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct task_struct * p;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	for_each_task(p) {
-// TODO WGJA WIP: 		if (p->p_opptr == father)
-// TODO WGJA WIP: 			if (task[1])
-// TODO WGJA WIP: 				p->p_opptr = task[1];
-// TODO WGJA WIP: 			else
-// TODO WGJA WIP: 				p->p_opptr = task[0];
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: volatile void do_exit(long code)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct task_struct *p;
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: fake_volatile:
-// TODO WGJA WIP: 	if (current->semun)
-// TODO WGJA WIP: 		sem_exit();
-// TODO WGJA WIP: 	if (current->shm)
-// TODO WGJA WIP: 		shm_exit();
-// TODO WGJA WIP: 	free_page_tables(current);
-// TODO WGJA WIP: 	for (i=0 ; i<NR_OPEN ; i++)
-// TODO WGJA WIP: 		if (current->filp[i])
-// TODO WGJA WIP: 			sys_close(i);
-// TODO WGJA WIP: 	forget_original_parent(current);
-// TODO WGJA WIP: 	iput(current->pwd);
-// TODO WGJA WIP: 	current->pwd = NULL;
-// TODO WGJA WIP: 	iput(current->root);
-// TODO WGJA WIP: 	current->root = NULL;
-// TODO WGJA WIP: 	iput(current->executable);
-// TODO WGJA WIP: 	current->executable = NULL;
-// TODO WGJA WIP: 	/* Release all of the old mmap stuff. */
-	// TODO WGJA WIP: 
-// TODO WGJA WIP: 	{
-// TODO WGJA WIP: 		struct vm_area_struct * mpnt, *mpnt1;
-// TODO WGJA WIP: 		mpnt = current->mmap;
-// TODO WGJA WIP: 		current->mmap = NULL;
-// TODO WGJA WIP: 		while (mpnt) {
-// TODO WGJA WIP: 			mpnt1 = mpnt->vm_next;
-// TODO WGJA WIP: 			if (mpnt->vm_ops->close)
-// TODO WGJA WIP: 				mpnt->vm_ops->close(mpnt);
-// TODO WGJA WIP: 			kfree(mpnt);
-// TODO WGJA WIP: 			mpnt = mpnt1;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (current->ldt) {
-// TODO WGJA WIP: 		free_page((unsigned long) current->ldt);
-// TODO WGJA WIP: 		current->ldt = NULL;
-// TODO WGJA WIP: 		for (i=1 ; i<NR_TASKS ; i++) {
-// TODO WGJA WIP: 			if (task[i] == current) {
-// TODO WGJA WIP: 				set_ldt_desc(gdt+(i<<1)+FIRST_LDT_ENTRY, &default_ldt, 1);
-// TODO WGJA WIP: 				load_ldt(i);
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	current->state = TASK_ZOMBIE;
-// TODO WGJA WIP: 	current->exit_code = code;
-// TODO WGJA WIP: 	current->rss = 0;
-// TODO WGJA WIP: 	/* 
-// TODO WGJA WIP: 	 * Check to see if any process groups have become orphaned
-// TODO WGJA WIP: 	 * as a result of our exiting, and if they have any stopped
-// TODO WGJA WIP: 	 * jobs, send them a SIGUP and then a SIGCONT.  (POSIX 3.2.2.2)
-// TODO WGJA WIP: 	 *
-// TODO WGJA WIP: 	 * Case i: Our father is in a different pgrp than we are
-// TODO WGJA WIP: 	 * and we were the only connection outside, so our pgrp
-// TODO WGJA WIP: 	 * is about to become orphaned.
-// TODO WGJA WIP:  	 */
-// TODO WGJA WIP: 	if ((current->p_pptr->pgrp != current->pgrp) &&
-// TODO WGJA WIP: 	    (current->p_pptr->session == current->session) &&
-// TODO WGJA WIP: 	    is_orphaned_pgrp(current->pgrp) &&
-// TODO WGJA WIP: 	    has_stopped_jobs(current->pgrp)) {
-// TODO WGJA WIP: 		kill_pg(current->pgrp,SIGHUP,1);
-// TODO WGJA WIP: 		kill_pg(current->pgrp,SIGCONT,1);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	/* Let father know we died */
-// TODO WGJA WIP: 	notify_parent(current);
-	// TODO WGJA WIP: 
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * This loop does two things:
-// TODO WGJA WIP: 	 * 
-// TODO WGJA WIP:   	 * A.  Make init inherit all the child processes
-// TODO WGJA WIP: 	 * B.  Check to see if any process groups have become orphaned
-// TODO WGJA WIP: 	 *	as a result of our exiting, and if they have any stopped
-// TODO WGJA WIP: 	 *	jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	while ((p = current->p_cptr) != NULL) {
-// TODO WGJA WIP: 		current->p_cptr = p->p_osptr;
-// TODO WGJA WIP: 		p->p_ysptr = NULL;
-// TODO WGJA WIP: 		p->flags &= ~(PF_PTRACED|PF_TRACESYS);
-// TODO WGJA WIP: 		if (task[1])
-// TODO WGJA WIP: 			p->p_pptr = task[1];
-// TODO WGJA WIP: 		else
-// TODO WGJA WIP: 			p->p_pptr = task[0];
-// TODO WGJA WIP: 		p->p_osptr = p->p_pptr->p_cptr;
-// TODO WGJA WIP: 		p->p_osptr->p_ysptr = p;
-// TODO WGJA WIP: 		p->p_pptr->p_cptr = p;
-// TODO WGJA WIP: 		if (p->state == TASK_ZOMBIE)
-// TODO WGJA WIP: 			notify_parent(p);
-// TODO WGJA WIP: 		/*
-// TODO WGJA WIP: 		 * process group orphan check
-// TODO WGJA WIP: 		 * Case ii: Our child is in a different pgrp 
-// TODO WGJA WIP: 		 * than we are, and it was the only connection
-// TODO WGJA WIP: 		 * outside, so the child pgrp is now orphaned.
-// TODO WGJA WIP: 		 */
-// TODO WGJA WIP: 		if ((p->pgrp != current->pgrp) &&
-// TODO WGJA WIP: 		    (p->session == current->session) &&
-// TODO WGJA WIP: 		    is_orphaned_pgrp(p->pgrp) &&
-// TODO WGJA WIP: 		    has_stopped_jobs(p->pgrp)) {
-// TODO WGJA WIP: 			kill_pg(p->pgrp,SIGHUP,1);
-// TODO WGJA WIP: 			kill_pg(p->pgrp,SIGCONT,1);
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (current->leader) {
-// TODO WGJA WIP: 		struct task_struct *p;
-// TODO WGJA WIP: 		struct tty_struct *tty;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 		if (current->tty >= 0) {
-// TODO WGJA WIP: 			tty = TTY_TABLE(current->tty);
-// TODO WGJA WIP: 			if (tty) {
-// TODO WGJA WIP: 				if (tty->pgrp > 0)
-// TODO WGJA WIP: 					kill_pg(tty->pgrp, SIGHUP, 1);
-// TODO WGJA WIP: 				tty->pgrp = -1;
-// TODO WGJA WIP: 				tty->session = 0;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		for_each_task(p) {
-// TODO WGJA WIP: 			if (p->session == current->session)
-// TODO WGJA WIP: 				p->tty = -1;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (last_task_used_math == current)
-// TODO WGJA WIP: 		last_task_used_math = NULL;
-// TODO WGJA WIP: #ifdef DEBUG_PROC_TREE
-// TODO WGJA WIP: 	audit_ptree();
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 	schedule();
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * In order to get rid of the "volatile function does return" message
-// TODO WGJA WIP:  * I did this little loop that confuses gcc to think do_exit really
-// TODO WGJA WIP:  * is volatile. In fact it's schedule() that is volatile in some
-// TODO WGJA WIP:  * circumstances: when current->state = ZOMBIE, schedule() never
-// TODO WGJA WIP:  * returns.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * In fact the natural way to do all this is to have the label and the
-// TODO WGJA WIP:  * goto right after each other, but I put the fake_volatile label at
-// TODO WGJA WIP:  * the start of the function just in case something /really/ bad
-// TODO WGJA WIP:  * happens, and the schedule returns. This way we can try again. I'm
-// TODO WGJA WIP:  * not paranoid: it's just that everybody is out to get me.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: 	goto fake_volatile;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_exit(int error_code)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	do_exit((error_code&0xff)<<8);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+static int has_stopped_jobs(int pgrp)
+{
+	struct task_struct * p;
+
+	for_each_task(p) {
+		if (p->pgrp != pgrp)
+			continue;
+		if (p->state == TASK_STOPPED)
+			return(1);
+	}
+	return(0);
+}
+
+static void forget_original_parent(struct task_struct * father)
+{
+	struct task_struct * p;
+
+	for_each_task(p) {
+		if (p->p_opptr == father)
+			if (task[1])
+				p->p_opptr = task[1];
+			else
+				p->p_opptr = task[0];
+	}
+}
+
+volatile void do_exit(long code)
+{
+	struct task_struct *p;
+	int i;
+
+fake_volatile:
+	if (current->semun)
+		sem_exit();
+	if (current->shm)
+		shm_exit();
+	free_page_tables(current);
+	for (i=0 ; i<NR_OPEN ; i++)
+		if (current->filp[i])
+			sys_close(i);
+	forget_original_parent(current);
+	iput(current->pwd);
+	current->pwd = NULL;
+	iput(current->root);
+	current->root = NULL;
+	iput(current->executable);
+	current->executable = NULL;
+	/* Release all of the old mmap stuff. */
+
+	{
+		struct vm_area_struct * mpnt, *mpnt1;
+		mpnt = current->mmap;
+		current->mmap = NULL;
+		while (mpnt) {
+			mpnt1 = mpnt->vm_next;
+			if (mpnt->vm_ops->close)
+				mpnt->vm_ops->close(mpnt);
+			kfree(mpnt);
+			mpnt = mpnt1;
+		}
+	}
+
+	if (current->ldt) {
+		free_page((unsigned long) current->ldt);
+		current->ldt = NULL;
+		for (i=1 ; i<NR_TASKS ; i++) {
+			if (task[i] == current) {
+				set_ldt_desc(gdt+(i<<1)+FIRST_LDT_ENTRY, &default_ldt, 1);
+				load_ldt(i);
+			}
+		}
+	}
+
+	current->state = TASK_ZOMBIE;
+	current->exit_code = code;
+	current->rss = 0;
+	/* 
+	 * Check to see if any process groups have become orphaned
+	 * as a result of our exiting, and if they have any stopped
+	 * jobs, send them a SIGUP and then a SIGCONT.  (POSIX 3.2.2.2)
+	 *
+	 * Case i: Our father is in a different pgrp than we are
+	 * and we were the only connection outside, so our pgrp
+	 * is about to become orphaned.
+ 	 */
+	if ((current->p_pptr->pgrp != current->pgrp) &&
+	    (current->p_pptr->session == current->session) &&
+	    is_orphaned_pgrp(current->pgrp) &&
+	    has_stopped_jobs(current->pgrp)) {
+		kill_pg(current->pgrp,SIGHUP,1);
+		kill_pg(current->pgrp,SIGCONT,1);
+	}
+	/* Let father know we died */
+	notify_parent(current);
+
+	/*
+	 * This loop does two things:
+	 * 
+  	 * A.  Make init inherit all the child processes
+	 * B.  Check to see if any process groups have become orphaned
+	 *	as a result of our exiting, and if they have any stopped
+	 *	jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
+	 */
+	while ((p = current->p_cptr) != NULL) {
+		current->p_cptr = p->p_osptr;
+		p->p_ysptr = NULL;
+		p->flags &= ~(PF_PTRACED|PF_TRACESYS);
+		if (task[1])
+			p->p_pptr = task[1];
+		else
+			p->p_pptr = task[0];
+		p->p_osptr = p->p_pptr->p_cptr;
+		p->p_osptr->p_ysptr = p;
+		p->p_pptr->p_cptr = p;
+		if (p->state == TASK_ZOMBIE)
+			notify_parent(p);
+		/*
+		 * process group orphan check
+		 * Case ii: Our child is in a different pgrp 
+		 * than we are, and it was the only connection
+		 * outside, so the child pgrp is now orphaned.
+		 */
+		if ((p->pgrp != current->pgrp) &&
+		    (p->session == current->session) &&
+		    is_orphaned_pgrp(p->pgrp) &&
+		    has_stopped_jobs(p->pgrp)) {
+			kill_pg(p->pgrp,SIGHUP,1);
+			kill_pg(p->pgrp,SIGCONT,1);
+		}
+	}
+	if (current->leader) {
+		struct task_struct *p;
+		struct tty_struct *tty;
+
+		if (current->tty >= 0) {
+			tty = TTY_TABLE(current->tty);
+			if (tty) {
+				if (tty->pgrp > 0)
+					kill_pg(tty->pgrp, SIGHUP, 1);
+				tty->pgrp = -1;
+				tty->session = 0;
+			}
+		}
+		for_each_task(p) {
+			if (p->session == current->session)
+				p->tty = -1;
+		}
+	}
+	if (last_task_used_math == current)
+		last_task_used_math = NULL;
+#ifdef DEBUG_PROC_TREE
+	audit_ptree();
+#endif
+	schedule();
+/*
+ * In order to get rid of the "volatile function does return" message
+ * I did this little loop that confuses gcc to think do_exit really
+ * is volatile. In fact it's schedule() that is volatile in some
+ * circumstances: when current->state = ZOMBIE, schedule() never
+ * returns.
+ *
+ * In fact the natural way to do all this is to have the label and the
+ * goto right after each other, but I put the fake_volatile label at
+ * the start of the function just in case something /really/ bad
+ * happens, and the schedule returns. This way we can try again. I'm
+ * not paranoid: it's just that everybody is out to get me.
+ */
+	goto fake_volatile;
+}
+
+extern "C" int sys_exit(int error_code)
+{
+	do_exit((error_code&0xff)<<8);
+}
+
 // TODO WGJA WIP: extern "C" int sys_wait4(pid_t pid,unsigned long * stat_addr, int options, struct rusage * ru)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	int flag, retval;

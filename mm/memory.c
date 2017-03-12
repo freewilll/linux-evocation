@@ -44,7 +44,7 @@
 unsigned long high_memory = 0;
 
 extern void sound_mem_init(void);
-// TODO WGJA WIP: extern void die_if_kernel(char *,struct pt_regs *,long);
+extern void die_if_kernel(char *,struct pt_regs *,long);
 
 int nr_swap_pages = 0;
 int nr_free_pages = 0;
@@ -457,44 +457,44 @@ int copy_page_tables(struct task_struct * tsk)
 // TODO WGJA WIP: 	invalidate();
 // TODO WGJA WIP: 	return 0;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This function puts a page in memory at the wanted address.
-// TODO WGJA WIP:  * It returns the physical address of the page gotten, 0 if
-// TODO WGJA WIP:  * out of memory (either when trying to access page-table or
-// TODO WGJA WIP:  * page.)
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: unsigned long put_page(struct task_struct * tsk,unsigned long page,
-// TODO WGJA WIP: 	unsigned long address,int prot)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long *page_table;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if ((prot & (PAGE_MASK|PAGE_PRESENT)) != PAGE_PRESENT)
-// TODO WGJA WIP: 		printk("put_page: prot = %08x\n",prot);
-// TODO WGJA WIP: 	if (page >= high_memory) {
-// TODO WGJA WIP: 		printk("put_page: trying to put page %p at %p\n",page,address);
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	page_table = PAGE_DIR_OFFSET(tsk->tss.cr3,address);
-// TODO WGJA WIP: 	if ((*page_table) & PAGE_PRESENT)
-// TODO WGJA WIP: 		page_table = (unsigned long *) (PAGE_MASK & *page_table);
-// TODO WGJA WIP: 	else {
-// TODO WGJA WIP: 		printk("put_page: bad page directory entry\n");
-// TODO WGJA WIP: 		oom(tsk);
-// TODO WGJA WIP: 		*page_table = BAD_PAGETABLE | PAGE_TABLE;
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	page_table += (address >> PAGE_SHIFT) & PTRS_PER_PAGE-1;
-// TODO WGJA WIP: 	if (*page_table) {
-// TODO WGJA WIP: 		printk("put_page: page already exists\n");
-// TODO WGJA WIP: 		*page_table = 0;
-// TODO WGJA WIP: 		invalidate();
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	*page_table = page | prot;
-// TODO WGJA WIP: /* no need for invalidate */
-// TODO WGJA WIP: 	return page;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+/*
+ * This function puts a page in memory at the wanted address.
+ * It returns the physical address of the page gotten, 0 if
+ * out of memory (either when trying to access page-table or
+ * page.)
+ */
+unsigned long put_page(struct task_struct * tsk,unsigned long page,
+	unsigned long address,int prot)
+{
+	unsigned long *page_table;
+
+	if ((prot & (PAGE_MASK|PAGE_PRESENT)) != PAGE_PRESENT)
+		printk("put_page: prot = %08x\n",prot);
+	if (page >= high_memory) {
+		printk("put_page: trying to put page %p at %p\n",page,address);
+		return 0;
+	}
+	page_table = PAGE_DIR_OFFSET(tsk->tss.cr3,address);
+	if ((*page_table) & PAGE_PRESENT)
+		page_table = (unsigned long *) (PAGE_MASK & *page_table);
+	else {
+		printk("put_page: bad page directory entry\n");
+		oom(tsk);
+		*page_table = BAD_PAGETABLE | PAGE_TABLE;
+		return 0;
+	}
+	page_table += (address >> PAGE_SHIFT) & PTRS_PER_PAGE-1;
+	if (*page_table) {
+		printk("put_page: page already exists\n");
+		*page_table = 0;
+		invalidate();
+	}
+	*page_table = page | prot;
+/* no need for invalidate */
+	return page;
+}
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * The previous function doesn't work very well if you also want to mark
 // TODO WGJA WIP:  * the page dirty: exec.c wants this, as it has earlier changed the page,
@@ -669,18 +669,18 @@ int verify_area(int type, void * addr, unsigned long size)
 	return 0;
 }
 
-// TODO WGJA WIP: static inline void get_empty_page(struct task_struct * tsk, unsigned long address)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long tmp;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!(tmp = get_free_page(GFP_KERNEL))) {
-// TODO WGJA WIP: 		oom(tsk);
-// TODO WGJA WIP: 		tmp = BAD_PAGE;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!put_page(tsk,tmp,address,PAGE_PRIVATE))
-// TODO WGJA WIP: 		free_page(tmp);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+static inline void get_empty_page(struct task_struct * tsk, unsigned long address)
+{
+	unsigned long tmp;
+
+	if (!(tmp = get_free_page(GFP_KERNEL))) {
+		oom(tsk);
+		tmp = BAD_PAGE;
+	}
+	if (!put_page(tsk,tmp,address,PAGE_PRIVATE))
+		free_page(tmp);
+}
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * try_to_share() checks the page at address "address" in the task "p",
 // TODO WGJA WIP:  * to see if it exists, and if it is clean. If so, share it with the current
@@ -789,127 +789,127 @@ int verify_area(int type, void * addr, unsigned long size)
 // TODO WGJA WIP: 	}
 // TODO WGJA WIP: 	return 0;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * fill in an empty page-table if none exists.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: static inline unsigned long get_empty_pgtable(struct task_struct * tsk,unsigned long address)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long page;
-// TODO WGJA WIP: 	unsigned long *p;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	p = PAGE_DIR_OFFSET(tsk->tss.cr3,address);
-// TODO WGJA WIP: 	if (PAGE_PRESENT & *p)
-// TODO WGJA WIP: 		return *p;
-// TODO WGJA WIP: 	if (*p) {
-// TODO WGJA WIP: 		printk("get_empty_pgtable: bad page-directory entry \n");
-// TODO WGJA WIP: 		*p = 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	page = get_free_page(GFP_KERNEL);
-// TODO WGJA WIP: 	p = PAGE_DIR_OFFSET(tsk->tss.cr3,address);
-// TODO WGJA WIP: 	if (PAGE_PRESENT & *p) {
-// TODO WGJA WIP: 		free_page(page);
-// TODO WGJA WIP: 		return *p;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (*p) {
-// TODO WGJA WIP: 		printk("get_empty_pgtable: bad page-directory entry \n");
-// TODO WGJA WIP: 		*p = 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (page) {
-// TODO WGJA WIP: 		*p = page | PAGE_TABLE;
-// TODO WGJA WIP: 		return *p;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	oom(current);
-// TODO WGJA WIP: 	*p = BAD_PAGETABLE | PAGE_TABLE;
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void do_no_page(unsigned long error_code, unsigned long address,
-// TODO WGJA WIP: 	struct task_struct *tsk, unsigned long user_esp)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long tmp;
-// TODO WGJA WIP: 	unsigned long page;
-// TODO WGJA WIP: 	struct vm_area_struct * mpnt;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	page = get_empty_pgtable(tsk,address);
-// TODO WGJA WIP: 	if (!page)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	page &= PAGE_MASK;
-// TODO WGJA WIP: 	page += PAGE_PTR(address);
-// TODO WGJA WIP: 	tmp = *(unsigned long *) page;
-// TODO WGJA WIP: 	if (tmp & PAGE_PRESENT)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	++tsk->rss;
-// TODO WGJA WIP: 	if (tmp) {
-// TODO WGJA WIP: 		++tsk->maj_flt;
-// TODO WGJA WIP: 		swap_in((unsigned long *) page);
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	address &= 0xfffff000;
-// TODO WGJA WIP: 	for (mpnt = tsk->mmap ; mpnt ; mpnt = mpnt->vm_next) {
-// TODO WGJA WIP: 		if (address < mpnt->vm_start)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (address >= ((mpnt->vm_end + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1)))
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		mpnt->vm_ops->nopage(error_code, mpnt, address);
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	++tsk->min_flt;
-// TODO WGJA WIP: 	get_empty_page(tsk,address);
-// TODO WGJA WIP: 	if (tsk != current)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	if (address < tsk->brk)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	if (address+8192 >= (user_esp & 0xfffff000) && 
-// TODO WGJA WIP: 	    address <= current->start_stack)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	send_sig(SIGSEGV,tsk,1);
-// TODO WGJA WIP: 	return;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This routine handles page faults.  It determines the address,
-// TODO WGJA WIP:  * and the problem, and then passes it off to one of the appropriate
-// TODO WGJA WIP:  * routines.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: extern "C" void do_page_fault(struct pt_regs *regs, unsigned long error_code)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long address;
-// TODO WGJA WIP: 	unsigned long user_esp = 0;
-// TODO WGJA WIP: 	unsigned long stack_limit;
-// TODO WGJA WIP: 	unsigned int bit;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	/* get the address */
-// TODO WGJA WIP: 	__asm__("movl %%cr2,%0":"=r" (address));
-// TODO WGJA WIP: 	if (address < TASK_SIZE) {
-// TODO WGJA WIP: 		if (error_code & 4) {	/* user mode access? */
-// TODO WGJA WIP: 			if (regs->eflags & VM_MASK) {
-// TODO WGJA WIP: 				bit = (address - 0xA0000) >> PAGE_SHIFT;
-// TODO WGJA WIP: 				if (bit < 32)
-// TODO WGJA WIP: 					current->screen_bitmap |= 1 << bit;
-// TODO WGJA WIP: 			} else 
-// TODO WGJA WIP: 				user_esp = regs->esp;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (error_code & 1)
-// TODO WGJA WIP: 			do_wp_page(error_code, address, current, user_esp);
-// TODO WGJA WIP: 		else
-// TODO WGJA WIP: 			do_no_page(error_code, address, current, user_esp);
-// TODO WGJA WIP: 		if (!user_esp)
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 		stack_limit = current->rlim[RLIMIT_STACK].rlim_cur;
-// TODO WGJA WIP: 		if (stack_limit >= RLIM_INFINITY)
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 		if (stack_limit >= current->start_stack)
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 		stack_limit = current->start_stack - stack_limit;
-// TODO WGJA WIP: 		if (user_esp < stack_limit)
-// TODO WGJA WIP: 			send_sig(SIGSEGV, current, 1);
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	printk("Unable to handle kernel paging request at address %08x\n",address);
-// TODO WGJA WIP: 	die_if_kernel("Oops", regs, error_code);
-// TODO WGJA WIP: 	do_exit(SIGKILL);
-// TODO WGJA WIP: }
+
+/*
+ * fill in an empty page-table if none exists.
+ */
+static inline unsigned long get_empty_pgtable(struct task_struct * tsk,unsigned long address)
+{
+	unsigned long page;
+	unsigned long *p;
+
+	p = PAGE_DIR_OFFSET(tsk->tss.cr3,address);
+	if (PAGE_PRESENT & *p)
+		return *p;
+	if (*p) {
+		printk("get_empty_pgtable: bad page-directory entry \n");
+		*p = 0;
+	}
+	page = get_free_page(GFP_KERNEL);
+	p = PAGE_DIR_OFFSET(tsk->tss.cr3,address);
+	if (PAGE_PRESENT & *p) {
+		free_page(page);
+		return *p;
+	}
+	if (*p) {
+		printk("get_empty_pgtable: bad page-directory entry \n");
+		*p = 0;
+	}
+	if (page) {
+		*p = page | PAGE_TABLE;
+		return *p;
+	}
+	oom(current);
+	*p = BAD_PAGETABLE | PAGE_TABLE;
+	return 0;
+}
+
+void do_no_page(unsigned long error_code, unsigned long address,
+	struct task_struct *tsk, unsigned long user_esp)
+{
+	unsigned long tmp;
+	unsigned long page;
+	struct vm_area_struct * mpnt;
+
+	page = get_empty_pgtable(tsk,address);
+	if (!page)
+		return;
+	page &= PAGE_MASK;
+	page += PAGE_PTR(address);
+	tmp = *(unsigned long *) page;
+	if (tmp & PAGE_PRESENT)
+		return;
+	++tsk->rss;
+	if (tmp) {
+		++tsk->maj_flt;
+		swap_in((unsigned long *) page);
+		return;
+	}
+	address &= 0xfffff000;
+	for (mpnt = tsk->mmap ; mpnt ; mpnt = mpnt->vm_next) {
+		if (address < mpnt->vm_start)
+			continue;
+		if (address >= ((mpnt->vm_end + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1)))
+			continue;
+		mpnt->vm_ops->nopage(error_code, mpnt, address);
+		return;
+	}
+	++tsk->min_flt;
+	get_empty_page(tsk,address);
+	if (tsk != current)
+		return;
+	if (address < tsk->brk)
+		return;
+	if (address+8192 >= (user_esp & 0xfffff000) && 
+	    address <= current->start_stack)
+		return;
+	send_sig(SIGSEGV,tsk,1);
+	return;
+}
+
+/*
+ * This routine handles page faults.  It determines the address,
+ * and the problem, and then passes it off to one of the appropriate
+ * routines.
+ */
+extern "C" void do_page_fault(struct pt_regs *regs, unsigned long error_code)
+{
+	unsigned long address;
+	unsigned long user_esp = 0;
+	unsigned long stack_limit;
+	unsigned int bit;
+
+	/* get the address */
+	__asm__("movl %%cr2,%0":"=r" (address));
+	if (address < TASK_SIZE) {
+		if (error_code & 4) {	/* user mode access? */
+			if (regs->eflags & VM_MASK) {
+				bit = (address - 0xA0000) >> PAGE_SHIFT;
+				if (bit < 32)
+					current->screen_bitmap |= 1 << bit;
+			} else 
+				user_esp = regs->esp;
+		}
+		if (error_code & 1)
+			do_wp_page(error_code, address, current, user_esp);
+		else
+			do_no_page(error_code, address, current, user_esp);
+		if (!user_esp)
+			return;
+		stack_limit = current->rlim[RLIMIT_STACK].rlim_cur;
+		if (stack_limit >= RLIM_INFINITY)
+			return;
+		if (stack_limit >= current->start_stack)
+			return;
+		stack_limit = current->start_stack - stack_limit;
+		if (user_esp < stack_limit)
+			send_sig(SIGSEGV, current, 1);
+		return;
+	}
+	printk("Unable to handle kernel paging request at address %08x\n",address);
+	die_if_kernel("Oops", regs, error_code);
+	do_exit(SIGKILL);
+}
 
 /*
  * BAD_PAGE is the page that is used for page faults when linux

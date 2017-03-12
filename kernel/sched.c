@@ -77,33 +77,33 @@ struct stack_struct {
 	short b;
 	};
 stack_struct stack_start = { & user_stack [PAGE_SIZE>>2] , KERNEL_DS };
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  *  'math_state_restore()' saves the current math information in the
-// TODO WGJA WIP:  * old math state array, and gets the new ones from the current task
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Careful.. There are problems with IBM-designed IRQ13 behaviour.
-// TODO WGJA WIP:  * Don't touch unless you *really* know how it works.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: extern "C" void math_state_restore(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	__asm__ __volatile__("clts");
-// TODO WGJA WIP: 	if (last_task_used_math == current)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	timer_table[COPRO_TIMER].expires = jiffies+50;
-// TODO WGJA WIP: 	timer_active |= 1<<COPRO_TIMER;	
-// TODO WGJA WIP: 	if (last_task_used_math)
-// TODO WGJA WIP: 		__asm__("fnsave %0":"=m" (last_task_used_math->tss.i387));
-// TODO WGJA WIP: 	else
-// TODO WGJA WIP: 		__asm__("fnclex");
-// TODO WGJA WIP: 	last_task_used_math = current;
-// TODO WGJA WIP: 	if (current->used_math) {
-// TODO WGJA WIP: 		__asm__("frstor %0": :"m" (current->tss.i387));
-// TODO WGJA WIP: 	} else {
-// TODO WGJA WIP: 		__asm__("fninit");
-// TODO WGJA WIP: 		current->used_math=1;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	timer_active &= ~(1<<COPRO_TIMER);
-// TODO WGJA WIP: }
+/*
+ *  'math_state_restore()' saves the current math information in the
+ * old math state array, and gets the new ones from the current task
+ *
+ * Careful.. There are problems with IBM-designed IRQ13 behaviour.
+ * Don't touch unless you *really* know how it works.
+ */
+extern "C" void math_state_restore(void)
+{
+	__asm__ __volatile__("clts");
+	if (last_task_used_math == current)
+		return;
+	timer_table[COPRO_TIMER].expires = jiffies+50;
+	timer_active |= 1<<COPRO_TIMER;	
+	if (last_task_used_math)
+		__asm__("fnsave %0":"=m" (last_task_used_math->tss.i387));
+	else
+		__asm__("fnclex");
+	last_task_used_math = current;
+	if (current->used_math) {
+		__asm__("frstor %0": :"m" (current->tss.i387));
+	} else {
+		__asm__("fninit");
+		current->used_math=1;
+	}
+	timer_active &= ~(1<<COPRO_TIMER);
+}
 
 /*
  *  'schedule()' is the scheduler function. It's a very simple and nice

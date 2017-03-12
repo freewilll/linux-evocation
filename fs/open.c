@@ -19,8 +19,8 @@
 
 #include <asm/segment.h>
 
-// TODO WGJA WIP: extern void fcntl_remove_locks(struct task_struct *, struct file *);
-// TODO WGJA WIP: 
+extern void fcntl_remove_locks(struct task_struct *, struct file *);
+
 // TODO WGJA WIP: extern "C" int sys_ustat(int dev, struct ustat * ubuf)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	return -ENOSYS;
@@ -426,43 +426,43 @@ extern "C" int sys_open(const char * filename,int flags,int mode)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	return sys_open(pathname, O_CREAT | O_WRONLY | O_TRUNC, mode);
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: int close_fp(struct file *filp)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode *inode;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (filp->f_count == 0) {
-// TODO WGJA WIP: 		printk("VFS: Close: file count is 0\n");
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	inode = filp->f_inode;
-// TODO WGJA WIP: 	if (inode && S_ISREG(inode->i_mode))
-// TODO WGJA WIP: 		fcntl_remove_locks(current, filp);
-// TODO WGJA WIP: 	if (filp->f_count > 1) {
-// TODO WGJA WIP: 		filp->f_count--;
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (filp->f_op && filp->f_op->release)
-// TODO WGJA WIP: 		filp->f_op->release(inode,filp);
-// TODO WGJA WIP: 	filp->f_count--;
-// TODO WGJA WIP: 	filp->f_inode = NULL;
-// TODO WGJA WIP: 	iput(inode);
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_close(unsigned int fd)
-// TODO WGJA WIP: {	
-// TODO WGJA WIP: 	struct file * filp;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (fd >= NR_OPEN)
-// TODO WGJA WIP: 		return -EBADF;
-// TODO WGJA WIP: 	FD_CLR(fd, &current->close_on_exec);
-// TODO WGJA WIP: 	if (!(filp = current->filp[fd]))
-// TODO WGJA WIP: 		return -EBADF;
-// TODO WGJA WIP: 	current->filp[fd] = NULL;
-// TODO WGJA WIP: 	return (close_fp (filp));
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+int close_fp(struct file *filp)
+{
+	struct inode *inode;
+
+	if (filp->f_count == 0) {
+		printk("VFS: Close: file count is 0\n");
+		return 0;
+	}
+	inode = filp->f_inode;
+	if (inode && S_ISREG(inode->i_mode))
+		fcntl_remove_locks(current, filp);
+	if (filp->f_count > 1) {
+		filp->f_count--;
+		return 0;
+	}
+	if (filp->f_op && filp->f_op->release)
+		filp->f_op->release(inode,filp);
+	filp->f_count--;
+	filp->f_inode = NULL;
+	iput(inode);
+	return 0;
+}
+
+extern "C" int sys_close(unsigned int fd)
+{	
+	struct file * filp;
+
+	if (fd >= NR_OPEN)
+		return -EBADF;
+	FD_CLR(fd, &current->close_on_exec);
+	if (!(filp = current->filp[fd]))
+		return -EBADF;
+	current->filp[fd] = NULL;
+	return (close_fp (filp));
+}
+
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * This routine simulates a hangup on the tty, to arrange that users
 // TODO WGJA WIP:  * are given clean terminals at login time.

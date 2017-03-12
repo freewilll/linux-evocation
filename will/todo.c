@@ -42,32 +42,6 @@ void sound_mem_init(void)
 {
 }
 
-// TODO WGJA shm_swap
-int shm_swap(int prio)
-{
-	printk("TODO shm_swap\n");
-	return 0;
-}
-
-// TODO WGJA do_page_fault
-extern "C" void do_page_fault(struct pt_regs *regs, unsigned long error_code)
-{
-	unsigned long address;
-	unsigned long user_esp = 0;
-	unsigned long stack_limit;
-	unsigned int bit;
-
-	char *vidmem = (char *)0xb8000;
-	vidmem[79 * 2] = 'P';
-	vidmem[79 * 2 + 1] = 0x40;
-
-	/* get the address */
-	__asm__("movl %%cr2,%0":"=r" (address));
-	printk("Unable to handle kernel paging request at address %08x\n",address);
-
-	for (;;);
-}
-
 // TODO WGJA generic_mmap
 int generic_mmap(struct inode * inode, struct file * file,
 	unsigned long addr, size_t len, int prot, unsigned long off)
@@ -100,3 +74,8 @@ long rs_init(long kmem_start)
 	return kmem_start;
 }
 
+// TODO WGJA math_emulate
+extern "C" void math_emulate(long arg)
+{
+	printk("TODO WGJA math_emulate\n");
+}

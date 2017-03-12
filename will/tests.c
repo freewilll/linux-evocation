@@ -325,3 +325,14 @@ void test_memmove()
 	if (memcmp(buf1, "baz", 3) != 0)
 		panic("Bad buffer contents (2)");
 }
+
+void test_general_protection_fault()
+{
+	int pid;
+	pid = fork();
+	if (pid < 0) panic("Can't fork");
+	if (!pid) {
+		sti();  // Goodbye cruel world
+		printf("No way should we get here");
+	}
+}

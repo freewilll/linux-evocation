@@ -133,24 +133,24 @@ int shm_fork (struct task_struct *p1, struct task_struct *p2)
     return 0;
 }
 
-// TODO WGJA WIP: void sem_exit (void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP:     return;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void shm_exit (void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP:     return;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: int shm_swap (int prio)
-// TODO WGJA WIP: {
-// TODO WGJA WIP:     return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void shm_no_page (unsigned long *ptent)
-// TODO WGJA WIP: {
-// TODO WGJA WIP:     return;
-// TODO WGJA WIP: }
+void sem_exit (void)
+{
+    return;
+}
+
+void shm_exit (void)
+{
+    return;
+}
+
+int shm_swap (int prio)
+{
+    return 0;
+}
+
+void shm_no_page (unsigned long *ptent)
+{
+    return;
+}
 
 #endif

@@ -8,13 +8,13 @@ extern "C" {
 
 extern int sys_todo();
 extern int sys_setup();
-// TODO WGJA WIP: extern int sys_exit();
+extern int sys_exit();
 extern int sys_fork();
 extern int sys_read();
 extern int sys_write();
 extern int sys_open(const char *, int, int);
 
-// TODO WGJA WIP: extern int sys_close();
+extern int sys_close(unsigned int);
 // TODO WGJA WIP: extern int sys_waitpid();
 // TODO WGJA WIP: extern int sys_creat();
 // TODO WGJA WIP: extern int sys_link();
@@ -152,12 +152,12 @@ typedef int (*fn_ptr)();
 // TODO WGJA syscalls
 fn_ptr sys_call_table[] = {
   sys_setup, 			// #define __NR_setup		  0
-  sys_todo, 			// #define __NR_exit		  1
+  sys_exit, 			// #define __NR_exit		  1	Done
   sys_fork, 			// #define __NR_fork		  2	Done
   (fn_ptr) sys_read, 		// #define __NR_read		  3	Done
   (fn_ptr) sys_write, 		// #define __NR_write		  4	Done
   (fn_ptr) sys_open, 		// #define __NR_open		  5	Done
-  sys_todo, 			// #define __NR_close		  6
+  (fn_ptr) sys_close, 		// #define __NR_close		  6	Done
   sys_todo, 			// #define __NR_waitpid		  7
   sys_todo, 			// #define __NR_creat		  8
   sys_todo, 			// #define __NR_link		  9

@@ -45,6 +45,7 @@ extern void test_minix();
 extern void test_tty1_read();
 extern void test_printf();
 extern void test_memmove();
+extern void test_general_protection_fault();
 
 /*
  * we need this inline - forking from kernel space will result
@@ -511,12 +512,13 @@ void init(void)
 
 	// test_dev_zero();
 	// test_minix();cli(); // cli panics due to an unhandled trap
-	test_tty1_read();
+	// test_tty1_read();
 
 	(void) open("/dev/tty1",O_RDWR,0);
 	(void) dup(0);
 	(void) dup(0);
 
+	test_general_protection_fault();
 	// for(;;) idle();
 
 	// test_printf();

@@ -32,20 +32,20 @@ struct vm_area_struct {
 	struct vm_operations_struct * vm_ops;
 };
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * These are the virtual MM functions - opening of an area, closing it (needed to
-// TODO WGJA WIP:  * keep files on disk up-to-date etc), pointer to the functions called when a
-// TODO WGJA WIP:  * no-page or a wp-page exception occurs, and the function which decides on sharing
-// TODO WGJA WIP:  * of pages between different processes.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: struct vm_operations_struct {
-// TODO WGJA WIP: 	void (*open)(struct vm_area_struct * area);
-// TODO WGJA WIP: 	void (*close)(struct vm_area_struct * area);
-// TODO WGJA WIP: 	void (*nopage)(int error_code,
-// TODO WGJA WIP: 		       struct vm_area_struct * area, unsigned long address);
-// TODO WGJA WIP: 	void (*wppage)(struct vm_area_struct * area, unsigned long address);
-// TODO WGJA WIP: 	int (*share)(struct vm_area_struct * from, struct vm_area_struct * to, unsigned long address);
-// TODO WGJA WIP: };
+/*
+ * These are the virtual MM functions - opening of an area, closing it (needed to
+ * keep files on disk up-to-date etc), pointer to the functions called when a
+ * no-page or a wp-page exception occurs, and the function which decides on sharing
+ * of pages between different processes.
+ */
+struct vm_operations_struct {
+	void (*open)(struct vm_area_struct * area);
+	void (*close)(struct vm_area_struct * area);
+	void (*nopage)(int error_code,
+		       struct vm_area_struct * area, unsigned long address);
+	void (*wppage)(struct vm_area_struct * area, unsigned long address);
+	int (*share)(struct vm_area_struct * from, struct vm_area_struct * to, unsigned long address);
+};
 
 extern unsigned long __bad_page(void);
 extern unsigned long __bad_pagetable(void);
@@ -119,7 +119,7 @@ extern void oom(struct task_struct * task);
 
 extern void swap_free(unsigned long page_nr);
 extern unsigned long swap_duplicate(unsigned long page_nr);
-// TODO WGJA WIP: extern void swap_in(unsigned long *table_ptr);
+extern void swap_in(unsigned long *table_ptr);
 // TODO WGJA WIP: extern void si_swapinfo(struct sysinfo * val);
 extern void rw_swap_page(int rw, unsigned long nr, char * buf);
 // TODO WGJA WIP: 
@@ -127,8 +127,8 @@ extern void rw_swap_page(int rw, unsigned long nr, char * buf);
 // TODO WGJA WIP: extern int do_mmap(struct file * file, unsigned long addr, unsigned long len,
 // TODO WGJA WIP: 	unsigned long prot, unsigned long flags, unsigned long off);
 // TODO WGJA WIP: 
-// TODO WGJA WIP: #define read_swap_page(nr,buf) \
-// TODO WGJA WIP: 	rw_swap_page(READ,(nr),(buf))
+#define read_swap_page(nr,buf) \
+	rw_swap_page(READ,(nr),(buf))
 #define write_swap_page(nr,buf) \
 	rw_swap_page(WRITE,(nr),(buf))
 
@@ -165,6 +165,6 @@ extern unsigned short * mem_map;
 
 /* vm_ops not present page codes */
 #define SHM_SWP_TYPE 0x41        
-// TODO WGJA WIP: extern void shm_no_page (ulong *);
+extern void shm_no_page (ulong *);
 
 #endif
