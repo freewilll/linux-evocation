@@ -17,12 +17,6 @@ extern "C" unsigned long save_v86_state(struct vm86_regs * regs)
 	for (;;);
 }
 
-// TODO WGJA send_sig
-int send_sig(unsigned long sig,struct task_struct * p,int priv)
-{
-	return 0;
-}
-
 // TODO WGJA syscalls
 extern "C" int sys_todo(void)
 {

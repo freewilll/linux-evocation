@@ -21,50 +21,50 @@ extern void sem_exit (void);
 
 int getrusage(struct task_struct *, int, struct rusage *);
 
-// TODO WGJA WIP: static int generate(unsigned long sig, struct task_struct * p)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long mask = 1 << (sig-1);
-// TODO WGJA WIP: 	struct sigaction * sa = sig + p->sigaction - 1;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	/* always generate signals for traced processes ??? */
-// TODO WGJA WIP: 	if (p->flags & PF_PTRACED) {
-// TODO WGJA WIP: 		p->signal |= mask;
-// TODO WGJA WIP: 		return 1;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	/* don't bother with ignored signals (but SIGCHLD is special) */
-// TODO WGJA WIP: 	if (sa->sa_handler == SIG_IGN && sig != SIGCHLD)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	/* some signals are ignored by default.. (but SIGCONT already did its deed) */
-// TODO WGJA WIP: 	if ((sa->sa_handler == SIG_DFL) &&
-// TODO WGJA WIP: 	    (sig == SIGCONT || sig == SIGCHLD || sig == SIGWINCH))
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	p->signal |= mask;
-// TODO WGJA WIP: 	return 1;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: int send_sig(unsigned long sig,struct task_struct * p,int priv)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (!p || sig > 32)
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	if (!priv && ((sig != SIGCONT) || (current->session != p->session)) &&
-// TODO WGJA WIP: 	    (current->euid != p->euid) && (current->uid != p->uid) && !suser())
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	if (!sig)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	if ((sig == SIGKILL) || (sig == SIGCONT)) {
-// TODO WGJA WIP: 		if (p->state == TASK_STOPPED)
-// TODO WGJA WIP: 			p->state = TASK_RUNNING;
-// TODO WGJA WIP: 		p->exit_code = 0;
-// TODO WGJA WIP: 		p->signal &= ~( (1<<(SIGSTOP-1)) | (1<<(SIGTSTP-1)) |
-// TODO WGJA WIP: 				(1<<(SIGTTIN-1)) | (1<<(SIGTTOU-1)) );
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	/* Depends on order SIGSTOP, SIGTSTP, SIGTTIN, SIGTTOU */
-// TODO WGJA WIP: 	if ((sig >= SIGSTOP) && (sig <= SIGTTOU)) 
-// TODO WGJA WIP: 		p->signal &= ~(1<<(SIGCONT-1));
-// TODO WGJA WIP: 	/* Actually generate the signal */
-// TODO WGJA WIP: 	generate(sig,p);
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
+static int generate(unsigned long sig, struct task_struct * p)
+{
+	unsigned long mask = 1 << (sig-1);
+	struct sigaction * sa = sig + p->sigaction - 1;
+
+	/* always generate signals for traced processes ??? */
+	if (p->flags & PF_PTRACED) {
+		p->signal |= mask;
+		return 1;
+	}
+	/* don't bother with ignored signals (but SIGCHLD is special) */
+	if (sa->sa_handler == SIG_IGN && sig != SIGCHLD)
+		return 0;
+	/* some signals are ignored by default.. (but SIGCONT already did its deed) */
+	if ((sa->sa_handler == SIG_DFL) &&
+	    (sig == SIGCONT || sig == SIGCHLD || sig == SIGWINCH))
+		return 0;
+	p->signal |= mask;
+	return 1;
+}
+
+int send_sig(unsigned long sig,struct task_struct * p,int priv)
+{
+	if (!p || sig > 32)
+		return -EINVAL;
+	if (!priv && ((sig != SIGCONT) || (current->session != p->session)) &&
+	    (current->euid != p->euid) && (current->uid != p->uid) && !suser())
+		return -EPERM;
+	if (!sig)
+		return 0;
+	if ((sig == SIGKILL) || (sig == SIGCONT)) {
+		if (p->state == TASK_STOPPED)
+			p->state = TASK_RUNNING;
+		p->exit_code = 0;
+		p->signal &= ~( (1<<(SIGSTOP-1)) | (1<<(SIGTSTP-1)) |
+				(1<<(SIGTTIN-1)) | (1<<(SIGTTOU-1)) );
+	}
+	/* Depends on order SIGSTOP, SIGTSTP, SIGTTIN, SIGTTOU */
+	if ((sig >= SIGSTOP) && (sig <= SIGTTOU)) 
+		p->signal &= ~(1<<(SIGCONT-1));
+	/* Actually generate the signal */
+	generate(sig,p);
+	return 0;
+}
 
 void notify_parent(struct task_struct * tsk)
 {
@@ -270,32 +270,32 @@ int kill_proc(int pid, int sig, int priv)
 	return(-ESRCH);
 }
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * POSIX specifies that kill(-1,sig) is unspecified, but what we have
-// TODO WGJA WIP:  * is probably wrong.  Should make it like BSD or SYSV.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: extern "C" int sys_kill(int pid,int sig)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int err, retval = 0, count = 0;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!pid)
-// TODO WGJA WIP: 		return(kill_pg(current->pgrp,sig,0));
-// TODO WGJA WIP: 	if (pid == -1) {
-// TODO WGJA WIP: 		struct task_struct * p;
-// TODO WGJA WIP: 		for_each_task(p) {
-// TODO WGJA WIP: 			if (p->pid > 1 && p != current) {
-// TODO WGJA WIP: 				++count;
-// TODO WGJA WIP: 				if ((err = send_sig(sig,p,0)) != -EPERM)
-// TODO WGJA WIP: 					retval = err;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		return(count ? retval : -ESRCH);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (pid < 0) 
-// TODO WGJA WIP: 		return(kill_pg(-pid,sig,0));
-// TODO WGJA WIP: 	/* Normal kill */
-// TODO WGJA WIP: 	return(kill_proc(pid,sig,0));
-// TODO WGJA WIP: }
+/*
+ * POSIX specifies that kill(-1,sig) is unspecified, but what we have
+ * is probably wrong.  Should make it like BSD or SYSV.
+ */
+extern "C" int sys_kill(int pid,int sig)
+{
+	int err, retval = 0, count = 0;
+
+	if (!pid)
+		return(kill_pg(current->pgrp,sig,0));
+	if (pid == -1) {
+		struct task_struct * p;
+		for_each_task(p) {
+			if (p->pid > 1 && p != current) {
+				++count;
+				if ((err = send_sig(sig,p,0)) != -EPERM)
+					retval = err;
+			}
+		}
+		return(count ? retval : -ESRCH);
+	}
+	if (pid < 0) 
+		return(kill_pg(-pid,sig,0));
+	/* Normal kill */
+	return(kill_proc(pid,sig,0));
+}
 
 /*
  * Determine if a process group is "orphaned", according to the POSIX
