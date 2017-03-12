@@ -19,8 +19,8 @@
 extern void shm_exit (void);
 extern void sem_exit (void);
 
-// TODO WGJA WIP: int getrusage(struct task_struct *, int, struct rusage *);
-// TODO WGJA WIP: 
+int getrusage(struct task_struct *, int, struct rusage *);
+
 // TODO WGJA WIP: static int generate(unsigned long sig, struct task_struct * p)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	unsigned long mask = 1 << (sig-1);
@@ -74,26 +74,26 @@ void notify_parent(struct task_struct * tsk)
 	wake_up_interruptible(&tsk->p_pptr->wait_chldexit);
 }
 
-// TODO WGJA WIP: void release(struct task_struct * p)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!p)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	if (p == current) {
-// TODO WGJA WIP: 		printk("task releasing itself\n");
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	for (i=1 ; i<NR_TASKS ; i++)
-// TODO WGJA WIP: 		if (task[i] == p) {
-// TODO WGJA WIP: 			task[i] = NULL;
-// TODO WGJA WIP: 			REMOVE_LINKS(p);
-// TODO WGJA WIP: 			free_page(p->kernel_stack_page);
-// TODO WGJA WIP: 			free_page((long) p);
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	panic("trying to release non-existent task");
-// TODO WGJA WIP: }
+void release(struct task_struct * p)
+{
+	int i;
+
+	if (!p)
+		return;
+	if (p == current) {
+		printk("task releasing itself\n");
+		return;
+	}
+	for (i=1 ; i<NR_TASKS ; i++)
+		if (task[i] == p) {
+			task[i] = NULL;
+			REMOVE_LINKS(p);
+			free_page(p->kernel_stack_page);
+			free_page((long) p);
+			return;
+		}
+	panic("trying to release non-existent task");
+}
 
 #ifdef DEBUG_PROC_TREE
 /*
@@ -496,98 +496,98 @@ extern "C" int sys_exit(int error_code)
 	do_exit((error_code&0xff)<<8);
 }
 
-// TODO WGJA WIP: extern "C" int sys_wait4(pid_t pid,unsigned long * stat_addr, int options, struct rusage * ru)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int flag, retval;
-// TODO WGJA WIP: 	struct wait_queue wait = { current, NULL };
-// TODO WGJA WIP: 	struct task_struct *p;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (stat_addr) {
-// TODO WGJA WIP: 		flag = verify_area(VERIFY_WRITE, stat_addr, 4);
-// TODO WGJA WIP: 		if (flag)
-// TODO WGJA WIP: 			return flag;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	add_wait_queue(&current->wait_chldexit,&wait);
-// TODO WGJA WIP: repeat:
-// TODO WGJA WIP: 	flag=0;
-// TODO WGJA WIP:  	for (p = current->p_cptr ; p ; p = p->p_osptr) {
-// TODO WGJA WIP: 		if (pid>0) {
-// TODO WGJA WIP: 			if (p->pid != pid)
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 		} else if (!pid) {
-// TODO WGJA WIP: 			if (p->pgrp != current->pgrp)
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 		} else if (pid != -1) {
-// TODO WGJA WIP: 			if (p->pgrp != -pid)
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		/* wait for cloned processes iff the __WCLONE flag is set */
-// TODO WGJA WIP: 		if ((p->exit_signal != SIGCHLD) ^ ((options & __WCLONE) != 0))
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		flag = 1;
-// TODO WGJA WIP: 		switch (p->state) {
-// TODO WGJA WIP: 			case TASK_STOPPED:
-// TODO WGJA WIP: 				if (!p->exit_code)
-// TODO WGJA WIP: 					continue;
-// TODO WGJA WIP: 				if (!(options & WUNTRACED) && !(p->flags & PF_PTRACED))
-// TODO WGJA WIP: 					continue;
-// TODO WGJA WIP: 				if (stat_addr)
-// TODO WGJA WIP: 					put_fs_long((p->exit_code << 8) | 0x7f,
-// TODO WGJA WIP: 						stat_addr);
-// TODO WGJA WIP: 				p->exit_code = 0;
-// TODO WGJA WIP: 				if (ru != NULL)
-// TODO WGJA WIP: 					getrusage(p, RUSAGE_BOTH, ru);
-// TODO WGJA WIP: 				retval = p->pid;
-// TODO WGJA WIP: 				goto end_wait4;
-// TODO WGJA WIP: 			case TASK_ZOMBIE:
-// TODO WGJA WIP: 				current->cutime += p->utime + p->cutime;
-// TODO WGJA WIP: 				current->cstime += p->stime + p->cstime;
-// TODO WGJA WIP: 				current->cmin_flt += p->min_flt + p->cmin_flt;
-// TODO WGJA WIP: 				current->cmaj_flt += p->maj_flt + p->cmaj_flt;
-// TODO WGJA WIP: 				if (ru != NULL)
-// TODO WGJA WIP: 					getrusage(p, RUSAGE_BOTH, ru);
-// TODO WGJA WIP: 				flag = p->pid;
-// TODO WGJA WIP: 				if (stat_addr)
-// TODO WGJA WIP: 					put_fs_long(p->exit_code, stat_addr);
-// TODO WGJA WIP: 				if (p->p_opptr != p->p_pptr) {
-// TODO WGJA WIP: 					REMOVE_LINKS(p);
-// TODO WGJA WIP: 					p->p_pptr = p->p_opptr;
-// TODO WGJA WIP: 					SET_LINKS(p);
-// TODO WGJA WIP: 					notify_parent(p);
-// TODO WGJA WIP: 				} else
-// TODO WGJA WIP: 					release(p);
-// TODO WGJA WIP: #ifdef DEBUG_PROC_TREE
-// TODO WGJA WIP: 				audit_ptree();
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 				retval = flag;
-// TODO WGJA WIP: 				goto end_wait4;
-// TODO WGJA WIP: 			default:
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (flag) {
-// TODO WGJA WIP: 		retval = 0;
-// TODO WGJA WIP: 		if (options & WNOHANG)
-// TODO WGJA WIP: 			goto end_wait4;
-// TODO WGJA WIP: 		current->state=TASK_INTERRUPTIBLE;
-// TODO WGJA WIP: 		schedule();
-// TODO WGJA WIP: 		current->signal &= ~(1<<(SIGCHLD-1));
-// TODO WGJA WIP: 		retval = -ERESTARTSYS;
-// TODO WGJA WIP: 		if (current->signal & ~current->blocked)
-// TODO WGJA WIP: 			goto end_wait4;
-// TODO WGJA WIP: 		goto repeat;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	retval = -ECHILD;
-// TODO WGJA WIP: end_wait4:
-// TODO WGJA WIP: 	remove_wait_queue(&current->wait_chldexit,&wait);
-// TODO WGJA WIP: 	return retval;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * sys_waitpid() remains for compatibility. waitpid() should be
-// TODO WGJA WIP:  * implemented by calling sys_wait4() from libc.a.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: extern "C" int sys_waitpid(pid_t pid,unsigned long * stat_addr, int options)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	return sys_wait4(pid, stat_addr, options, NULL);
-// TODO WGJA WIP: }
+extern "C" int sys_wait4(pid_t pid,unsigned long * stat_addr, int options, struct rusage * ru)
+{
+	int flag, retval;
+	struct wait_queue wait = { current, NULL };
+	struct task_struct *p;
+
+	if (stat_addr) {
+		flag = verify_area(VERIFY_WRITE, stat_addr, 4);
+		if (flag)
+			return flag;
+	}
+	add_wait_queue(&current->wait_chldexit,&wait);
+repeat:
+	flag=0;
+ 	for (p = current->p_cptr ; p ; p = p->p_osptr) {
+		if (pid>0) {
+			if (p->pid != pid)
+				continue;
+		} else if (!pid) {
+			if (p->pgrp != current->pgrp)
+				continue;
+		} else if (pid != -1) {
+			if (p->pgrp != -pid)
+				continue;
+		}
+		/* wait for cloned processes iff the __WCLONE flag is set */
+		if ((p->exit_signal != SIGCHLD) ^ ((options & __WCLONE) != 0))
+			continue;
+		flag = 1;
+		switch (p->state) {
+			case TASK_STOPPED:
+				if (!p->exit_code)
+					continue;
+				if (!(options & WUNTRACED) && !(p->flags & PF_PTRACED))
+					continue;
+				if (stat_addr)
+					put_fs_long((p->exit_code << 8) | 0x7f,
+						stat_addr);
+				p->exit_code = 0;
+				if (ru != NULL)
+					getrusage(p, RUSAGE_BOTH, ru);
+				retval = p->pid;
+				goto end_wait4;
+			case TASK_ZOMBIE:
+				current->cutime += p->utime + p->cutime;
+				current->cstime += p->stime + p->cstime;
+				current->cmin_flt += p->min_flt + p->cmin_flt;
+				current->cmaj_flt += p->maj_flt + p->cmaj_flt;
+				if (ru != NULL)
+					getrusage(p, RUSAGE_BOTH, ru);
+				flag = p->pid;
+				if (stat_addr)
+					put_fs_long(p->exit_code, stat_addr);
+				if (p->p_opptr != p->p_pptr) {
+					REMOVE_LINKS(p);
+					p->p_pptr = p->p_opptr;
+					SET_LINKS(p);
+					notify_parent(p);
+				} else
+					release(p);
+#ifdef DEBUG_PROC_TREE
+				audit_ptree();
+#endif
+				retval = flag;
+				goto end_wait4;
+			default:
+				continue;
+		}
+	}
+	if (flag) {
+		retval = 0;
+		if (options & WNOHANG)
+			goto end_wait4;
+		current->state=TASK_INTERRUPTIBLE;
+		schedule();
+		current->signal &= ~(1<<(SIGCHLD-1));
+		retval = -ERESTARTSYS;
+		if (current->signal & ~current->blocked)
+			goto end_wait4;
+		goto repeat;
+	}
+	retval = -ECHILD;
+end_wait4:
+	remove_wait_queue(&current->wait_chldexit,&wait);
+	return retval;
+}
+
+/*
+ * sys_waitpid() remains for compatibility. waitpid() should be
+ * implemented by calling sys_wait4() from libc.a.
+ */
+extern "C" int sys_waitpid(pid_t pid,unsigned long * stat_addr, int options)
+{
+	return sys_wait4(pid, stat_addr, options, NULL);
+}

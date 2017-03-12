@@ -708,66 +708,66 @@ int in_group_p(gid_t grp)
 // TODO WGJA WIP: 	*old_rlim = new_rlim;
 // TODO WGJA WIP: 	return 0;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * It would make sense to put struct rusuage in the task_struct,
-// TODO WGJA WIP:  * except that would make the task_struct be *really big*.  After
-// TODO WGJA WIP:  * task_struct gets moved into malloc'ed memory, it would
-// TODO WGJA WIP:  * make sense to do this.  It will make moving the rest of the information
-// TODO WGJA WIP:  * a lot simpler!  (Which we're not doing right now because we're not
-// TODO WGJA WIP:  * measuring them yet).
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: int getrusage(struct task_struct *p, int who, struct rusage *ru)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int error;
-// TODO WGJA WIP: 	struct rusage r;
-// TODO WGJA WIP: 	unsigned long	*lp, *lpend, *dest;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	error = verify_area(VERIFY_WRITE, ru, sizeof *ru);
-// TODO WGJA WIP: 	if (error)
-// TODO WGJA WIP: 		return error;
-// TODO WGJA WIP: 	memset((char *) &r, 0, sizeof(r));
-// TODO WGJA WIP: 	switch (who) {
-// TODO WGJA WIP: 		case RUSAGE_SELF:
-// TODO WGJA WIP: 			r.ru_utime.tv_sec = CT_TO_SECS(p->utime);
-// TODO WGJA WIP: 			r.ru_utime.tv_usec = CT_TO_USECS(p->utime);
-// TODO WGJA WIP: 			r.ru_stime.tv_sec = CT_TO_SECS(p->stime);
-// TODO WGJA WIP: 			r.ru_stime.tv_usec = CT_TO_USECS(p->stime);
-// TODO WGJA WIP: 			r.ru_minflt = p->min_flt;
-// TODO WGJA WIP: 			r.ru_majflt = p->maj_flt;
-// TODO WGJA WIP: 			break;
-// TODO WGJA WIP: 		case RUSAGE_CHILDREN:
-// TODO WGJA WIP: 			r.ru_utime.tv_sec = CT_TO_SECS(p->cutime);
-// TODO WGJA WIP: 			r.ru_utime.tv_usec = CT_TO_USECS(p->cutime);
-// TODO WGJA WIP: 			r.ru_stime.tv_sec = CT_TO_SECS(p->cstime);
-// TODO WGJA WIP: 			r.ru_stime.tv_usec = CT_TO_USECS(p->cstime);
-// TODO WGJA WIP: 			r.ru_minflt = p->cmin_flt;
-// TODO WGJA WIP: 			r.ru_majflt = p->cmaj_flt;
-// TODO WGJA WIP: 			break;
-// TODO WGJA WIP: 		default:
-// TODO WGJA WIP: 			r.ru_utime.tv_sec = CT_TO_SECS(p->utime + p->cutime);
-// TODO WGJA WIP: 			r.ru_utime.tv_usec = CT_TO_USECS(p->utime + p->cutime);
-// TODO WGJA WIP: 			r.ru_stime.tv_sec = CT_TO_SECS(p->stime + p->cstime);
-// TODO WGJA WIP: 			r.ru_stime.tv_usec = CT_TO_USECS(p->stime + p->cstime);
-// TODO WGJA WIP: 			r.ru_minflt = p->min_flt + p->cmin_flt;
-// TODO WGJA WIP: 			r.ru_majflt = p->maj_flt + p->cmaj_flt;
-// TODO WGJA WIP: 			break;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	lp = (unsigned long *) &r;
-// TODO WGJA WIP: 	lpend = (unsigned long *) (&r+1);
-// TODO WGJA WIP: 	dest = (unsigned long *) ru;
-// TODO WGJA WIP: 	for (; lp < lpend; lp++, dest++) 
-// TODO WGJA WIP: 		put_fs_long(*lp, dest);
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_getrusage(int who, struct rusage *ru)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (who != RUSAGE_SELF && who != RUSAGE_CHILDREN)
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	return getrusage(current, who, ru);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+
+/*
+ * It would make sense to put struct rusuage in the task_struct,
+ * except that would make the task_struct be *really big*.  After
+ * task_struct gets moved into malloc'ed memory, it would
+ * make sense to do this.  It will make moving the rest of the information
+ * a lot simpler!  (Which we're not doing right now because we're not
+ * measuring them yet).
+ */
+int getrusage(struct task_struct *p, int who, struct rusage *ru)
+{
+	int error;
+	struct rusage r;
+	unsigned long	*lp, *lpend, *dest;
+
+	error = verify_area(VERIFY_WRITE, ru, sizeof *ru);
+	if (error)
+		return error;
+	memset((char *) &r, 0, sizeof(r));
+	switch (who) {
+		case RUSAGE_SELF:
+			r.ru_utime.tv_sec = CT_TO_SECS(p->utime);
+			r.ru_utime.tv_usec = CT_TO_USECS(p->utime);
+			r.ru_stime.tv_sec = CT_TO_SECS(p->stime);
+			r.ru_stime.tv_usec = CT_TO_USECS(p->stime);
+			r.ru_minflt = p->min_flt;
+			r.ru_majflt = p->maj_flt;
+			break;
+		case RUSAGE_CHILDREN:
+			r.ru_utime.tv_sec = CT_TO_SECS(p->cutime);
+			r.ru_utime.tv_usec = CT_TO_USECS(p->cutime);
+			r.ru_stime.tv_sec = CT_TO_SECS(p->cstime);
+			r.ru_stime.tv_usec = CT_TO_USECS(p->cstime);
+			r.ru_minflt = p->cmin_flt;
+			r.ru_majflt = p->cmaj_flt;
+			break;
+		default:
+			r.ru_utime.tv_sec = CT_TO_SECS(p->utime + p->cutime);
+			r.ru_utime.tv_usec = CT_TO_USECS(p->utime + p->cutime);
+			r.ru_stime.tv_sec = CT_TO_SECS(p->stime + p->cstime);
+			r.ru_stime.tv_usec = CT_TO_USECS(p->stime + p->cstime);
+			r.ru_minflt = p->min_flt + p->cmin_flt;
+			r.ru_majflt = p->maj_flt + p->cmaj_flt;
+			break;
+	}
+	lp = (unsigned long *) &r;
+	lpend = (unsigned long *) (&r+1);
+	dest = (unsigned long *) ru;
+	for (; lp < lpend; lp++, dest++) 
+		put_fs_long(*lp, dest);
+	return 0;
+}
+
+extern "C" int sys_getrusage(int who, struct rusage *ru)
+{
+	if (who != RUSAGE_SELF && who != RUSAGE_CHILDREN)
+		return -EINVAL;
+	return getrusage(current, who, ru);
+}
+
 // TODO WGJA WIP: #define LATCH ((1193180 + HZ/2)/HZ)
 // TODO WGJA WIP: 
 // TODO WGJA WIP: /*

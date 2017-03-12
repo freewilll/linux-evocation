@@ -3,13 +3,6 @@
 #include <linux/types.h>
 #include <linux/tty.h>
 
-// TODO WGJA do_signal
-extern "C" int do_signal(unsigned long oldmask, struct pt_regs * regs)
-{
-	printk("TODO: do_signal\n");
-	for (;;);
-}
-
 // TODO WGJA syscall_trace
 extern "C" void syscall_trace(void)
 {
@@ -78,4 +71,10 @@ long rs_init(long kmem_start)
 extern "C" void math_emulate(long arg)
 {
 	printk("TODO WGJA math_emulate\n");
+}
+
+// TODO WGJA core_dump
+int core_dump(long signr, struct pt_regs * regs)
+{
+	printk("TODO WGJA core_dump\n");
 }
