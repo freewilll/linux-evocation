@@ -169,7 +169,7 @@ fn_ptr sys_call_table[] = {
 	sys_chmod, 			// #define __NR_chmod		 15
 	sys_chown, 			// #define __NR_chown		 16
 	sys_break, 			// #define __NR_break		 17
-	sys_todo, 			// #define __NR_oldstat		 18	todo
+	sys_stat, 			// #define __NR_oldstat		 18	# Note: inconsistently named
 	sys_lseek, 			// #define __NR_lseek		 19
 	sys_getpid, 			// #define __NR_getpid		 20
 	sys_todo, 			// #define __NR_mount		 21	todo
