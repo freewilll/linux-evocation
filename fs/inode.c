@@ -155,55 +155,55 @@ void clear_inode(struct inode * inode)
 	insert_inode_free(inode);
 }
 
-// TODO WGJA WIP: int fs_may_mount(dev_t dev)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode * inode, * next;
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	next = first_inode;
-// TODO WGJA WIP: 	for (i = nr_inodes ; i > 0 ; i--) {
-// TODO WGJA WIP: 		inode = next;
-// TODO WGJA WIP: 		next = inode->i_next;	/* clear_inode() changes the queues.. */
-// TODO WGJA WIP: 		if (inode->i_dev != dev)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (inode->i_count || inode->i_dirt || inode->i_lock)
-// TODO WGJA WIP: 			return 0;
-// TODO WGJA WIP: 		clear_inode(inode);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return 1;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: int fs_may_umount(dev_t dev, struct inode * mount_root)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode * inode;
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	inode = first_inode;
-// TODO WGJA WIP: 	for (i=0 ; i < nr_inodes ; i++, inode = inode->i_next) {
-// TODO WGJA WIP: 		if (inode->i_dev != dev || !inode->i_count)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (inode == mount_root && inode->i_count == 1)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return 1;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: int fs_may_remount_ro(dev_t dev)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct file * file;
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	/* Check that no files are currently opened for writing. */
-// TODO WGJA WIP: 	for (file = first_file, i=0; i<nr_files; i++, file=file->f_next) {
-// TODO WGJA WIP: 		if (!file->f_count || !file->f_inode ||
-// TODO WGJA WIP: 		    file->f_inode->i_dev != dev)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (S_ISREG(file->f_inode->i_mode) && (file->f_mode & 2))
-// TODO WGJA WIP: 			return 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return 1;
-// TODO WGJA WIP: }
+int fs_may_mount(dev_t dev)
+{
+	struct inode * inode, * next;
+	int i;
+
+	next = first_inode;
+	for (i = nr_inodes ; i > 0 ; i--) {
+		inode = next;
+		next = inode->i_next;	/* clear_inode() changes the queues.. */
+		if (inode->i_dev != dev)
+			continue;
+		if (inode->i_count || inode->i_dirt || inode->i_lock)
+			return 0;
+		clear_inode(inode);
+	}
+	return 1;
+}
+
+int fs_may_umount(dev_t dev, struct inode * mount_root)
+{
+	struct inode * inode;
+	int i;
+
+	inode = first_inode;
+	for (i=0 ; i < nr_inodes ; i++, inode = inode->i_next) {
+		if (inode->i_dev != dev || !inode->i_count)
+			continue;
+		if (inode == mount_root && inode->i_count == 1)
+			continue;
+		return 0;
+	}
+	return 1;
+}
+
+int fs_may_remount_ro(dev_t dev)
+{
+	struct file * file;
+	int i;
+
+	/* Check that no files are currently opened for writing. */
+	for (file = first_file, i=0; i<nr_files; i++, file=file->f_next) {
+		if (!file->f_count || !file->f_inode ||
+		    file->f_inode->i_dev != dev)
+			continue;
+		if (S_ISREG(file->f_inode->i_mode) && (file->f_mode & 2))
+			return 0;
+	}
+	return 1;
+}
 
 static void write_inode(struct inode * inode)
 {

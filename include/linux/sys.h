@@ -164,16 +164,16 @@ fn_ptr sys_call_table[] = {
 	sys_unlink, 			// #define __NR_unlink		 10
 	sys_todo, 			// #define __NR_execve		 11	todo
 	sys_chdir, 			// #define __NR_chdir		 12
-	sys_time, 			// #define __NR_time		 13	todo
+	sys_time, 			// #define __NR_time		 13
 	sys_mknod, 			// #define __NR_mknod		 14
 	sys_chmod, 			// #define __NR_chmod		 15
 	sys_chown, 			// #define __NR_chown		 16
 	sys_break, 			// #define __NR_break		 17
-	sys_stat, 			// #define __NR_oldstat		 18	# Note: inconsistently named
+	sys_todo, 			// #define __NR_oldstat		 18	todo	# Note: inconsistently named
 	sys_lseek, 			// #define __NR_lseek		 19
 	sys_getpid, 			// #define __NR_getpid		 20
-	sys_todo, 			// #define __NR_mount		 21	todo
-	sys_todo, 			// #define __NR_umount		 22	todo
+	sys_mount, 			// #define __NR_mount		 21
+	sys_umount, 			// #define __NR_umount		 22
 	sys_setuid, 			// #define __NR_setuid		 23
 	sys_getuid, 			// #define __NR_getuid		 24
 	sys_stime, 			// #define __NR_stime		 25
