@@ -210,7 +210,7 @@ fn_ptr sys_call_table[] = {
 	sys_todo, 			// #define __NR_mpx		 56	todo
 	sys_setpgid, 			// #define __NR_setpgid		 57
 	sys_ulimit, 			// #define __NR_ulimit		 58
-	sys_todo, 			// #define __NR_oldolduname	 59	todo
+	sys_olduname, 			// #define __NR_oldolduname	 59
 	sys_umask, 			// #define __NR_umask		 60
 	sys_chroot, 			// #define __NR_chroot		 61
 	sys_ustat, 			// #define __NR_ustat		 62
