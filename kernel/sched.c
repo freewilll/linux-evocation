@@ -163,12 +163,12 @@ confuse_gcc2:
 	switch_to(next);
 }
 
-// TODO WGJA WIP: extern "C" int sys_pause(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	current->state = TASK_INTERRUPTIBLE;
-// TODO WGJA WIP: 	schedule();
-// TODO WGJA WIP: 	return -ERESTARTNOHAND;
-// TODO WGJA WIP: }
+extern "C" int sys_pause(void)
+{
+	current->state = TASK_INTERRUPTIBLE;
+	schedule();
+	return -ERESTARTNOHAND;
+}
 
 /*
  * wake_up doesn't wake up stopped processes - they have to be awakened

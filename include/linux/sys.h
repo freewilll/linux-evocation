@@ -180,7 +180,7 @@ fn_ptr sys_call_table[] = {
 	sys_todo, 			// #define __NR_ptrace		 26	todo
 	sys_todo, 			// #define __NR_alarm		 27	todo
 	sys_todo, 			// #define __NR_oldfstat	 28	todo
-	sys_todo, 			// #define __NR_pause		 29	todo
+	sys_pause, 			// #define __NR_pause		 29
 	sys_utime, 			// #define __NR_utime		 30
 	sys_stty, 			// #define __NR_stty		 31
 	sys_gtty, 			// #define __NR_gtty		 32
