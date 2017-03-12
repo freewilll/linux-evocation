@@ -202,65 +202,65 @@ static int dir_namei(const char * pathname, int * namelen, const char ** name,
 	return 0;
 }
 
-// TODO WGJA WIP: static int _namei(const char * pathname, struct inode * base,
-// TODO WGJA WIP: 	int follow_links, struct inode ** res_inode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	const char * basename;
-// TODO WGJA WIP: 	int namelen,error;
-// TODO WGJA WIP: 	struct inode * inode;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	*res_inode = NULL;
-// TODO WGJA WIP: 	error = dir_namei(pathname,&namelen,&basename,base,&base);
-// TODO WGJA WIP: 	if (error)
-// TODO WGJA WIP: 		return error;
-// TODO WGJA WIP: 	base->i_count++;	/* lookup uses up base */
-// TODO WGJA WIP: 	error = lookup(base,basename,namelen,&inode);
-// TODO WGJA WIP: 	if (error) {
-// TODO WGJA WIP: 		iput(base);
-// TODO WGJA WIP: 		return error;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (follow_links) {
-// TODO WGJA WIP: 		error = follow_link(base,inode,0,0,&inode);
-// TODO WGJA WIP: 		if (error)
-// TODO WGJA WIP: 			return error;
-// TODO WGJA WIP: 	} else
-// TODO WGJA WIP: 		iput(base);
-// TODO WGJA WIP: 	*res_inode = inode;
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: int lnamei(const char * pathname, struct inode ** res_inode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int error;
-// TODO WGJA WIP: 	char * tmp;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	error = getname(pathname,&tmp);
-// TODO WGJA WIP: 	if (!error) {
-// TODO WGJA WIP: 		error = _namei(tmp,NULL,0,res_inode);
-// TODO WGJA WIP: 		putname(tmp);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return error;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  *	namei()
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * is used by most simple commands to get the inode of a specified name.
-// TODO WGJA WIP:  * Open, link etc use their own routines, but this is enough for things
-// TODO WGJA WIP:  * like 'chmod' etc.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: int namei(const char * pathname, struct inode ** res_inode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int error;
-// TODO WGJA WIP: 	char * tmp;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	error = getname(pathname,&tmp);
-// TODO WGJA WIP: 	if (!error) {
-// TODO WGJA WIP: 		error = _namei(tmp,NULL,1,res_inode);
-// TODO WGJA WIP: 		putname(tmp);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return error;
-// TODO WGJA WIP: }
+static int _namei(const char * pathname, struct inode * base,
+	int follow_links, struct inode ** res_inode)
+{
+	const char * basename;
+	int namelen,error;
+	struct inode * inode;
+
+	*res_inode = NULL;
+	error = dir_namei(pathname,&namelen,&basename,base,&base);
+	if (error)
+		return error;
+	base->i_count++;	/* lookup uses up base */
+	error = lookup(base,basename,namelen,&inode);
+	if (error) {
+		iput(base);
+		return error;
+	}
+	if (follow_links) {
+		error = follow_link(base,inode,0,0,&inode);
+		if (error)
+			return error;
+	} else
+		iput(base);
+	*res_inode = inode;
+	return 0;
+}
+
+int lnamei(const char * pathname, struct inode ** res_inode)
+{
+	int error;
+	char * tmp;
+
+	error = getname(pathname,&tmp);
+	if (!error) {
+		error = _namei(tmp,NULL,0,res_inode);
+		putname(tmp);
+	}
+	return error;
+}
+
+/*
+ *	namei()
+ *
+ * is used by most simple commands to get the inode of a specified name.
+ * Open, link etc use their own routines, but this is enough for things
+ * like 'chmod' etc.
+ */
+int namei(const char * pathname, struct inode ** res_inode)
+{
+	int error;
+	char * tmp;
+
+	error = getname(pathname,&tmp);
+	if (!error) {
+		error = _namei(tmp,NULL,1,res_inode);
+		putname(tmp);
+	}
+	return error;
+}
 
 /*
  *	open_namei()
@@ -381,49 +381,49 @@ int open_namei(const char * pathname, int flag, int mode,
 	return 0;
 }
 
-// TODO WGJA WIP: int do_mknod(const char * filename, int mode, dev_t dev)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	const char * basename;
-// TODO WGJA WIP: 	int namelen, error;
-// TODO WGJA WIP: 	struct inode * dir;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	mode &= ~current->umask;
-// TODO WGJA WIP: 	error = dir_namei(filename,&namelen,&basename, NULL, &dir);
-// TODO WGJA WIP: 	if (error)
-// TODO WGJA WIP: 		return error;
-// TODO WGJA WIP: 	if (!namelen) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -ENOENT;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (IS_RDONLY(dir)) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EROFS;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!permission(dir,MAY_WRITE | MAY_EXEC)) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EACCES;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!dir->i_op || !dir->i_op->mknod) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return dir->i_op->mknod(dir,basename,namelen,mode,dev);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_mknod(const char * filename, int mode, dev_t dev)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int error;
-// TODO WGJA WIP: 	char * tmp;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (S_ISDIR(mode)  || (!S_ISFIFO(mode) && !suser()))
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	error = getname(filename,&tmp);
-// TODO WGJA WIP: 	if (!error) {
-// TODO WGJA WIP: 		error = do_mknod(tmp,mode,dev);
-// TODO WGJA WIP: 		putname(tmp);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return error;
-// TODO WGJA WIP: }
+int do_mknod(const char * filename, int mode, dev_t dev)
+{
+	const char * basename;
+	int namelen, error;
+	struct inode * dir;
+
+	mode &= ~current->umask;
+	error = dir_namei(filename,&namelen,&basename, NULL, &dir);
+	if (error)
+		return error;
+	if (!namelen) {
+		iput(dir);
+		return -ENOENT;
+	}
+	if (IS_RDONLY(dir)) {
+		iput(dir);
+		return -EROFS;
+	}
+	if (!permission(dir,MAY_WRITE | MAY_EXEC)) {
+		iput(dir);
+		return -EACCES;
+	}
+	if (!dir->i_op || !dir->i_op->mknod) {
+		iput(dir);
+		return -EPERM;
+	}
+	return dir->i_op->mknod(dir,basename,namelen,mode,dev);
+}
+
+extern "C" int sys_mknod(const char * filename, int mode, dev_t dev)
+{
+	int error;
+	char * tmp;
+
+	if (S_ISDIR(mode)  || (!S_ISFIFO(mode) && !suser()))
+		return -EPERM;
+	error = getname(filename,&tmp);
+	if (!error) {
+		error = do_mknod(tmp,mode,dev);
+		putname(tmp);
+	}
+	return error;
+}
 
 static int do_mkdir(const char * pathname, int mode)
 {
@@ -507,216 +507,216 @@ extern "C" int sys_rmdir(const char * pathname)
 	return error;
 }
 
-// TODO WGJA WIP: static int do_unlink(const char * name)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	const char * basename;
-// TODO WGJA WIP: 	int namelen, error;
-// TODO WGJA WIP: 	struct inode * dir;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	error = dir_namei(name,&namelen,&basename,NULL,&dir);
-// TODO WGJA WIP: 	if (error)
-// TODO WGJA WIP: 		return error;
-// TODO WGJA WIP: 	if (!namelen) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (IS_RDONLY(dir)) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EROFS;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!permission(dir,MAY_WRITE | MAY_EXEC)) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EACCES;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!dir->i_op || !dir->i_op->unlink) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return dir->i_op->unlink(dir,basename,namelen);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_unlink(const char * pathname)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int error;
-// TODO WGJA WIP: 	char * tmp;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	error = getname(pathname,&tmp);
-// TODO WGJA WIP: 	if (!error) {
-// TODO WGJA WIP: 		error = do_unlink(tmp);
-// TODO WGJA WIP: 		putname(tmp);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return error;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static int do_symlink(const char * oldname, const char * newname)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode * dir;
-// TODO WGJA WIP: 	const char * basename;
-// TODO WGJA WIP: 	int namelen, error;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	error = dir_namei(newname,&namelen,&basename,NULL,&dir);
-// TODO WGJA WIP: 	if (error)
-// TODO WGJA WIP: 		return error;
-// TODO WGJA WIP: 	if (!namelen) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -ENOENT;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (IS_RDONLY(dir)) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EROFS;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!permission(dir,MAY_WRITE | MAY_EXEC)) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EACCES;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!dir->i_op || !dir->i_op->symlink) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return dir->i_op->symlink(dir,basename,namelen,oldname);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_symlink(const char * oldname, const char * newname)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int error;
-// TODO WGJA WIP: 	char * from, * to;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	error = getname(oldname,&from);
-// TODO WGJA WIP: 	if (!error) {
-// TODO WGJA WIP: 		error = getname(newname,&to);
-// TODO WGJA WIP: 		if (!error) {
-// TODO WGJA WIP: 			error = do_symlink(from,to);
-// TODO WGJA WIP: 			putname(to);
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		putname(from);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return error;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static int do_link(struct inode * oldinode, const char * newname)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode * dir;
-// TODO WGJA WIP: 	const char * basename;
-// TODO WGJA WIP: 	int namelen, error;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	error = dir_namei(newname,&namelen,&basename,NULL,&dir);
-// TODO WGJA WIP: 	if (error) {
-// TODO WGJA WIP: 		iput(oldinode);
-// TODO WGJA WIP: 		return error;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!namelen) {
-// TODO WGJA WIP: 		iput(oldinode);
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (IS_RDONLY(dir)) {
-// TODO WGJA WIP: 		iput(oldinode);
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		return -EROFS;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (dir->i_dev != oldinode->i_dev) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		iput(oldinode);
-// TODO WGJA WIP: 		return -EXDEV;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!permission(dir,MAY_WRITE | MAY_EXEC)) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		iput(oldinode);
-// TODO WGJA WIP: 		return -EACCES;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!dir->i_op || !dir->i_op->link) {
-// TODO WGJA WIP: 		iput(dir);
-// TODO WGJA WIP: 		iput(oldinode);
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return dir->i_op->link(oldinode, dir, basename, namelen);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_link(const char * oldname, const char * newname)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int error;
-// TODO WGJA WIP: 	char * to;
-// TODO WGJA WIP: 	struct inode * oldinode;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	error = namei(oldname, &oldinode);
-// TODO WGJA WIP: 	if (error)
-// TODO WGJA WIP: 		return error;
-// TODO WGJA WIP: 	error = getname(newname,&to);
-// TODO WGJA WIP: 	if (!error) {
-// TODO WGJA WIP: 		error = do_link(oldinode,to);
-// TODO WGJA WIP: 		putname(to);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return error;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static int do_rename(const char * oldname, const char * newname)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode * old_dir, * new_dir;
-// TODO WGJA WIP: 	const char * old_base, * new_base;
-// TODO WGJA WIP: 	int old_len, new_len, error;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	error = dir_namei(oldname,&old_len,&old_base,NULL,&old_dir);
-// TODO WGJA WIP: 	if (error)
-// TODO WGJA WIP: 		return error;
-// TODO WGJA WIP: 	if (!permission(old_dir,MAY_WRITE | MAY_EXEC)) {
-// TODO WGJA WIP: 		iput(old_dir);
-// TODO WGJA WIP: 		return -EACCES;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!old_len || (old_base[0] == '.' &&
-// TODO WGJA WIP: 	    (old_len == 1 || (old_base[1] == '.' &&
-// TODO WGJA WIP: 	     old_len == 2)))) {
-// TODO WGJA WIP: 		iput(old_dir);
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	error = dir_namei(newname,&new_len,&new_base,NULL,&new_dir);
-// TODO WGJA WIP: 	if (error) {
-// TODO WGJA WIP: 		iput(old_dir);
-// TODO WGJA WIP: 		return error;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!permission(new_dir,MAY_WRITE | MAY_EXEC)) {
-// TODO WGJA WIP: 		iput(old_dir);
-// TODO WGJA WIP: 		iput(new_dir);
-// TODO WGJA WIP: 		return -EACCES;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!new_len || (new_base[0] == '.' &&
-// TODO WGJA WIP: 	    (new_len == 1 || (new_base[1] == '.' &&
-// TODO WGJA WIP: 	     new_len == 2)))) {
-// TODO WGJA WIP: 		iput(old_dir);
-// TODO WGJA WIP: 		iput(new_dir);
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (new_dir->i_dev != old_dir->i_dev) {
-// TODO WGJA WIP: 		iput(old_dir);
-// TODO WGJA WIP: 		iput(new_dir);
-// TODO WGJA WIP: 		return -EXDEV;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (IS_RDONLY(new_dir) || IS_RDONLY(old_dir)) {
-// TODO WGJA WIP: 		iput(old_dir);
-// TODO WGJA WIP: 		iput(new_dir);
-// TODO WGJA WIP: 		return -EROFS;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!old_dir->i_op || !old_dir->i_op->rename) {
-// TODO WGJA WIP: 		iput(old_dir);
-// TODO WGJA WIP: 		iput(new_dir);
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return old_dir->i_op->rename(old_dir, old_base, old_len, 
-// TODO WGJA WIP: 		new_dir, new_base, new_len);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_rename(const char * oldname, const char * newname)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int error;
-// TODO WGJA WIP: 	char * from, * to;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	error = getname(oldname,&from);
-// TODO WGJA WIP: 	if (!error) {
-// TODO WGJA WIP: 		error = getname(newname,&to);
-// TODO WGJA WIP: 		if (!error) {
-// TODO WGJA WIP: 			error = do_rename(from,to);
-// TODO WGJA WIP: 			putname(to);
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		putname(from);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return error;
-// TODO WGJA WIP: }
+static int do_unlink(const char * name)
+{
+	const char * basename;
+	int namelen, error;
+	struct inode * dir;
+
+	error = dir_namei(name,&namelen,&basename,NULL,&dir);
+	if (error)
+		return error;
+	if (!namelen) {
+		iput(dir);
+		return -EPERM;
+	}
+	if (IS_RDONLY(dir)) {
+		iput(dir);
+		return -EROFS;
+	}
+	if (!permission(dir,MAY_WRITE | MAY_EXEC)) {
+		iput(dir);
+		return -EACCES;
+	}
+	if (!dir->i_op || !dir->i_op->unlink) {
+		iput(dir);
+		return -EPERM;
+	}
+	return dir->i_op->unlink(dir,basename,namelen);
+}
+
+extern "C" int sys_unlink(const char * pathname)
+{
+	int error;
+	char * tmp;
+
+	error = getname(pathname,&tmp);
+	if (!error) {
+		error = do_unlink(tmp);
+		putname(tmp);
+	}
+	return error;
+}
+
+static int do_symlink(const char * oldname, const char * newname)
+{
+	struct inode * dir;
+	const char * basename;
+	int namelen, error;
+
+	error = dir_namei(newname,&namelen,&basename,NULL,&dir);
+	if (error)
+		return error;
+	if (!namelen) {
+		iput(dir);
+		return -ENOENT;
+	}
+	if (IS_RDONLY(dir)) {
+		iput(dir);
+		return -EROFS;
+	}
+	if (!permission(dir,MAY_WRITE | MAY_EXEC)) {
+		iput(dir);
+		return -EACCES;
+	}
+	if (!dir->i_op || !dir->i_op->symlink) {
+		iput(dir);
+		return -EPERM;
+	}
+	return dir->i_op->symlink(dir,basename,namelen,oldname);
+}
+
+extern "C" int sys_symlink(const char * oldname, const char * newname)
+{
+	int error;
+	char * from, * to;
+
+	error = getname(oldname,&from);
+	if (!error) {
+		error = getname(newname,&to);
+		if (!error) {
+			error = do_symlink(from,to);
+			putname(to);
+		}
+		putname(from);
+	}
+	return error;
+}
+
+static int do_link(struct inode * oldinode, const char * newname)
+{
+	struct inode * dir;
+	const char * basename;
+	int namelen, error;
+
+	error = dir_namei(newname,&namelen,&basename,NULL,&dir);
+	if (error) {
+		iput(oldinode);
+		return error;
+	}
+	if (!namelen) {
+		iput(oldinode);
+		iput(dir);
+		return -EPERM;
+	}
+	if (IS_RDONLY(dir)) {
+		iput(oldinode);
+		iput(dir);
+		return -EROFS;
+	}
+	if (dir->i_dev != oldinode->i_dev) {
+		iput(dir);
+		iput(oldinode);
+		return -EXDEV;
+	}
+	if (!permission(dir,MAY_WRITE | MAY_EXEC)) {
+		iput(dir);
+		iput(oldinode);
+		return -EACCES;
+	}
+	if (!dir->i_op || !dir->i_op->link) {
+		iput(dir);
+		iput(oldinode);
+		return -EPERM;
+	}
+	return dir->i_op->link(oldinode, dir, basename, namelen);
+}
+
+extern "C" int sys_link(const char * oldname, const char * newname)
+{
+	int error;
+	char * to;
+	struct inode * oldinode;
+
+	error = namei(oldname, &oldinode);
+	if (error)
+		return error;
+	error = getname(newname,&to);
+	if (!error) {
+		error = do_link(oldinode,to);
+		putname(to);
+	}
+	return error;
+}
+
+static int do_rename(const char * oldname, const char * newname)
+{
+	struct inode * old_dir, * new_dir;
+	const char * old_base, * new_base;
+	int old_len, new_len, error;
+
+	error = dir_namei(oldname,&old_len,&old_base,NULL,&old_dir);
+	if (error)
+		return error;
+	if (!permission(old_dir,MAY_WRITE | MAY_EXEC)) {
+		iput(old_dir);
+		return -EACCES;
+	}
+	if (!old_len || (old_base[0] == '.' &&
+	    (old_len == 1 || (old_base[1] == '.' &&
+	     old_len == 2)))) {
+		iput(old_dir);
+		return -EPERM;
+	}
+	error = dir_namei(newname,&new_len,&new_base,NULL,&new_dir);
+	if (error) {
+		iput(old_dir);
+		return error;
+	}
+	if (!permission(new_dir,MAY_WRITE | MAY_EXEC)) {
+		iput(old_dir);
+		iput(new_dir);
+		return -EACCES;
+	}
+	if (!new_len || (new_base[0] == '.' &&
+	    (new_len == 1 || (new_base[1] == '.' &&
+	     new_len == 2)))) {
+		iput(old_dir);
+		iput(new_dir);
+		return -EPERM;
+	}
+	if (new_dir->i_dev != old_dir->i_dev) {
+		iput(old_dir);
+		iput(new_dir);
+		return -EXDEV;
+	}
+	if (IS_RDONLY(new_dir) || IS_RDONLY(old_dir)) {
+		iput(old_dir);
+		iput(new_dir);
+		return -EROFS;
+	}
+	if (!old_dir->i_op || !old_dir->i_op->rename) {
+		iput(old_dir);
+		iput(new_dir);
+		return -EPERM;
+	}
+	return old_dir->i_op->rename(old_dir, old_base, old_len, 
+		new_dir, new_base, new_len);
+}
+
+extern "C" int sys_rename(const char * oldname, const char * newname)
+{
+	int error;
+	char * from, * to;
+
+	error = getname(oldname,&from);
+	if (!error) {
+		error = getname(newname,&to);
+		if (!error) {
+			error = do_rename(from,to);
+			putname(to);
+		}
+		putname(from);
+	}
+	return error;
+}

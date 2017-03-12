@@ -16,13 +16,13 @@ extern int sys_open(const char *, int, int);
 
 extern int sys_close(unsigned int);
 extern int sys_waitpid();
-// TODO WGJA WIP: extern int sys_creat();
-// TODO WGJA WIP: extern int sys_link();
-// TODO WGJA WIP: extern int sys_unlink();
+extern int sys_creat();
+extern int sys_link();
+extern int sys_unlink();
 // TODO WGJA WIP: extern int sys_execve();
 // TODO WGJA WIP: extern int sys_chdir();
 // TODO WGJA WIP: extern int sys_time();
-// TODO WGJA WIP: extern int sys_mknod();
+extern int sys_mknod();
 // TODO WGJA WIP: extern int sys_chmod();
 // TODO WGJA WIP: extern int sys_chown();
 // TODO WGJA WIP: extern int sys_break();
@@ -46,7 +46,7 @@ extern int sys_lseek();
 // TODO WGJA WIP: extern int sys_ftime();
 extern int sys_sync();
 // TODO WGJA WIP: extern int sys_kill();
-// TODO WGJA WIP: extern int sys_rename();
+extern int sys_rename();
 extern int sys_mkdir();
 extern int sys_rmdir();
 extern int sys_dup();
@@ -91,7 +91,7 @@ extern int sys_getrusage();
 // TODO WGJA WIP: extern int sys_getgroups();
 // TODO WGJA WIP: extern int sys_setgroups();
 // TODO WGJA WIP: extern int sys_select();
-// TODO WGJA WIP: extern int sys_symlink();
+extern int sys_symlink();
 // TODO WGJA WIP: extern int sys_lstat();
 // TODO WGJA WIP: extern int sys_readlink();
 // TODO WGJA WIP: extern int sys_uselib();
@@ -159,13 +159,13 @@ fn_ptr sys_call_table[] = {
   (fn_ptr) sys_open, 		// #define __NR_open		  5	Done
   (fn_ptr) sys_close, 		// #define __NR_close		  6	Done
   sys_waitpid, 			// #define __NR_waitpid		  7	Done
-  sys_todo, 			// #define __NR_creat		  8
-  sys_todo, 			// #define __NR_link		  9
-  sys_todo, 			// #define __NR_unlink		 10
+  sys_creat, 			// #define __NR_creat		  8	Done
+  sys_link, 			// #define __NR_link		  9	Done
+  sys_unlink, 			// #define __NR_unlink		 10	Done
   sys_todo, 			// #define __NR_execve		 11
   sys_todo, 			// #define __NR_chdir		 12
   sys_todo, 			// #define __NR_time		 13
-  sys_todo, 			// #define __NR_mknod		 14
+  sys_mknod, 			// #define __NR_mknod		 14	Done
   sys_todo, 			// #define __NR_chmod		 15
   sys_todo, 			// #define __NR_chown		 16
   sys_todo, 			// #define __NR_break		 17
@@ -189,7 +189,7 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_ftime		 35
   sys_sync, 			// #define __NR_sync		 36	Done
   sys_todo, 			// #define __NR_kill		 37
-  sys_todo, 			// #define __NR_rename		 38
+  sys_rename, 			// #define __NR_rename		 38	Done
   sys_mkdir, 			// #define __NR_mkdir		 39	Done
   sys_rmdir, 			// #define __NR_rmdir		 40	Done
   sys_dup, 			// #define __NR_dup		 41	Done
@@ -234,7 +234,7 @@ fn_ptr sys_call_table[] = {
   sys_todo, 			// #define __NR_getgroups	 80
   sys_todo, 			// #define __NR_setgroups	 81
   sys_todo, 			// #define __NR_select		 82
-  sys_todo, 			// #define __NR_symlink		 83
+  sys_symlink, 			// #define __NR_symlink		 83	Done
   sys_todo, 			// #define __NR_oldlstat	 84
   sys_todo, 			// #define __NR_readlink	 85
   sys_todo, 			// #define __NR_uselib		 86

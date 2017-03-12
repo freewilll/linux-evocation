@@ -422,10 +422,10 @@ extern "C" int sys_open(const char * filename,int flags,int mode)
 	return error;
 }
 
-// TODO WGJA WIP: extern "C" int sys_creat(const char * pathname, int mode)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	return sys_open(pathname, O_CREAT | O_WRONLY | O_TRUNC, mode);
-// TODO WGJA WIP: }
+extern "C" int sys_creat(const char * pathname, int mode)
+{
+	return sys_open(pathname, O_CREAT | O_WRONLY | O_TRUNC, mode);
+}
 
 int close_fp(struct file *filp)
 {
