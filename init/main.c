@@ -28,7 +28,7 @@
 // TODO WGJA WIP: extern unsigned long * prof_buffer;
 // TODO WGJA WIP: extern unsigned long prof_len;
 extern char edata, end;
-// TODO WGJA WIP: extern char *linux_banner;
+extern char *linux_banner;
 extern "C" void lcall7(void);
 struct desc_struct default_ldt;
 
@@ -523,12 +523,13 @@ void init(void)
 
 	// test_printf();
 	// test_memmove();
-	
+
+	system_utsname.machine[1] = '0' + x86;
+	printf(linux_banner);
+
 	printf("TODO: rest of init()\n");
 	for(;;) idle();
 
-	system_utsname.machine[1] = '0' + x86;
-// TODO WGJA WIP: 	// printf(linux_banner);			// TODO linux_banner
 // TODO WGJA WIP: 
 // TODO WGJA WIP: 	execve("/etc/init",argv_init,envp_init);
 // TODO WGJA WIP: 	execve("/bin/init",argv_init,envp_init);
