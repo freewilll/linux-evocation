@@ -5,6 +5,8 @@
 #include <linux/sched.h>
 #include <asm/io.h>
 #include <linux/fcntl.h>
+#include <linux/mman.h>
+#include <asm/segment.h>
 
 extern "C" int vsprintf(char *,const char *,va_list);
 
@@ -14,10 +16,13 @@ static inline _syscall0(int,idle)
 static inline _syscall3(int,open,const char *,file,int,flag,int,mode)
 static inline _syscall3(int,read,unsigned int,fd,char *,buf,unsigned int,count)
 static inline _syscall3(int,write,int,fd,const char *,buf,off_t,count)
+static inline _syscall1(int,close,unsigned int,fd)
 static inline _syscall3(int,readdir,unsigned int,fd,struct dirent *,dirent,unsigned int,count)
 static inline _syscall2(int,mkdir,const char *,pathname,int,mode)
 static inline _syscall1(int,rmdir,const char*,pathname)
 static inline _syscall1(int,dup,int,fd)
+static inline _syscall1(int,mmap,unsigned long*,buffer)
+
 
 extern inline void * memmove(void * dest,const void * src, size_t n);
 
@@ -335,4 +340,65 @@ void test_general_protection_fault()
 		sti();  // Goodbye cruel world
 		printf("No way should we get here");
 	}
+}
+
+void test_file_read_write()
+{
+	int fd, res, c;
+	fd = open("/foo", O_RDWR | O_CREAT, 0);
+	if (fd < 0) panic("Bad fd");
+
+	char* buf = "This is the time for all good men to ...\0";
+	write(fd, buf, strlen(buf));
+	res = close(fd);
+	if (res < 0) panic("Bad close");
+	printf("File created ok\n");
+
+	fd = open("/foo", O_RDONLY, 0);
+	if (fd < 0) panic("Bad fd");
+
+	char buf2[20];
+	c = read(fd, buf2, 100);
+	printf("Read %d\n", c);
+	if (c < 0) panic("Bad read");
+	printf("buf: %s\n", buf);
+	printf("buf2: %s\n", buf2);
+	res = close(fd);
+	if (res < 0) panic("Bad close");
+}
+
+void test_mmap()
+{
+	int fd, res, c;
+	fd = open("/foo", O_RDWR | O_CREAT, 0);
+	if (fd < 0) panic("Bad fd");
+
+	char* buf = "This is the time for all good men to ...\0";
+	write(fd, buf, strlen(buf));
+	res = close(fd);
+	if (res < 0) panic("Bad close");
+	printf("File created ok\n");
+
+	fd = open("/foo", O_RDONLY, 0);
+	if (fd < 0) panic("Bad fd");
+
+	unsigned long parms[6] = {
+		NULL,		// void *addr
+		0x10,		// size_t length,
+		PROT_READ,	// int prot,
+		MAP_SHARED,	// int flags,
+		fd,		// int fd,
+		0x0		// off_t offset
+	};
+
+	char* mapped;
+	mapped = (char*) mmap(parms);
+	printf("mmap result: %#x\n", mapped);
+	if ((int) mapped < 0) panic("Bad mmap");
+
+	// Let's poke into user space and see what's there then ...
+	char buf2[100];
+	memcpy_fromfs(buf2, mapped, 0x10);
+	buf2[0x10] = 0;
+	printf("mmapped read=%s\n", buf2);
 }

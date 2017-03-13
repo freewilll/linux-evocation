@@ -22,15 +22,6 @@ void sound_mem_init(void)
 {
 }
 
-// TODO WGJA generic_mmap
-int generic_mmap(struct inode * inode, struct file * file,
-	unsigned long addr, size_t len, int prot, unsigned long off)
-{
-	printk("TODO generic_mmap\n");
-	for (;;);
-
-}
-
 // TODO WGJA rs_open
 int rs_open(struct tty_struct *tty, struct file * filp)
 {

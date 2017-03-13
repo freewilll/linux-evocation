@@ -241,8 +241,8 @@ fn_ptr sys_call_table[] = {
 	sys_todo, 			// #define __NR_swapon		 87	todo
 	sys_reboot, 			// #define __NR_reboot		 88
 	sys_readdir, 			// #define __NR_readdir		 89
-	sys_todo, 			// #define __NR_mmap		 90	todo
-	sys_todo, 			// #define __NR_munmap		 91	todo
+	sys_mmap, 			// #define __NR_mmap		 90
+	sys_munmap, 			// #define __NR_munmap		 91
 	sys_truncate, 			// #define __NR_truncate	 92
 	sys_ftruncate, 			// #define __NR_ftruncate	 93
 	sys_fchmod, 			// #define __NR_fchmod		 94

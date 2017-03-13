@@ -262,62 +262,62 @@ int copy_page_tables(struct task_struct * tsk)
 	return 0;
 }
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * a more complete version of free_page_tables which performs with page
-// TODO WGJA WIP:  * granularity.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: int unmap_page_range(unsigned long from, unsigned long size)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long page, page_dir;
-// TODO WGJA WIP: 	unsigned long *page_table, *dir;
-// TODO WGJA WIP: 	unsigned long poff, pcnt, pc;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (from & ~PAGE_MASK) {
-// TODO WGJA WIP: 		printk("unmap_page_range called with wrong alignment\n");
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	size = (size + ~PAGE_MASK) >> PAGE_SHIFT;
-// TODO WGJA WIP: 	dir = PAGE_DIR_OFFSET(current->tss.cr3,from);
-// TODO WGJA WIP: 	poff = (from >> PAGE_SHIFT) & PTRS_PER_PAGE-1;
-// TODO WGJA WIP: 	if ((pcnt = PTRS_PER_PAGE - poff) > size)
-// TODO WGJA WIP: 		pcnt = size;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	for ( ; size > 0; ++dir, size -= pcnt,
-// TODO WGJA WIP: 	     pcnt = (size > PTRS_PER_PAGE ? PTRS_PER_PAGE : size)) {
-// TODO WGJA WIP: 		if (!(page_dir = *dir))	{
-// TODO WGJA WIP: 			poff = 0;
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (!(page_dir & PAGE_PRESENT)) {
-// TODO WGJA WIP: 			printk("unmap_page_range: bad page directory.");
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		page_table = (unsigned long *)(PAGE_MASK & page_dir);
-// TODO WGJA WIP: 		if (poff) {
-// TODO WGJA WIP: 			page_table += poff;
-// TODO WGJA WIP: 			poff = 0;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		for (pc = pcnt; pc--; page_table++) {
-// TODO WGJA WIP: 			if ((page = *page_table) != 0) {
-// TODO WGJA WIP: 				*page_table = 0;
-// TODO WGJA WIP: 				if (1 & page) {
-// TODO WGJA WIP: 					if (!(mem_map[MAP_NR(page)]
-// TODO WGJA WIP: 					      & MAP_PAGE_RESERVED))
-// TODO WGJA WIP: 						--current->rss;
-// TODO WGJA WIP: 					free_page(PAGE_MASK & page);
-// TODO WGJA WIP: 				} else
-// TODO WGJA WIP: 					swap_free(page);
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (pcnt == PTRS_PER_PAGE) {
-// TODO WGJA WIP: 			*dir = 0;
-// TODO WGJA WIP: 			free_page(PAGE_MASK & page_dir);
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	invalidate();
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+/*
+ * a more complete version of free_page_tables which performs with page
+ * granularity.
+ */
+int unmap_page_range(unsigned long from, unsigned long size)
+{
+	unsigned long page, page_dir;
+	unsigned long *page_table, *dir;
+	unsigned long poff, pcnt, pc;
+
+	if (from & ~PAGE_MASK) {
+		printk("unmap_page_range called with wrong alignment\n");
+		return -EINVAL;
+	}
+	size = (size + ~PAGE_MASK) >> PAGE_SHIFT;
+	dir = PAGE_DIR_OFFSET(current->tss.cr3,from);
+	poff = (from >> PAGE_SHIFT) & PTRS_PER_PAGE-1;
+	if ((pcnt = PTRS_PER_PAGE - poff) > size)
+		pcnt = size;
+
+	for ( ; size > 0; ++dir, size -= pcnt,
+	     pcnt = (size > PTRS_PER_PAGE ? PTRS_PER_PAGE : size)) {
+		if (!(page_dir = *dir))	{
+			poff = 0;
+			continue;
+		}
+		if (!(page_dir & PAGE_PRESENT)) {
+			printk("unmap_page_range: bad page directory.");
+			continue;
+		}
+		page_table = (unsigned long *)(PAGE_MASK & page_dir);
+		if (poff) {
+			page_table += poff;
+			poff = 0;
+		}
+		for (pc = pcnt; pc--; page_table++) {
+			if ((page = *page_table) != 0) {
+				*page_table = 0;
+				if (1 & page) {
+					if (!(mem_map[MAP_NR(page)]
+					      & MAP_PAGE_RESERVED))
+						--current->rss;
+					free_page(PAGE_MASK & page);
+				} else
+					swap_free(page);
+			}
+		}
+		if (pcnt == PTRS_PER_PAGE) {
+			*dir = 0;
+			free_page(PAGE_MASK & page_dir);
+		}
+	}
+	invalidate();
+	return 0;
+}
+
 // TODO WGJA WIP: int zeromap_page_range(unsigned long from, unsigned long size, int mask)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: 	unsigned long *page_table, *dir;
@@ -681,114 +681,114 @@ static inline void get_empty_page(struct task_struct * tsk, unsigned long addres
 		free_page(tmp);
 }
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * try_to_share() checks the page at address "address" in the task "p",
-// TODO WGJA WIP:  * to see if it exists, and if it is clean. If so, share it with the current
-// TODO WGJA WIP:  * task.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * NOTE! This assumes we have checked that p != current, and that they
-// TODO WGJA WIP:  * share the same executable or library.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * We may want to fix this to allow page sharing for PIC pages at different
-// TODO WGJA WIP:  * addresses so that ELF will really perform properly. As long as the vast
-// TODO WGJA WIP:  * majority of sharable libraries load at fixed addresses this is not a
-// TODO WGJA WIP:  * big concern. Any sharing of pages between the buffer cache and the
-// TODO WGJA WIP:  * code space reduces the need for this as well.  - ERY
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: static int try_to_share(unsigned long address, struct task_struct * tsk,
-// TODO WGJA WIP: 	struct task_struct * p, unsigned long error_code, unsigned long newpage)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long from;
-// TODO WGJA WIP: 	unsigned long to;
-// TODO WGJA WIP: 	unsigned long from_page;
-// TODO WGJA WIP: 	unsigned long to_page;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	from_page = (unsigned long)PAGE_DIR_OFFSET(p->tss.cr3,address);
-// TODO WGJA WIP: 	to_page = (unsigned long)PAGE_DIR_OFFSET(tsk->tss.cr3,address);
-// TODO WGJA WIP: /* is there a page-directory at from? */
-// TODO WGJA WIP: 	from = *(unsigned long *) from_page;
-// TODO WGJA WIP: 	if (!(from & PAGE_PRESENT))
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	from &= PAGE_MASK;
-// TODO WGJA WIP: 	from_page = from + PAGE_PTR(address);
-// TODO WGJA WIP: 	from = *(unsigned long *) from_page;
-// TODO WGJA WIP: /* is the page clean and present? */
-// TODO WGJA WIP: 	if ((from & (PAGE_PRESENT | PAGE_DIRTY)) != PAGE_PRESENT)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	if (from >= high_memory)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	if (mem_map[MAP_NR(from)] & MAP_PAGE_RESERVED)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: /* is the destination ok? */
-// TODO WGJA WIP: 	to = *(unsigned long *) to_page;
-// TODO WGJA WIP: 	if (!(to & PAGE_PRESENT))
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	to &= PAGE_MASK;
-// TODO WGJA WIP: 	to_page = to + PAGE_PTR(address);
-// TODO WGJA WIP: 	if (*(unsigned long *) to_page)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: /* share them if read - do COW immediately otherwise */
-// TODO WGJA WIP: 	if (error_code & PAGE_RW) {
-// TODO WGJA WIP: 		if(!newpage)	/* did the page exist?  SRB. */
-// TODO WGJA WIP: 			return 0;
-// TODO WGJA WIP: 		copy_page((from & PAGE_MASK),newpage);
-// TODO WGJA WIP: 		to = newpage | PAGE_PRIVATE;
-// TODO WGJA WIP: 	} else {
-// TODO WGJA WIP: 		mem_map[MAP_NR(from)]++;
-// TODO WGJA WIP: 		from &= ~PAGE_RW;
-// TODO WGJA WIP: 		to = from;
-// TODO WGJA WIP: 		if(newpage)	/* only if it existed. SRB. */
-// TODO WGJA WIP: 			free_page(newpage);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	*(unsigned long *) from_page = from;
-// TODO WGJA WIP: 	*(unsigned long *) to_page = to;
-// TODO WGJA WIP: 	invalidate();
-// TODO WGJA WIP: 	return 1;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * share_page() tries to find a process that could share a page with
-// TODO WGJA WIP:  * the current one. Address is the address of the wanted page relative
-// TODO WGJA WIP:  * to the current data space.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * We first check if it is at all feasible by checking executable->i_count.
-// TODO WGJA WIP:  * It should be >1 if there are other tasks sharing this inode.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: int share_page(struct vm_area_struct * area, struct task_struct * tsk,
-// TODO WGJA WIP: 	struct inode * inode,
-// TODO WGJA WIP: 	unsigned long address, unsigned long error_code, unsigned long newpage)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct task_struct ** p;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!inode || inode->i_count < 2)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	for (p = &LAST_TASK ; p > &FIRST_TASK ; --p) {
-// TODO WGJA WIP: 		if (!*p)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (tsk == *p)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (inode != (*p)->executable) {
-// TODO WGJA WIP: 			  if(!area) continue;
-// TODO WGJA WIP: 			/* Now see if there is something in the VMM that
-// TODO WGJA WIP: 			   we can share pages with */
-// TODO WGJA WIP: 			if(area){
-// TODO WGJA WIP: 			  struct vm_area_struct * mpnt;
-// TODO WGJA WIP: 			  for(mpnt = (*p)->mmap; mpnt; mpnt = mpnt->vm_next){
-// TODO WGJA WIP: 			    if(mpnt->vm_ops && mpnt->vm_ops == area->vm_ops &&
-// TODO WGJA WIP: 			       mpnt->vm_inode->i_ino == area->vm_inode->i_ino&&
-// TODO WGJA WIP: 			       mpnt->vm_inode->i_dev == area->vm_inode->i_dev){
-// TODO WGJA WIP: 			      if (mpnt->vm_ops->share(mpnt, area, address))
-// TODO WGJA WIP: 				break;
-// TODO WGJA WIP: 			    };
-// TODO WGJA WIP: 			  };
-// TODO WGJA WIP: 			  if (!mpnt) continue;  /* Nope.  Nuthin here */
-// TODO WGJA WIP: 			};
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (try_to_share(address,tsk,*p,error_code,newpage))
-// TODO WGJA WIP: 			return 1;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
+/*
+ * try_to_share() checks the page at address "address" in the task "p",
+ * to see if it exists, and if it is clean. If so, share it with the current
+ * task.
+ *
+ * NOTE! This assumes we have checked that p != current, and that they
+ * share the same executable or library.
+ *
+ * We may want to fix this to allow page sharing for PIC pages at different
+ * addresses so that ELF will really perform properly. As long as the vast
+ * majority of sharable libraries load at fixed addresses this is not a
+ * big concern. Any sharing of pages between the buffer cache and the
+ * code space reduces the need for this as well.  - ERY
+ */
+static int try_to_share(unsigned long address, struct task_struct * tsk,
+	struct task_struct * p, unsigned long error_code, unsigned long newpage)
+{
+	unsigned long from;
+	unsigned long to;
+	unsigned long from_page;
+	unsigned long to_page;
+
+	from_page = (unsigned long)PAGE_DIR_OFFSET(p->tss.cr3,address);
+	to_page = (unsigned long)PAGE_DIR_OFFSET(tsk->tss.cr3,address);
+/* is there a page-directory at from? */
+	from = *(unsigned long *) from_page;
+	if (!(from & PAGE_PRESENT))
+		return 0;
+	from &= PAGE_MASK;
+	from_page = from + PAGE_PTR(address);
+	from = *(unsigned long *) from_page;
+/* is the page clean and present? */
+	if ((from & (PAGE_PRESENT | PAGE_DIRTY)) != PAGE_PRESENT)
+		return 0;
+	if (from >= high_memory)
+		return 0;
+	if (mem_map[MAP_NR(from)] & MAP_PAGE_RESERVED)
+		return 0;
+/* is the destination ok? */
+	to = *(unsigned long *) to_page;
+	if (!(to & PAGE_PRESENT))
+		return 0;
+	to &= PAGE_MASK;
+	to_page = to + PAGE_PTR(address);
+	if (*(unsigned long *) to_page)
+		return 0;
+/* share them if read - do COW immediately otherwise */
+	if (error_code & PAGE_RW) {
+		if(!newpage)	/* did the page exist?  SRB. */
+			return 0;
+		copy_page((from & PAGE_MASK),newpage);
+		to = newpage | PAGE_PRIVATE;
+	} else {
+		mem_map[MAP_NR(from)]++;
+		from &= ~PAGE_RW;
+		to = from;
+		if(newpage)	/* only if it existed. SRB. */
+			free_page(newpage);
+	}
+	*(unsigned long *) from_page = from;
+	*(unsigned long *) to_page = to;
+	invalidate();
+	return 1;
+}
+
+/*
+ * share_page() tries to find a process that could share a page with
+ * the current one. Address is the address of the wanted page relative
+ * to the current data space.
+ *
+ * We first check if it is at all feasible by checking executable->i_count.
+ * It should be >1 if there are other tasks sharing this inode.
+ */
+int share_page(struct vm_area_struct * area, struct task_struct * tsk,
+	struct inode * inode,
+	unsigned long address, unsigned long error_code, unsigned long newpage)
+{
+	struct task_struct ** p;
+
+	if (!inode || inode->i_count < 2)
+		return 0;
+	for (p = &LAST_TASK ; p > &FIRST_TASK ; --p) {
+		if (!*p)
+			continue;
+		if (tsk == *p)
+			continue;
+		if (inode != (*p)->executable) {
+			  if(!area) continue;
+			/* Now see if there is something in the VMM that
+			   we can share pages with */
+			if(area){
+			  struct vm_area_struct * mpnt;
+			  for(mpnt = (*p)->mmap; mpnt; mpnt = mpnt->vm_next){
+			    if(mpnt->vm_ops && mpnt->vm_ops == area->vm_ops &&
+			       mpnt->vm_inode->i_ino == area->vm_inode->i_ino&&
+			       mpnt->vm_inode->i_dev == area->vm_inode->i_dev){
+			      if (mpnt->vm_ops->share(mpnt, area, address))
+				break;
+			    };
+			  };
+			  if (!mpnt) continue;  /* Nope.  Nuthin here */
+			};
+		}
+		if (try_to_share(address,tsk,*p,error_code,newpage))
+			return 1;
+	}
+	return 0;
+}
 
 /*
  * fill in an empty page-table if none exists.
@@ -1117,102 +1117,102 @@ void mem_init(unsigned long start_low_mem,
 // TODO WGJA WIP: 	return;
 // TODO WGJA WIP: }
 // TODO WGJA WIP: 
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /* This handles a generic mmap of a disk file */
-// TODO WGJA WIP: void file_mmap_nopage(int error_code, struct vm_area_struct * area, unsigned long address)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode * inode = area->vm_inode;
-// TODO WGJA WIP: 	unsigned int block;
-// TODO WGJA WIP: 	unsigned int clear;
-// TODO WGJA WIP: 	unsigned long page;
-// TODO WGJA WIP: 	unsigned long tmp;
-// TODO WGJA WIP: 	int nr[8];
-// TODO WGJA WIP: 	int i, j;
-// TODO WGJA WIP: 	int prot = area->vm_page_prot; /* prot for buffer cache.. */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	address &= PAGE_MASK;
-// TODO WGJA WIP: 	block = address - area->vm_start + area->vm_offset;
-// TODO WGJA WIP: 	block >>= inode->i_sb->s_blocksize_bits;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	page = get_free_page(GFP_KERNEL);
-// TODO WGJA WIP: 	if (share_page(area, area->vm_task, inode, address, error_code, page)) {
-// TODO WGJA WIP: 		++area->vm_task->min_flt;
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	++area->vm_task->maj_flt;
-// TODO WGJA WIP: 	if (!page) {
-// TODO WGJA WIP: 		oom(current);
-// TODO WGJA WIP: 		put_page(area->vm_task, BAD_PAGE, address, PAGE_PRIVATE);
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	for (i=0, j=0; i< PAGE_SIZE ; j++, block++, i += inode->i_sb->s_blocksize)
-// TODO WGJA WIP: 		nr[j] = bmap(inode,block);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * If we don't mmap a whole page, we have to clear the end of the page,
-// TODO WGJA WIP: 	 * which also means that we can't share the page with the buffer cache.
-// TODO WGJA WIP: 	 * This is easy to handle by giving the 'bread_page()' a protection mask
-// TODO WGJA WIP: 	 * that contains PAGE_RW, as the cache code won't try to share then..
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	clear = 0;
-// TODO WGJA WIP: 	if (address + PAGE_SIZE > area->vm_end) {
-// TODO WGJA WIP: 		clear = address + PAGE_SIZE - area->vm_end;
-// TODO WGJA WIP: 		prot |= PAGE_RW;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	page = bread_page(page, inode->i_dev, nr, inode->i_sb->s_blocksize, prot);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!(error_code & PAGE_RW)) {
-// TODO WGJA WIP: 		if (share_page(area, area->vm_task, inode, address, error_code, page))
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	tmp = page + PAGE_SIZE;
-// TODO WGJA WIP: 	while (clear--) {
-// TODO WGJA WIP: 		*(char *)--tmp = 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (put_page(area->vm_task,page,address,area->vm_page_prot))
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	free_page(page);
-// TODO WGJA WIP: 	oom(current);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void file_mmap_free(struct vm_area_struct * area)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (area->vm_inode)
-// TODO WGJA WIP: 		iput(area->vm_inode);
-// TODO WGJA WIP: #if 0
-// TODO WGJA WIP: 	if (area->vm_inode)
-// TODO WGJA WIP: 		printk("Free inode %x:%d (%d)\n",area->vm_inode->i_dev, 
-// TODO WGJA WIP: 				 area->vm_inode->i_ino, area->vm_inode->i_count);
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Compare the contents of the mmap entries, and decide if we are allowed to
-// TODO WGJA WIP:  * share the pages
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: int file_mmap_share(struct vm_area_struct * area1, 
-// TODO WGJA WIP: 		    struct vm_area_struct * area2, 
-// TODO WGJA WIP: 		    unsigned long address)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (area1->vm_inode != area2->vm_inode)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	if (area1->vm_start != area2->vm_start)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	if (area1->vm_end != area2->vm_end)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	if (area1->vm_offset != area2->vm_offset)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	if (area1->vm_page_prot != area2->vm_page_prot)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	return 1;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: struct vm_operations_struct file_mmap = {
-// TODO WGJA WIP: 	NULL,			/* open */
-// TODO WGJA WIP: 	file_mmap_free,		/* close */
-// TODO WGJA WIP: 	file_mmap_nopage,	/* nopage */
-// TODO WGJA WIP: 	NULL,			/* wppage */
-// TODO WGJA WIP: 	file_mmap_share,	/* share */
-// TODO WGJA WIP: };
+
+/* This handles a generic mmap of a disk file */
+void file_mmap_nopage(int error_code, struct vm_area_struct * area, unsigned long address)
+{
+	struct inode * inode = area->vm_inode;
+	unsigned int block;
+	unsigned int clear;
+	unsigned long page;
+	unsigned long tmp;
+	int nr[8];
+	int i, j;
+	int prot = area->vm_page_prot; /* prot for buffer cache.. */
+
+	address &= PAGE_MASK;
+	block = address - area->vm_start + area->vm_offset;
+	block >>= inode->i_sb->s_blocksize_bits;
+
+	page = get_free_page(GFP_KERNEL);
+	if (share_page(area, area->vm_task, inode, address, error_code, page)) {
+		++area->vm_task->min_flt;
+		return;
+	}
+
+	++area->vm_task->maj_flt;
+	if (!page) {
+		oom(current);
+		put_page(area->vm_task, BAD_PAGE, address, PAGE_PRIVATE);
+		return;
+	}
+	for (i=0, j=0; i< PAGE_SIZE ; j++, block++, i += inode->i_sb->s_blocksize)
+		nr[j] = bmap(inode,block);
+
+	/*
+	 * If we don't mmap a whole page, we have to clear the end of the page,
+	 * which also means that we can't share the page with the buffer cache.
+	 * This is easy to handle by giving the 'bread_page()' a protection mask
+	 * that contains PAGE_RW, as the cache code won't try to share then..
+	 */
+	clear = 0;
+	if (address + PAGE_SIZE > area->vm_end) {
+		clear = address + PAGE_SIZE - area->vm_end;
+		prot |= PAGE_RW;
+	}
+	page = bread_page(page, inode->i_dev, nr, inode->i_sb->s_blocksize, prot);
+
+	if (!(error_code & PAGE_RW)) {
+		if (share_page(area, area->vm_task, inode, address, error_code, page))
+			return;
+	}
+
+	tmp = page + PAGE_SIZE;
+	while (clear--) {
+		*(char *)--tmp = 0;
+	}
+	if (put_page(area->vm_task,page,address,area->vm_page_prot))
+		return;
+	free_page(page);
+	oom(current);
+}
+
+void file_mmap_free(struct vm_area_struct * area)
+{
+	if (area->vm_inode)
+		iput(area->vm_inode);
+#if 0
+	if (area->vm_inode)
+		printk("Free inode %x:%d (%d)\n",area->vm_inode->i_dev, 
+				 area->vm_inode->i_ino, area->vm_inode->i_count);
+#endif
+}
+
+/*
+ * Compare the contents of the mmap entries, and decide if we are allowed to
+ * share the pages
+ */
+int file_mmap_share(struct vm_area_struct * area1, 
+		    struct vm_area_struct * area2, 
+		    unsigned long address)
+{
+	if (area1->vm_inode != area2->vm_inode)
+		return 0;
+	if (area1->vm_start != area2->vm_start)
+		return 0;
+	if (area1->vm_end != area2->vm_end)
+		return 0;
+	if (area1->vm_offset != area2->vm_offset)
+		return 0;
+	if (area1->vm_page_prot != area2->vm_page_prot)
+		return 0;
+	return 1;
+}
+
+struct vm_operations_struct file_mmap = {
+	NULL,			/* open */
+	file_mmap_free,		/* close */
+	file_mmap_nopage,	/* nopage */
+	NULL,			/* wppage */
+	file_mmap_share,	/* share */
+};

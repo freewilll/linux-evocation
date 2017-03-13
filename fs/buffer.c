@@ -675,187 +675,193 @@ no_grow:
 	return NULL;
 }
 
-// TODO WGJA WIP: static void read_buffers(struct buffer_head * bh[], int nrbuf)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 	int bhnum = 0;
-// TODO WGJA WIP: 	struct buffer_head * bhr[8];
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	for (i = 0 ; i < nrbuf ; i++) {
-// TODO WGJA WIP: 		if (bh[i] && !bh[i]->b_uptodate)
-// TODO WGJA WIP: 			bhr[bhnum++] = bh[i];
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (bhnum)
-// TODO WGJA WIP: 		ll_rw_block(READ, bhnum, bhr);
-// TODO WGJA WIP: 	for (i = 0 ; i < nrbuf ; i++) {
-// TODO WGJA WIP: 		if (bh[i]) {
-// TODO WGJA WIP: 			wait_on_buffer(bh[i]);
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static unsigned long check_aligned(struct buffer_head * first, unsigned long address,
-// TODO WGJA WIP: 	dev_t dev, int *b, int size)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct buffer_head * bh[8];
-// TODO WGJA WIP: 	unsigned long page;
-// TODO WGJA WIP: 	unsigned long offset;
-// TODO WGJA WIP: 	int block;
-// TODO WGJA WIP: 	int nrbuf;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	page = (unsigned long) first->b_data;
-// TODO WGJA WIP: 	if (page & ~PAGE_MASK) {
-// TODO WGJA WIP: 		brelse(first);
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	mem_map[MAP_NR(page)]++;
-// TODO WGJA WIP: 	bh[0] = first;
-// TODO WGJA WIP: 	nrbuf = 1;
-// TODO WGJA WIP: 	for (offset = size ; offset < PAGE_SIZE ; offset += size) {
-// TODO WGJA WIP: 		block = *++b;
-// TODO WGJA WIP: 		if (!block)
-// TODO WGJA WIP: 			goto no_go;
-// TODO WGJA WIP: 		first = get_hash_table(dev, block, size);
-// TODO WGJA WIP: 		if (!first)
-// TODO WGJA WIP: 			goto no_go;
-// TODO WGJA WIP: 		bh[nrbuf++] = first;
-// TODO WGJA WIP: 		if (page+offset != (unsigned long) first->b_data)
-// TODO WGJA WIP: 			goto no_go;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	read_buffers(bh,nrbuf);		/* make sure they are actually read correctly */
-// TODO WGJA WIP: 	while (nrbuf-- > 0)
-// TODO WGJA WIP: 		brelse(bh[nrbuf]);
-// TODO WGJA WIP: 	free_page(address);
-// TODO WGJA WIP: 	++current->min_flt;
-// TODO WGJA WIP: 	return page;
-// TODO WGJA WIP: no_go:
-// TODO WGJA WIP: 	while (nrbuf-- > 0)
-// TODO WGJA WIP: 		brelse(bh[nrbuf]);
-// TODO WGJA WIP: 	free_page(page);
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static unsigned long try_to_load_aligned(unsigned long address,
-// TODO WGJA WIP: 	dev_t dev, int b[], int size)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct buffer_head * bh, * tmp, * arr[8];
-// TODO WGJA WIP: 	unsigned long offset;
-// TODO WGJA WIP: 	int * p;
-// TODO WGJA WIP: 	int block;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	bh = create_buffers(address, size);
-// TODO WGJA WIP: 	if (!bh)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	p = b;
-// TODO WGJA WIP: 	for (offset = 0 ; offset < PAGE_SIZE ; offset += size) {
-// TODO WGJA WIP: 		block = *(p++);
-// TODO WGJA WIP: 		if (!block)
-// TODO WGJA WIP: 			goto not_aligned;
-// TODO WGJA WIP: 		tmp = get_hash_table(dev, block, size);
-// TODO WGJA WIP: 		if (tmp) {
-// TODO WGJA WIP: 			brelse(tmp);
-// TODO WGJA WIP: 			goto not_aligned;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	tmp = bh;
-// TODO WGJA WIP: 	p = b;
-// TODO WGJA WIP: 	block = 0;
-// TODO WGJA WIP: 	while (1) {
-// TODO WGJA WIP: 		arr[block++] = bh;
-// TODO WGJA WIP: 		bh->b_count = 1;
-// TODO WGJA WIP: 		bh->b_dirt = 0;
-// TODO WGJA WIP: 		bh->b_uptodate = 0;
-// TODO WGJA WIP: 		bh->b_dev = dev;
-// TODO WGJA WIP: 		bh->b_blocknr = *(p++);
-// TODO WGJA WIP: 		nr_buffers++;
-// TODO WGJA WIP: 		insert_into_queues(bh);
-// TODO WGJA WIP: 		if (bh->b_this_page)
-// TODO WGJA WIP: 			bh = bh->b_this_page;
-// TODO WGJA WIP: 		else
-// TODO WGJA WIP: 			break;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	buffermem += PAGE_SIZE;
-// TODO WGJA WIP: 	bh->b_this_page = tmp;
-// TODO WGJA WIP: 	mem_map[MAP_NR(address)]++;
-// TODO WGJA WIP: 	read_buffers(arr,block);
-// TODO WGJA WIP: 	while (block-- > 0)
-// TODO WGJA WIP: 		brelse(arr[block]);
-// TODO WGJA WIP: 	++current->maj_flt;
-// TODO WGJA WIP: 	return address;
-// TODO WGJA WIP: not_aligned:
-// TODO WGJA WIP: 	while ((tmp = bh) != NULL) {
-// TODO WGJA WIP: 		bh = bh->b_this_page;
-// TODO WGJA WIP: 		put_unused_buffer_head(tmp);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Try-to-share-buffers tries to minimize memory use by trying to keep
-// TODO WGJA WIP:  * both code pages and the buffer area in the same page. This is done by
-// TODO WGJA WIP:  * (a) checking if the buffers are already aligned correctly in memory and
-// TODO WGJA WIP:  * (b) if none of the buffer heads are in memory at all, trying to load
-// TODO WGJA WIP:  * them into memory the way we want them.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * This doesn't guarantee that the memory is shared, but should under most
-// TODO WGJA WIP:  * circumstances work very well indeed (ie >90% sharing of code pages on
-// TODO WGJA WIP:  * demand-loadable executables).
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: static inline unsigned long try_to_share_buffers(unsigned long address,
-// TODO WGJA WIP: 	dev_t dev, int *b, int size)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct buffer_head * bh;
-// TODO WGJA WIP: 	int block;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	block = b[0];
-// TODO WGJA WIP: 	if (!block)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	bh = get_hash_table(dev, block, size);
-// TODO WGJA WIP: 	if (bh)
-// TODO WGJA WIP: 		return check_aligned(bh, address, dev, b, size);
-// TODO WGJA WIP: 	return try_to_load_aligned(address, dev, b, size);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define COPYBLK(size,from,to) \
-// TODO WGJA WIP: __asm__ __volatile__("rep ; movsl": \
-// TODO WGJA WIP: 	:"c" (((unsigned long) size) >> 2),"S" (from),"D" (to) \
-// TODO WGJA WIP: 	:"cx","di","si")
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * bread_page reads four buffers into memory at the desired address. It's
-// TODO WGJA WIP:  * a function of its own, as there is some speed to be got by reading them
-// TODO WGJA WIP:  * all at the same time, not waiting for one to be read, and then another
-// TODO WGJA WIP:  * etc. This also allows us to optimize memory usage by sharing code pages
-// TODO WGJA WIP:  * and filesystem buffers..
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: unsigned long bread_page(unsigned long address, dev_t dev, int b[], int size, int prot)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct buffer_head * bh[8];
-// TODO WGJA WIP: 	unsigned long where;
-// TODO WGJA WIP: 	int i, j;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!(prot & PAGE_RW)) {
-// TODO WGJA WIP: 		where = try_to_share_buffers(address,dev,b,size);
-// TODO WGJA WIP: 		if (where)
-// TODO WGJA WIP: 			return where;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	++current->maj_flt;
-// TODO WGJA WIP:  	for (i=0, j=0; j<PAGE_SIZE ; i++, j+= size) {
-// TODO WGJA WIP: 		bh[i] = NULL;
-// TODO WGJA WIP: 		if (b[i])
-// TODO WGJA WIP: 			bh[i] = getblk(dev, b[i], size);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	read_buffers(bh,4);
-// TODO WGJA WIP: 	where = address;
-// TODO WGJA WIP:  	for (i=0, j=0; j<PAGE_SIZE ; i++, j += size,address += size) {
-// TODO WGJA WIP: 		if (bh[i]) {
-// TODO WGJA WIP: 			if (bh[i]->b_uptodate)
-// TODO WGJA WIP: 				COPYBLK(size, (unsigned long) bh[i]->b_data,address);
-// TODO WGJA WIP: 			brelse(bh[i]);
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	return where;
-// TODO WGJA WIP: }
+static void read_buffers(struct buffer_head * bh[], int nrbuf)
+{
+	int i;
+	int bhnum = 0;
+	struct buffer_head * bhr[8];
+
+	for (i = 0 ; i < nrbuf ; i++) {
+		if (bh[i] && !bh[i]->b_uptodate)
+			bhr[bhnum++] = bh[i];
+	}
+	if (bhnum)
+		ll_rw_block(READ, bhnum, bhr);
+	for (i = 0 ; i < nrbuf ; i++) {
+		if (bh[i]) {
+			wait_on_buffer(bh[i]);
+		}
+	}
+}
+
+static unsigned long check_aligned(struct buffer_head * first, unsigned long address,
+	dev_t dev, int *b, int size)
+{
+	struct buffer_head * bh[8];
+	unsigned long page;
+	unsigned long offset;
+	int block;
+	int nrbuf;
+
+	page = (unsigned long) first->b_data;
+	if (page & ~PAGE_MASK) {
+		brelse(first);
+		return 0;
+	}
+	mem_map[MAP_NR(page)]++;
+	bh[0] = first;
+	nrbuf = 1;
+	for (offset = size ; offset < PAGE_SIZE ; offset += size) {
+		block = *++b;
+		if (!block)
+			goto no_go;
+		first = get_hash_table(dev, block, size);
+		if (!first)
+			goto no_go;
+		bh[nrbuf++] = first;
+		if (page+offset != (unsigned long) first->b_data)
+			goto no_go;
+	}
+	read_buffers(bh,nrbuf);		/* make sure they are actually read correctly */
+	while (nrbuf-- > 0)
+		brelse(bh[nrbuf]);
+	free_page(address);
+	++current->min_flt;
+	return page;
+no_go:
+	while (nrbuf-- > 0)
+		brelse(bh[nrbuf]);
+	free_page(page);
+	return 0;
+}
+
+static unsigned long try_to_load_aligned(unsigned long address,
+	dev_t dev, int b[], int size)
+{
+	struct buffer_head * bh, * tmp, * arr[8];
+	unsigned long offset;
+	int * p;
+	int block;
+
+	bh = create_buffers(address, size);
+	if (!bh)
+		return 0;
+	p = b;
+	for (offset = 0 ; offset < PAGE_SIZE ; offset += size) {
+		block = *(p++);
+		if (!block)
+			goto not_aligned;
+		tmp = get_hash_table(dev, block, size);
+		if (tmp) {
+			brelse(tmp);
+			goto not_aligned;
+		}
+	}
+	tmp = bh;
+	p = b;
+	block = 0;
+	while (1) {
+		arr[block++] = bh;
+		bh->b_count = 1;
+		bh->b_dirt = 0;
+		bh->b_uptodate = 0;
+		bh->b_dev = dev;
+		bh->b_blocknr = *(p++);
+		nr_buffers++;
+		insert_into_queues(bh);
+		if (bh->b_this_page)
+			bh = bh->b_this_page;
+		else
+			break;
+	}
+	buffermem += PAGE_SIZE;
+	bh->b_this_page = tmp;
+	mem_map[MAP_NR(address)]++;
+	read_buffers(arr,block);
+	while (block-- > 0)
+		brelse(arr[block]);
+	++current->maj_flt;
+	return address;
+not_aligned:
+	while ((tmp = bh) != NULL) {
+		bh = bh->b_this_page;
+		put_unused_buffer_head(tmp);
+	}
+	return 0;
+}
+
+/*
+ * Try-to-share-buffers tries to minimize memory use by trying to keep
+ * both code pages and the buffer area in the same page. This is done by
+ * (a) checking if the buffers are already aligned correctly in memory and
+ * (b) if none of the buffer heads are in memory at all, trying to load
+ * them into memory the way we want them.
+ *
+ * This doesn't guarantee that the memory is shared, but should under most
+ * circumstances work very well indeed (ie >90% sharing of code pages on
+ * demand-loadable executables).
+ */
+static inline unsigned long try_to_share_buffers(unsigned long address,
+	dev_t dev, int *b, int size)
+{
+	struct buffer_head * bh;
+	int block;
+
+	block = b[0];
+	if (!block)
+		return 0;
+	bh = get_hash_table(dev, block, size);
+	if (bh)
+		return check_aligned(bh, address, dev, b, size);
+	return try_to_load_aligned(address, dev, b, size);
+}
+
+inline void COPYBLK(int size, unsigned long from, unsigned long to)
+{
+int d0, d1, d2;
+__asm__ __volatile__(
+	"rep ; movsl"
+	: "=&c" (d0), "=&S" (d1), "=&D" (d2)
+	:"0" (((unsigned long) size) >> 2),
+	 "1" (from),
+	 "2" (to));
+}
+
+/*
+ * bread_page reads four buffers into memory at the desired address. It's
+ * a function of its own, as there is some speed to be got by reading them
+ * all at the same time, not waiting for one to be read, and then another
+ * etc. This also allows us to optimize memory usage by sharing code pages
+ * and filesystem buffers..
+ */
+unsigned long bread_page(unsigned long address, dev_t dev, int b[], int size, int prot)
+{
+	struct buffer_head * bh[8];
+	unsigned long where;
+	int i, j;
+
+	if (!(prot & PAGE_RW)) {
+		where = try_to_share_buffers(address,dev,b,size);
+		if (where)
+			return where;
+	}
+	++current->maj_flt;
+ 	for (i=0, j=0; j<PAGE_SIZE ; i++, j+= size) {
+		bh[i] = NULL;
+		if (b[i])
+			bh[i] = getblk(dev, b[i], size);
+	}
+	read_buffers(bh,4);
+	where = address;
+ 	for (i=0, j=0; j<PAGE_SIZE ; i++, j += size,address += size) {
+		if (bh[i]) {
+			if (bh[i]->b_uptodate)
+				COPYBLK(size, (unsigned long) bh[i]->b_data,address);
+			brelse(bh[i]);
+		}
+	}
+	return where;
+}
 
 /*
  * Try to increase the number of buffers available: the size argument

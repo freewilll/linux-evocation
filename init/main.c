@@ -46,6 +46,8 @@ extern void test_tty1_read();
 extern void test_printf();
 extern void test_memmove();
 extern void test_general_protection_fault();
+extern void test_file_read_write();
+extern void test_mmap();
 
 /*
  * we need this inline - forking from kernel space will result
@@ -518,11 +520,13 @@ void init(void)
 	(void) dup(0);
 	(void) dup(0);
 
-	test_general_protection_fault();
-	// for(;;) idle();
+	// test_general_protection_fault();
 
 	// test_printf();
 	// test_memmove();
+	// test_file_read_write();
+	test_mmap();
+	for(;;) idle();
 
 	system_utsname.machine[1] = '0' + x86;
 	printf(linux_banner);

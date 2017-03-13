@@ -99,7 +99,7 @@ extern void free_page_tables(struct task_struct * tsk);
 // TODO WGJA WIP: extern void clear_page_tables(struct task_struct * tsk);
 extern int copy_page_tables(struct task_struct * to);
 extern int clone_page_tables(struct task_struct * to);
-// TODO WGJA WIP: extern int unmap_page_range(unsigned long from, unsigned long size);
+extern int unmap_page_range(unsigned long from, unsigned long size);
 // TODO WGJA WIP: extern int remap_page_range(unsigned long from, unsigned long to, unsigned long size, int mask);
 // TODO WGJA WIP: extern int zeromap_page_range(unsigned long from, unsigned long size, int mask);
 // TODO WGJA WIP: 
@@ -122,11 +122,11 @@ extern unsigned long swap_duplicate(unsigned long page_nr);
 extern void swap_in(unsigned long *table_ptr);
 // TODO WGJA WIP: extern void si_swapinfo(struct sysinfo * val);
 extern void rw_swap_page(int rw, unsigned long nr, char * buf);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /* mmap.c */
-// TODO WGJA WIP: extern int do_mmap(struct file * file, unsigned long addr, unsigned long len,
-// TODO WGJA WIP: 	unsigned long prot, unsigned long flags, unsigned long off);
-// TODO WGJA WIP: 
+
+/* mmap.c */
+extern int do_mmap(struct file * file, unsigned long addr, unsigned long len,
+	unsigned long prot, unsigned long flags, unsigned long off);
+
 #define read_swap_page(nr,buf) \
 	rw_swap_page(READ,(nr),(buf))
 #define write_swap_page(nr,buf) \

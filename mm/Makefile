@@ -14,9 +14,7 @@
 .c.s:
 	$(CC) $(CFLAGS) -S $<
 
-# TODO WGJA: Work in progress build
-OBJS	= memory.o swap.o
-# OBJS	= memory.o swap.o mmap.o
+OBJS	= memory.o swap.o mmap.o
 
 mm.o: $(OBJS)
 	$(LD) -r -o mm.o $(OBJS)
