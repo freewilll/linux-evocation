@@ -109,13 +109,18 @@ typedef struct fd_set {
 			"m" (*(fd_set *) (fdsetp))); \
 		__result; }))
 
-// TODO WGJA WIP: #undef	__FD_ZERO
-// TODO WGJA WIP: #define __FD_ZERO(fdsetp) \
-// TODO WGJA WIP: 		__asm__ __volatile__("cld ; rep ; stosl" \
-// TODO WGJA WIP: 			:"=m" (*(fd_set *) (fdsetp)) \
-// TODO WGJA WIP: 			:"a" (0), "c" (__FDSET_LONGS), \
-// TODO WGJA WIP: 			"D" ((fd_set *) (fdsetp)) :"cx","di")
-// TODO WGJA WIP: 
+#undef	__FD_ZERO
+inline void __FD_ZERO(fd_set* fdsetp)
+{
+int d0, d1;
+__asm__ __volatile__(
+	"cld ; rep ; stosl" 
+	:"=&c" (d0), "=&D" (d1)
+	:"a" (0), 
+	 "0" (__FDSET_LONGS), 
+	 "1" ((fd_set *) (fdsetp)));
+}
+
 // TODO WGJA WIP: struct ustat {
 // TODO WGJA WIP: 	daddr_t f_tfree;
 // TODO WGJA WIP: 	ino_t f_tinode;

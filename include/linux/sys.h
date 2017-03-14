@@ -162,7 +162,7 @@ fn_ptr sys_call_table[] = {
 	sys_creat, 			// #define __NR_creat		  8
 	sys_link, 			// #define __NR_link		  9
 	sys_unlink, 			// #define __NR_unlink		 10
-	sys_todo, 			// #define __NR_execve		 11	todo
+	sys_execve, 			// #define __NR_execve		 11
 	sys_chdir, 			// #define __NR_chdir		 12
 	sys_time, 			// #define __NR_time		 13
 	sys_mknod, 			// #define __NR_mknod		 14

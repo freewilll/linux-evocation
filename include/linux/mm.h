@@ -49,7 +49,7 @@ struct vm_operations_struct {
 
 extern unsigned long __bad_page(void);
 extern unsigned long __bad_pagetable(void);
-// TODO WGJA WIP: extern unsigned long __zero_page(void);
+extern unsigned long __zero_page(void);
 
 #define BAD_PAGETABLE __bad_pagetable()
 #define BAD_PAGE __bad_page()
@@ -65,11 +65,11 @@ extern unsigned long secondary_page_list;
 
 #define MAX_SECONDARY_PAGES 10
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This is timing-critical - most of the time in getting a new page
-// TODO WGJA WIP:  * goes to clearing the page. If you want a page without the clearing
-// TODO WGJA WIP:  * overhead, just use __get_free_page() directly..
-// TODO WGJA WIP:  */
+/*
+ * This is timing-critical - most of the time in getting a new page
+ * goes to clearing the page. If you want a page without the clearing
+ * overhead, just use __get_free_page() directly..
+ */
 extern unsigned long __get_free_page(int priority);
 extern inline unsigned long get_free_page(int priority)
 {
@@ -88,21 +88,21 @@ extern inline unsigned long get_free_page(int priority)
 	return page;
 }
 
-// TODO WGJA WIP: /* mmap.c */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /* memory.c */
-// TODO WGJA WIP: 
+/* mmap.c */
+
+/* memory.c */
+
 extern void free_page(unsigned long addr);
-// TODO WGJA WIP: extern unsigned long put_dirty_page(struct task_struct * tsk,unsigned long page,
-// TODO WGJA WIP: 	unsigned long address);
+extern unsigned long put_dirty_page(struct task_struct * tsk,unsigned long page,
+	unsigned long address);
 extern void free_page_tables(struct task_struct * tsk);
-// TODO WGJA WIP: extern void clear_page_tables(struct task_struct * tsk);
+extern void clear_page_tables(struct task_struct * tsk);
 extern int copy_page_tables(struct task_struct * to);
 extern int clone_page_tables(struct task_struct * to);
 extern int unmap_page_range(unsigned long from, unsigned long size);
 // TODO WGJA WIP: extern int remap_page_range(unsigned long from, unsigned long to, unsigned long size, int mask);
-// TODO WGJA WIP: extern int zeromap_page_range(unsigned long from, unsigned long size, int mask);
-// TODO WGJA WIP: 
+extern int zeromap_page_range(unsigned long from, unsigned long size, int mask);
+
 extern void do_wp_page(unsigned long error_code, unsigned long address,
 	struct task_struct *tsk, unsigned long user_esp);
 // TODO WGJA WIP: extern void do_no_page(unsigned long error_code, unsigned long address,

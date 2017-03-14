@@ -58,7 +58,7 @@ unsigned long free_page_list = 0;
 int nr_secondary_pages = 0;
 unsigned long secondary_page_list = 0;
 
-#define copy_page(to,from)	memcpy((void *)(to), (void *)(from), PAGE_SIZE)
+#define copy_page(from,to)	memcpy((void *)(to), (void *)(from), PAGE_SIZE)
 
 unsigned short * mem_map = (unsigned short *) NULL;
 
@@ -106,47 +106,47 @@ static void free_one_table(unsigned long * page_dir)
 	free_page(PAGE_MASK & pg_table);
 }
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This function clears all user-level page tables of a process - this
-// TODO WGJA WIP:  * is needed by execve(), so that old pages aren't in the way. Note that
-// TODO WGJA WIP:  * unlike 'free_page_tables()', this function still leaves a valid
-// TODO WGJA WIP:  * page-table-tree in memory: it just removes the user pages. The two
-// TODO WGJA WIP:  * functions are similar, but there is a fundamental difference.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: void clear_page_tables(struct task_struct * tsk)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 	unsigned long pg_dir;
-// TODO WGJA WIP: 	unsigned long * page_dir;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!tsk)
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	if (tsk == task[0])
-// TODO WGJA WIP: 		panic("task[0] (swapper) doesn't support exec()\n");
-// TODO WGJA WIP: 	pg_dir = tsk->tss.cr3;
-// TODO WGJA WIP: 	page_dir = (unsigned long *) pg_dir;
-// TODO WGJA WIP: 	if (!page_dir || page_dir == swapper_pg_dir) {
-// TODO WGJA WIP: 		printk("Trying to clear kernel page-directory: not good\n");
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (mem_map[MAP_NR(pg_dir)] > 1) {
-// TODO WGJA WIP: 		unsigned long * new_pg;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 		if (!(new_pg = (unsigned long*) get_free_page(GFP_KERNEL))) {
-// TODO WGJA WIP: 			oom(tsk);
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		for (i = 768 ; i < 1024 ; i++)
-// TODO WGJA WIP: 			new_pg[i] = page_dir[i];
-// TODO WGJA WIP: 		free_page(pg_dir);
-// TODO WGJA WIP: 		tsk->tss.cr3 = (unsigned long) new_pg;
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	for (i = 0 ; i < 768 ; i++,page_dir++)
-// TODO WGJA WIP: 		free_one_table(page_dir);
-// TODO WGJA WIP: 	invalidate();
-// TODO WGJA WIP: 	return;
-// TODO WGJA WIP: }
+/*
+ * This function clears all user-level page tables of a process - this
+ * is needed by execve(), so that old pages aren't in the way. Note that
+ * unlike 'free_page_tables()', this function still leaves a valid
+ * page-table-tree in memory: it just removes the user pages. The two
+ * functions are similar, but there is a fundamental difference.
+ */
+void clear_page_tables(struct task_struct * tsk)
+{
+	int i;
+	unsigned long pg_dir;
+	unsigned long * page_dir;
+
+	if (!tsk)
+		return;
+	if (tsk == task[0])
+		panic("task[0] (swapper) doesn't support exec()\n");
+	pg_dir = tsk->tss.cr3;
+	page_dir = (unsigned long *) pg_dir;
+	if (!page_dir || page_dir == swapper_pg_dir) {
+		printk("Trying to clear kernel page-directory: not good\n");
+		return;
+	}
+	if (mem_map[MAP_NR(pg_dir)] > 1) {
+		unsigned long * new_pg;
+
+		if (!(new_pg = (unsigned long*) get_free_page(GFP_KERNEL))) {
+			oom(tsk);
+			return;
+		}
+		for (i = 768 ; i < 1024 ; i++)
+			new_pg[i] = page_dir[i];
+		free_page(pg_dir);
+		tsk->tss.cr3 = (unsigned long) new_pg;
+		return;
+	}
+	for (i = 0 ; i < 768 ; i++,page_dir++)
+		free_one_table(page_dir);
+	invalidate();
+	return;
+}
 
 /*
  * This function frees up all page tables of a process when it exits.
@@ -318,145 +318,145 @@ int unmap_page_range(unsigned long from, unsigned long size)
 	return 0;
 }
 
-// TODO WGJA WIP: int zeromap_page_range(unsigned long from, unsigned long size, int mask)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long *page_table, *dir;
-// TODO WGJA WIP: 	unsigned long poff, pcnt;
-// TODO WGJA WIP: 	unsigned long page;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (mask) {
-// TODO WGJA WIP: 		if ((mask & (PAGE_MASK|PAGE_PRESENT)) != PAGE_PRESENT) {
-// TODO WGJA WIP: 			printk("zeromap_page_range: mask = %08x\n",mask);
-// TODO WGJA WIP: 			return -EINVAL;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		mask |= ZERO_PAGE;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (from & ~PAGE_MASK) {
-// TODO WGJA WIP: 		printk("zeromap_page_range: from = %08x\n",from);
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	dir = PAGE_DIR_OFFSET(current->tss.cr3,from);
-// TODO WGJA WIP: 	size = (size + ~PAGE_MASK) >> PAGE_SHIFT;
-// TODO WGJA WIP: 	poff = (from >> PAGE_SHIFT) & PTRS_PER_PAGE-1;
-// TODO WGJA WIP: 	if ((pcnt = PTRS_PER_PAGE - poff) > size)
-// TODO WGJA WIP: 		pcnt = size;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	while (size > 0) {
-// TODO WGJA WIP: 		if (!(PAGE_PRESENT & *dir)) {
-// TODO WGJA WIP: 				/* clear page needed here?  SRB. */
-// TODO WGJA WIP: 			if (!(page_table = (unsigned long*) get_free_page(GFP_KERNEL))) {
-// TODO WGJA WIP: 				invalidate();
-// TODO WGJA WIP: 				return -ENOMEM;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 			if (PAGE_PRESENT & *dir) {
-// TODO WGJA WIP: 				free_page((unsigned long) page_table);
-// TODO WGJA WIP: 				page_table = (unsigned long *)(PAGE_MASK & *dir++);
-// TODO WGJA WIP: 			} else
-// TODO WGJA WIP: 				*dir++ = ((unsigned long) page_table) | PAGE_TABLE;
-// TODO WGJA WIP: 		} else
-// TODO WGJA WIP: 			page_table = (unsigned long *)(PAGE_MASK & *dir++);
-// TODO WGJA WIP: 		page_table += poff;
-// TODO WGJA WIP: 		poff = 0;
-// TODO WGJA WIP: 		for (size -= pcnt; pcnt-- ;) {
-// TODO WGJA WIP: 			if ((page = *page_table) != 0) {
-// TODO WGJA WIP: 				*page_table = 0;
-// TODO WGJA WIP: 				if (page & PAGE_PRESENT) {
-// TODO WGJA WIP: 					if (!(mem_map[MAP_NR(page)]
-// TODO WGJA WIP: 					      & MAP_PAGE_RESERVED))
-// TODO WGJA WIP: 						--current->rss;
-// TODO WGJA WIP: 					free_page(PAGE_MASK & page);
-// TODO WGJA WIP: 				} else
-// TODO WGJA WIP: 					swap_free(page);
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 			*page_table++ = mask;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		pcnt = (size > PTRS_PER_PAGE ? PTRS_PER_PAGE : size);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	invalidate();
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * maps a range of physical memory into the requested pages. the old
-// TODO WGJA WIP:  * mappings are removed. any references to nonexistent pages results
-// TODO WGJA WIP:  * in null mappings (currently treated as "copy-on-access")
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: int remap_page_range(unsigned long from, unsigned long to, unsigned long size, int mask)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long *page_table, *dir;
-// TODO WGJA WIP: 	unsigned long poff, pcnt;
-// TODO WGJA WIP: 	unsigned long page;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (mask) {
-// TODO WGJA WIP: 		if ((mask & (PAGE_MASK|PAGE_PRESENT)) != PAGE_PRESENT) {
-// TODO WGJA WIP: 			printk("remap_page_range: mask = %08x\n",mask);
-// TODO WGJA WIP: 			return -EINVAL;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if ((from & ~PAGE_MASK) || (to & ~PAGE_MASK)) {
-// TODO WGJA WIP: 		printk("remap_page_range: from = %08x, to=%08x\n",from,to);
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	dir = PAGE_DIR_OFFSET(current->tss.cr3,from);
-// TODO WGJA WIP: 	size = (size + ~PAGE_MASK) >> PAGE_SHIFT;
-// TODO WGJA WIP: 	poff = (from >> PAGE_SHIFT) & PTRS_PER_PAGE-1;
-// TODO WGJA WIP: 	if ((pcnt = PTRS_PER_PAGE - poff) > size)
-// TODO WGJA WIP: 		pcnt = size;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	while (size > 0) {
-// TODO WGJA WIP: 		if (!(PAGE_PRESENT & *dir)) {
-// TODO WGJA WIP: 			/* clearing page here, needed?  SRB. */
-// TODO WGJA WIP: 			if (!(page_table = (unsigned long*) get_free_page(GFP_KERNEL))) {
-// TODO WGJA WIP: 				invalidate();
-// TODO WGJA WIP: 				return -1;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 			*dir++ = ((unsigned long) page_table) | PAGE_TABLE;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		else
-// TODO WGJA WIP: 			page_table = (unsigned long *)(PAGE_MASK & *dir++);
-// TODO WGJA WIP: 		if (poff) {
-// TODO WGJA WIP: 			page_table += poff;
-// TODO WGJA WIP: 			poff = 0;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 		for (size -= pcnt; pcnt-- ;) {
-// TODO WGJA WIP: 			if ((page = *page_table) != 0) {
-// TODO WGJA WIP: 				*page_table = 0;
-// TODO WGJA WIP: 				if (PAGE_PRESENT & page) {
-// TODO WGJA WIP: 					if (!(mem_map[MAP_NR(page)]
-// TODO WGJA WIP: 					      & MAP_PAGE_RESERVED))
-// TODO WGJA WIP: 						--current->rss;
-// TODO WGJA WIP: 					free_page(PAGE_MASK & page);
-// TODO WGJA WIP: 				} else
-// TODO WGJA WIP: 					swap_free(page);
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 			/*
-// TODO WGJA WIP: 			 * the first condition should return an invalid access
-// TODO WGJA WIP: 			 * when the page is referenced. current assumptions
-// TODO WGJA WIP: 			 * cause it to be treated as demand allocation in some
-// TODO WGJA WIP: 			 * cases.
-// TODO WGJA WIP: 			 */
-// TODO WGJA WIP: 			if (!mask)
-// TODO WGJA WIP: 				*page_table++ = 0;	/* not present */
-// TODO WGJA WIP: 			else if (to >= high_memory)
-// TODO WGJA WIP: 				*page_table++ = (to | mask);
-// TODO WGJA WIP: 			else if (!mem_map[MAP_NR(to)])
-// TODO WGJA WIP: 				*page_table++ = 0;	/* not present */
-// TODO WGJA WIP: 			else {
-// TODO WGJA WIP: 				*page_table++ = (to | mask);
-// TODO WGJA WIP: 				if (!(mem_map[MAP_NR(to)] & MAP_PAGE_RESERVED)) {
-// TODO WGJA WIP: 					++current->rss;
-// TODO WGJA WIP: 					mem_map[MAP_NR(to)]++;
-// TODO WGJA WIP: 				}
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 			to += PAGE_SIZE;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		pcnt = (size > PTRS_PER_PAGE ? PTRS_PER_PAGE : size);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	invalidate();
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
+int zeromap_page_range(unsigned long from, unsigned long size, int mask)
+{
+	unsigned long *page_table, *dir;
+	unsigned long poff, pcnt;
+	unsigned long page;
+
+	if (mask) {
+		if ((mask & (PAGE_MASK|PAGE_PRESENT)) != PAGE_PRESENT) {
+			printk("zeromap_page_range: mask = %08x\n",mask);
+			return -EINVAL;
+		}
+		mask |= ZERO_PAGE;
+	}
+	if (from & ~PAGE_MASK) {
+		printk("zeromap_page_range: from = %08x\n",from);
+		return -EINVAL;
+	}
+	dir = PAGE_DIR_OFFSET(current->tss.cr3,from);
+	size = (size + ~PAGE_MASK) >> PAGE_SHIFT;
+	poff = (from >> PAGE_SHIFT) & PTRS_PER_PAGE-1;
+	if ((pcnt = PTRS_PER_PAGE - poff) > size)
+		pcnt = size;
+
+	while (size > 0) {
+		if (!(PAGE_PRESENT & *dir)) {
+				/* clear page needed here?  SRB. */
+			if (!(page_table = (unsigned long*) get_free_page(GFP_KERNEL))) {
+				invalidate();
+				return -ENOMEM;
+			}
+			if (PAGE_PRESENT & *dir) {
+				free_page((unsigned long) page_table);
+				page_table = (unsigned long *)(PAGE_MASK & *dir++);
+			} else
+				*dir++ = ((unsigned long) page_table) | PAGE_TABLE;
+		} else
+			page_table = (unsigned long *)(PAGE_MASK & *dir++);
+		page_table += poff;
+		poff = 0;
+		for (size -= pcnt; pcnt-- ;) {
+			if ((page = *page_table) != 0) {
+				*page_table = 0;
+				if (page & PAGE_PRESENT) {
+					if (!(mem_map[MAP_NR(page)]
+					      & MAP_PAGE_RESERVED))
+						--current->rss;
+					free_page(PAGE_MASK & page);
+				} else
+					swap_free(page);
+			}
+			*page_table++ = mask;
+		}
+		pcnt = (size > PTRS_PER_PAGE ? PTRS_PER_PAGE : size);
+	}
+	invalidate();
+	return 0;
+}
+
+/*
+ * maps a range of physical memory into the requested pages. the old
+ * mappings are removed. any references to nonexistent pages results
+ * in null mappings (currently treated as "copy-on-access")
+ */
+int remap_page_range(unsigned long from, unsigned long to, unsigned long size, int mask)
+{
+	unsigned long *page_table, *dir;
+	unsigned long poff, pcnt;
+	unsigned long page;
+
+	if (mask) {
+		if ((mask & (PAGE_MASK|PAGE_PRESENT)) != PAGE_PRESENT) {
+			printk("remap_page_range: mask = %08x\n",mask);
+			return -EINVAL;
+		}
+	}
+	if ((from & ~PAGE_MASK) || (to & ~PAGE_MASK)) {
+		printk("remap_page_range: from = %08x, to=%08x\n",from,to);
+		return -EINVAL;
+	}
+	dir = PAGE_DIR_OFFSET(current->tss.cr3,from);
+	size = (size + ~PAGE_MASK) >> PAGE_SHIFT;
+	poff = (from >> PAGE_SHIFT) & PTRS_PER_PAGE-1;
+	if ((pcnt = PTRS_PER_PAGE - poff) > size)
+		pcnt = size;
+
+	while (size > 0) {
+		if (!(PAGE_PRESENT & *dir)) {
+			/* clearing page here, needed?  SRB. */
+			if (!(page_table = (unsigned long*) get_free_page(GFP_KERNEL))) {
+				invalidate();
+				return -1;
+			}
+			*dir++ = ((unsigned long) page_table) | PAGE_TABLE;
+		}
+		else
+			page_table = (unsigned long *)(PAGE_MASK & *dir++);
+		if (poff) {
+			page_table += poff;
+			poff = 0;
+		}
+
+		for (size -= pcnt; pcnt-- ;) {
+			if ((page = *page_table) != 0) {
+				*page_table = 0;
+				if (PAGE_PRESENT & page) {
+					if (!(mem_map[MAP_NR(page)]
+					      & MAP_PAGE_RESERVED))
+						--current->rss;
+					free_page(PAGE_MASK & page);
+				} else
+					swap_free(page);
+			}
+
+			/*
+			 * the first condition should return an invalid access
+			 * when the page is referenced. current assumptions
+			 * cause it to be treated as demand allocation in some
+			 * cases.
+			 */
+			if (!mask)
+				*page_table++ = 0;	/* not present */
+			else if (to >= high_memory)
+				*page_table++ = (to | mask);
+			else if (!mem_map[MAP_NR(to)])
+				*page_table++ = 0;	/* not present */
+			else {
+				*page_table++ = (to | mask);
+				if (!(mem_map[MAP_NR(to)] & MAP_PAGE_RESERVED)) {
+					++current->rss;
+					mem_map[MAP_NR(to)]++;
+				}
+			}
+			to += PAGE_SIZE;
+		}
+		pcnt = (size > PTRS_PER_PAGE ? PTRS_PER_PAGE : size);
+	}
+	invalidate();
+	return 0;
+}
 
 /*
  * This function puts a page in memory at the wanted address.
@@ -495,44 +495,44 @@ unsigned long put_page(struct task_struct * tsk,unsigned long page,
 	return page;
 }
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * The previous function doesn't work very well if you also want to mark
-// TODO WGJA WIP:  * the page dirty: exec.c wants this, as it has earlier changed the page,
-// TODO WGJA WIP:  * and we want the dirty-status to be correct (for VM). Thus the same
-// TODO WGJA WIP:  * routine, but this time we mark it dirty too.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: unsigned long put_dirty_page(struct task_struct * tsk, unsigned long page, unsigned long address)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned long tmp, *page_table;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (page >= high_memory)
-// TODO WGJA WIP: 		printk("put_dirty_page: trying to put page %p at %p\n",page,address);
-// TODO WGJA WIP: 	if (mem_map[MAP_NR(page)] != 1)
-// TODO WGJA WIP: 		printk("mem_map disagrees with %p at %p\n",page,address);
-// TODO WGJA WIP: 	page_table = PAGE_DIR_OFFSET(tsk->tss.cr3,address);
-// TODO WGJA WIP: 	if (PAGE_PRESENT & *page_table)
-// TODO WGJA WIP: 		page_table = (unsigned long *) (PAGE_MASK & *page_table);
-// TODO WGJA WIP: 	else {
-// TODO WGJA WIP: 		if (!(tmp = get_free_page(GFP_KERNEL)))
-// TODO WGJA WIP: 			return 0;
-// TODO WGJA WIP: 		if (PAGE_PRESENT & *page_table) {
-// TODO WGJA WIP: 			free_page(tmp);
-// TODO WGJA WIP: 			page_table = (unsigned long *) (PAGE_MASK & *page_table);
-// TODO WGJA WIP: 		} else {
-// TODO WGJA WIP: 			*page_table = tmp | PAGE_TABLE;
-// TODO WGJA WIP: 			page_table = (unsigned long *) tmp;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	page_table += (address >> PAGE_SHIFT) & PTRS_PER_PAGE-1;
-// TODO WGJA WIP: 	if (*page_table) {
-// TODO WGJA WIP: 		printk("put_dirty_page: page already exists\n");
-// TODO WGJA WIP: 		*page_table = 0;
-// TODO WGJA WIP: 		invalidate();
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	*page_table = page | (PAGE_DIRTY | PAGE_PRIVATE);
-// TODO WGJA WIP: /* no need for invalidate */
-// TODO WGJA WIP: 	return page;
-// TODO WGJA WIP: }
+/*
+ * The previous function doesn't work very well if you also want to mark
+ * the page dirty: exec.c wants this, as it has earlier changed the page,
+ * and we want the dirty-status to be correct (for VM). Thus the same
+ * routine, but this time we mark it dirty too.
+ */
+unsigned long put_dirty_page(struct task_struct * tsk, unsigned long page, unsigned long address)
+{
+	unsigned long tmp, *page_table;
+
+	if (page >= high_memory)
+		printk("put_dirty_page: trying to put page %p at %p\n",page,address);
+	if (mem_map[MAP_NR(page)] != 1)
+		printk("mem_map disagrees with %p at %p\n",page,address);
+	page_table = PAGE_DIR_OFFSET(tsk->tss.cr3,address);
+	if (PAGE_PRESENT & *page_table)
+		page_table = (unsigned long *) (PAGE_MASK & *page_table);
+	else {
+		if (!(tmp = get_free_page(GFP_KERNEL)))
+			return 0;
+		if (PAGE_PRESENT & *page_table) {
+			free_page(tmp);
+			page_table = (unsigned long *) (PAGE_MASK & *page_table);
+		} else {
+			*page_table = tmp | PAGE_TABLE;
+			page_table = (unsigned long *) tmp;
+		}
+	}
+	page_table += (address >> PAGE_SHIFT) & PTRS_PER_PAGE-1;
+	if (*page_table) {
+		printk("put_dirty_page: page already exists\n");
+		*page_table = 0;
+		invalidate();
+	}
+	*page_table = page | (PAGE_DIRTY | PAGE_PRIVATE);
+/* no need for invalidate */
+	return page;
+}
 
 /*
  * This routine handles present pages, when users try to write
@@ -949,17 +949,18 @@ unsigned long __bad_page(void)
 	return (unsigned long) empty_bad_page;
 }
 
-// TODO WGJA WIP: unsigned long __zero_page(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	extern char empty_zero_page[PAGE_SIZE];
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	__asm__ __volatile__("cld ; rep ; stosl":
-// TODO WGJA WIP: 		:"a" (0),
-// TODO WGJA WIP: 		 "D" ((long) empty_zero_page),
-// TODO WGJA WIP: 		 "c" (PTRS_PER_PAGE)
-// TODO WGJA WIP: 		:"di","cx");
-// TODO WGJA WIP: 	return (unsigned long) empty_zero_page;
-// TODO WGJA WIP: }
+unsigned long __zero_page(void)
+{
+	extern char empty_zero_page[PAGE_SIZE];
+	int d0, d1;
+	__asm__ __volatile__(
+		"cld ; rep ; stosl"
+		:"=&D" (d0), "=&cx" (d1)
+		:"a" (0),
+		 "0" ((long) empty_zero_page),
+		 "1" (PTRS_PER_PAGE));
+	return (unsigned long) empty_zero_page;
+}
 
 void show_mem(void)
 {

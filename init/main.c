@@ -525,49 +525,68 @@ void init(void)
 	// test_printf();
 	// test_memmove();
 	// test_file_read_write();
-	test_mmap();
-	for(;;) idle();
+	// test_mmap();
+	// for(;;) idle();
 
 	system_utsname.machine[1] = '0' + x86;
 	printf(linux_banner);
 
-	printf("TODO: rest of init()\n");
+	i = execve("/hello",argv_rc,envp_rc);
 	for(;;) idle();
 
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	execve("/etc/init",argv_init,envp_init);
-// TODO WGJA WIP: 	execve("/bin/init",argv_init,envp_init);
-// TODO WGJA WIP: 	execve("/sbin/init",argv_init,envp_init);
-// TODO WGJA WIP: 	/* if this fails, fall through to original stuff */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!(pid=fork())) {
-// TODO WGJA WIP: 		close(0);
-// TODO WGJA WIP: 		if (open("/etc/rc",O_RDONLY,0))
-// TODO WGJA WIP: 			exit(1);
-// TODO WGJA WIP: 		execve("/bin/sh",argv_rc,envp_rc);
-// TODO WGJA WIP: 		exit(2);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (pid>0)
-// TODO WGJA WIP: 		while (pid != wait(&i))
-// TODO WGJA WIP: 			/* nothing */;
-// TODO WGJA WIP: 	while (1) {
-// TODO WGJA WIP: 		if ((pid = fork()) < 0) {
-// TODO WGJA WIP: 			printf("Fork failed in init\n\r");
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		if (!pid) {
-// TODO WGJA WIP: 			close(0);close(1);close(2);
-// TODO WGJA WIP: 			setsid();
-// TODO WGJA WIP: 			(void) open("/dev/tty1",O_RDWR,0);
-// TODO WGJA WIP: 			(void) dup(0);
-// TODO WGJA WIP: 			(void) dup(0);
-// TODO WGJA WIP: 			exit(execve("/bin/sh",argv,envp));
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		while (1)
-// TODO WGJA WIP: 			if (pid == wait(&i))
-// TODO WGJA WIP: 				break;
-// TODO WGJA WIP: 		printf("\n\rchild %d died with code %04x\n\r",pid,i);
-// TODO WGJA WIP: 		sync();
-// TODO WGJA WIP: 	}
-	exit(0);
+	// execve("/usr/root/a.out",argv_rc,envp_rc);
+	// printk("execve done\n");
+	// for(;;) idle();
+
+	// // printf("TODO: rest of init()\n");
+	// // for(;;) idle();
+
+	// printf("Here we go (1)!\n");
+	// execve("/etc/init",argv_init,envp_init);
+	// printf("Here we go (2)!\n");
+	// execve("/bin/init",argv_init,envp_init);
+	// printf("Here we go (3)!\n");
+	// execve("/sbin/init",argv_init,envp_init);
+	// /* if this fails, fall through to original stuff */
+
+	// printf("Here we go (4)!\n");
+	// if (!(pid=fork())) {
+	// 	close(0);
+	// 	printf("Here we go (5)!\n");
+	// 	if (open("/etc/rc",O_RDONLY,0))
+	// 		exit(1);
+	// 	printf("Here we go (6a)!\n");
+	// 	execve("/usr/root/a.out",argv_rc,envp_rc);
+	// 	printf("Here we go (6b)!\n");
+	// 	// execve("/bin/sh",argv_rc,envp_rc);
+	// 	exit(2);
+	// }
+	// if (pid>0)
+	// 	while (pid != wait(&i))
+	// 		/* nothing */;
+
+	// printf("Here we go (7)!\n");
+
+	// while (1) {
+	// 	if ((pid = fork()) < 0) {
+	// 		printf("Fork failed in init\n\r");
+	// 		continue;
+	// 	}
+	// 	if (!pid) {
+	// 		close(0);close(1);close(2);
+	// 		setsid();
+	// 		(void) open("/dev/tty1",O_RDWR,0);
+	// 		(void) dup(0);
+	// 		(void) dup(0);
+	// 		printf("Here we go (8)!\n");
+	// 		exit(execve("/bin/sh",argv,envp));
+	// 	}
+	// 	while (1)
+	// 		if (pid == wait(&i))
+	// 			break;
+	// 	printf("\n\rchild %d died with code %04x\n\r",pid,i);
+	// 	for(;;) idle();								// WGJA
+	// 	sync();
+	// }
+	// exit(0);
 }
