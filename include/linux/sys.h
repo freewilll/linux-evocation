@@ -169,7 +169,7 @@ fn_ptr sys_call_table[] = {
 	sys_chmod, 			// #define __NR_chmod		 15
 	sys_chown, 			// #define __NR_chown		 16
 	sys_break, 			// #define __NR_break		 17
-	sys_stat, 			// #define __NR_oldstat		 18	# Note: inconsistently named
+	sys_stat, 			// #define __NR_oldstat		 18
 	sys_lseek, 			// #define __NR_lseek		 19
 	sys_getpid, 			// #define __NR_getpid		 20
 	sys_mount, 			// #define __NR_mount		 21
@@ -179,7 +179,7 @@ fn_ptr sys_call_table[] = {
 	sys_stime, 			// #define __NR_stime		 25
 	sys_todo, 			// #define __NR_ptrace		 26	todo
 	sys_todo, 			// #define __NR_alarm		 27	todo
-	sys_todo, 			// #define __NR_oldfstat	 28	todo
+	sys_fstat, 			// #define __NR_oldfstat	 28
 	sys_pause, 			// #define __NR_pause		 29
 	sys_utime, 			// #define __NR_utime		 30
 	sys_stty, 			// #define __NR_stty		 31
@@ -257,9 +257,9 @@ fn_ptr sys_call_table[] = {
 	sys_todo, 			// #define __NR_syslog		103	todo
 	sys_todo, 			// #define __NR_setitimer	104	todo
 	sys_todo, 			// #define __NR_getitimer	105	todo
-	sys_newstat, 			// #define __NR_stat		106	# Note: inconsistently named
-	sys_newlstat, 			// #define __NR_lstat		107	# Note: inconsistently named
-	sys_newfstat, 			// #define __NR_fstat		108	# Note: inconsistently named
+	sys_newstat, 			// #define __NR_stat		106
+	sys_newlstat, 			// #define __NR_lstat		107
+	sys_newfstat, 			// #define __NR_fstat		108
 	sys_olduname,			// #define __NR_olduname	109
 	sys_iopl, 			// #define __NR_iopl		110
 	sys_vhangup, 			// #define __NR_vhangup		111
