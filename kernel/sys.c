@@ -426,57 +426,57 @@ extern "C" int sys_times(struct tms * tbuf)
 	return jiffies;
 }
 
-// TODO WGJA WIP: extern "C" int sys_brk(unsigned long brk)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int freepages;
-// TODO WGJA WIP: 	unsigned long rlim;
-// TODO WGJA WIP: 	unsigned long newbrk, oldbrk;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (brk < current->end_code)
-// TODO WGJA WIP: 		return current->brk;
-// TODO WGJA WIP: 	newbrk = PAGE_ALIGN(brk);
-// TODO WGJA WIP: 	oldbrk = PAGE_ALIGN(current->brk);
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * Always allow shrinking brk
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	if (brk <= current->brk) {
-// TODO WGJA WIP: 		current->brk = brk;
-// TODO WGJA WIP: 		unmap_page_range(newbrk, oldbrk-newbrk);
-// TODO WGJA WIP: 		return brk;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * Check against rlimit and stack..
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	rlim = current->rlim[RLIMIT_DATA].rlim_cur;
-// TODO WGJA WIP: 	if (rlim >= RLIM_INFINITY)
-// TODO WGJA WIP: 		rlim = ~0;
-// TODO WGJA WIP: 	if (brk - current->end_code > rlim || brk >= current->start_stack - 16384)
-// TODO WGJA WIP: 		return current->brk;
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * stupid algorithm to decide if we have enough memory: while
-// TODO WGJA WIP: 	 * simple, it hopefully works in most obvious cases.. Easy to
-// TODO WGJA WIP: 	 * fool it, but this should catch most mistakes.
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	freepages = buffermem >> 12;
-// TODO WGJA WIP: 	freepages += nr_free_pages;
-// TODO WGJA WIP: 	freepages += nr_swap_pages;
-// TODO WGJA WIP: 	freepages -= (high_memory - 0x100000) >> 16;
-// TODO WGJA WIP: 	freepages -= (newbrk-oldbrk) >> 12;
-// TODO WGJA WIP: 	if (freepages < 0)
-// TODO WGJA WIP: 		return current->brk;
-// TODO WGJA WIP: #if 0
-// TODO WGJA WIP: 	freepages += current->rss;
-// TODO WGJA WIP: 	freepages -= oldbrk >> 12;
-// TODO WGJA WIP: 	if (freepages < 0)
-// TODO WGJA WIP: 		return current->brk;
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: 	/*
-// TODO WGJA WIP: 	 * Ok, we have probably got enough memory - let it rip.
-// TODO WGJA WIP: 	 */
-// TODO WGJA WIP: 	current->brk = brk;
-// TODO WGJA WIP: 	zeromap_page_range(oldbrk, newbrk-oldbrk, PAGE_COPY);
-// TODO WGJA WIP: 	return brk;
-// TODO WGJA WIP: }
+extern "C" int sys_brk(unsigned long brk)
+{
+	int freepages;
+	unsigned long rlim;
+	unsigned long newbrk, oldbrk;
+
+	if (brk < current->end_code)
+		return current->brk;
+	newbrk = PAGE_ALIGN(brk);
+	oldbrk = PAGE_ALIGN(current->brk);
+	/*
+	 * Always allow shrinking brk
+	 */
+	if (brk <= current->brk) {
+		current->brk = brk;
+		unmap_page_range(newbrk, oldbrk-newbrk);
+		return brk;
+	}
+	/*
+	 * Check against rlimit and stack..
+	 */
+	rlim = current->rlim[RLIMIT_DATA].rlim_cur;
+	if (rlim >= RLIM_INFINITY)
+		rlim = ~0;
+	if (brk - current->end_code > rlim || brk >= current->start_stack - 16384)
+		return current->brk;
+	/*
+	 * stupid algorithm to decide if we have enough memory: while
+	 * simple, it hopefully works in most obvious cases.. Easy to
+	 * fool it, but this should catch most mistakes.
+	 */
+	freepages = buffermem >> 12;
+	freepages += nr_free_pages;
+	freepages += nr_swap_pages;
+	freepages -= (high_memory - 0x100000) >> 16;
+	freepages -= (newbrk-oldbrk) >> 12;
+	if (freepages < 0)
+		return current->brk;
+#if 0
+	freepages += current->rss;
+	freepages -= oldbrk >> 12;
+	if (freepages < 0)
+		return current->brk;
+#endif
+	/*
+	 * Ok, we have probably got enough memory - let it rip.
+	 */
+	current->brk = brk;
+	zeromap_page_range(oldbrk, newbrk-oldbrk, PAGE_COPY);
+	return brk;
+}
 
 /*
  * This needs some heave checking ...

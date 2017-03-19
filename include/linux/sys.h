@@ -196,7 +196,7 @@ fn_ptr sys_call_table[] = {
 	sys_pipe, 			// #define __NR_pipe		 42
 	sys_times, 			// #define __NR_times		 43
 	sys_prof, 			// #define __NR_prof		 44
-	sys_todo, 			// #define __NR_brk		 45	todo
+	sys_brk, 			// #define __NR_brk		 45
 	sys_setgid, 			// #define __NR_setgid		 46
 	sys_getgid, 			// #define __NR_getgid		 47
 	sys_signal, 			// #define __NR_signal		 48
