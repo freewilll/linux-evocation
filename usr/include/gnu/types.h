@@ -100,11 +100,16 @@ typedef struct __fd_set {
 		"m" (*(__fd_set *) (fdsetp))); \
 	__result; })
 
+#undef	__FD_ZERO
 #define __FD_ZERO(fdsetp) \
+do { \
+	int __d0, __d1; \
 	__asm__ __volatile__("cld ; rep ; stosl" \
-        	:"=m" (*(__fd_set *) (fdsetp)) \
-        	:"a" (0), "c" (__FDSET_LONGS), \
-		"D" ((__fd_set *) (fdsetp)) :"cx","di")
+			:"=m" (*(fd_set*) fdsetp), \
+			  "=&c" (__d0), "=&D" (__d1) \
+			:"a" (0), "1" (__FDSET_LONGS), \
+			"2" ((fd_set*) fdsetp) : "memory"); \
+} while (0)
 
 #endif /* __NFDBITS */
 

@@ -110,16 +110,15 @@ typedef struct fd_set {
 		__result; }))
 
 #undef	__FD_ZERO
-inline void __FD_ZERO(fd_set* fdsetp)
-{
-int d0, d1;
-__asm__ __volatile__(
-	"cld ; rep ; stosl" 
-	:"=&c" (d0), "=&D" (d1)
-	:"a" (0), 
-	 "0" (__FDSET_LONGS), 
-	 "1" ((fd_set *) (fdsetp)));
-}
+#define __FD_ZERO(fdsetp) \
+do { \
+	int __d0, __d1; \
+	__asm__ __volatile__("cld ; rep ; stosl" \
+			:"=m" (*(fd_set*) fdsetp), \
+			  "=&c" (__d0), "=&D" (__d1) \
+			:"a" (0), "1" (__FDSET_LONGS), \
+			"2" ((fd_set*) fdsetp) : "memory"); \
+} while (0)
 
 // TODO WGJA WIP: struct ustat {
 // TODO WGJA WIP: 	daddr_t f_tfree;
