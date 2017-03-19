@@ -55,8 +55,8 @@ extern unsigned long __zero_page(void);
 #define BAD_PAGE __bad_page()
 #define ZERO_PAGE __zero_page()
 
-// TODO WGJA WIP: extern volatile short free_page_ptr; /* used by malloc and tcp/ip. */
-// TODO WGJA WIP: 
+extern volatile short free_page_ptr; /* used by malloc and tcp/ip. */
+
 extern int nr_swap_pages;
 extern int nr_free_pages;
 extern unsigned long free_page_list;
@@ -100,27 +100,27 @@ extern void clear_page_tables(struct task_struct * tsk);
 extern int copy_page_tables(struct task_struct * to);
 extern int clone_page_tables(struct task_struct * to);
 extern int unmap_page_range(unsigned long from, unsigned long size);
-// TODO WGJA WIP: extern int remap_page_range(unsigned long from, unsigned long to, unsigned long size, int mask);
+extern int remap_page_range(unsigned long from, unsigned long to, unsigned long size, int mask);
 extern int zeromap_page_range(unsigned long from, unsigned long size, int mask);
 
 extern void do_wp_page(unsigned long error_code, unsigned long address,
 	struct task_struct *tsk, unsigned long user_esp);
-// TODO WGJA WIP: extern void do_no_page(unsigned long error_code, unsigned long address,
-// TODO WGJA WIP: 	struct task_struct *tsk, unsigned long user_esp);
+extern void do_no_page(unsigned long error_code, unsigned long address,
+	struct task_struct *tsk, unsigned long user_esp);
 
 extern unsigned long paging_init(unsigned long start_mem, unsigned long end_mem);
 extern void mem_init(unsigned long low_start_mem,
 		     unsigned long start_mem, unsigned long end_mem);
 extern void show_mem(void);
 extern void oom(struct task_struct * task);
-// TODO WGJA WIP: extern void si_meminfo(struct sysinfo * val);
+extern void si_meminfo(struct sysinfo * val);
 
 /* swap.c */
 
 extern void swap_free(unsigned long page_nr);
 extern unsigned long swap_duplicate(unsigned long page_nr);
 extern void swap_in(unsigned long *table_ptr);
-// TODO WGJA WIP: extern void si_swapinfo(struct sysinfo * val);
+extern void si_swapinfo(struct sysinfo * val);
 extern void rw_swap_page(int rw, unsigned long nr, char * buf);
 
 /* mmap.c */
