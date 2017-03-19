@@ -29,21 +29,21 @@
 #include <asm/system.h>
 #include <asm/io.h>
 
-// TODO WGJA WIP: #ifdef CONFIG_SCSI
-// TODO WGJA WIP: #ifdef CONFIG_BLK_DEV_SR
-// TODO WGJA WIP: extern int check_cdrom_media_change(int, int);
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: #ifdef CONFIG_BLK_DEV_SD
-// TODO WGJA WIP: extern int check_scsidisk_media_change(int, int);
-// TODO WGJA WIP: extern int revalidate_scsidisk(int, int);
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: #ifdef CONFIG_CDU31A
-// TODO WGJA WIP: extern int check_cdu31a_media_change(int, int);
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: #ifdef CONFIG_MCD
-// TODO WGJA WIP: extern int check_mcd_media_change(int, int);
-// TODO WGJA WIP: #endif
+#ifdef CONFIG_SCSI
+#ifdef CONFIG_BLK_DEV_SR
+extern int check_cdrom_media_change(int, int);
+#endif
+#ifdef CONFIG_BLK_DEV_SD
+extern int check_scsidisk_media_change(int, int);
+extern int revalidate_scsidisk(int, int);
+#endif
+#endif
+#ifdef CONFIG_CDU31A
+extern int check_cdu31a_media_change(int, int);
+#endif
+#ifdef CONFIG_MCD
+extern int check_mcd_media_change(int, int);
+#endif
 
 static struct buffer_head * hash_table[NR_HASH];
 static struct buffer_head * free_list = NULL;
@@ -304,18 +304,18 @@ static inline void remove_from_queues(struct buffer_head * bh)
 	remove_from_free_list(bh);
 }
 
-// TODO WGJA WIP: static inline void put_first_free(struct buffer_head * bh)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	if (!bh || (bh == free_list))
-// TODO WGJA WIP: 		return;
-// TODO WGJA WIP: 	remove_from_free_list(bh);
-// TODO WGJA WIP: /* add to front of free list */
-// TODO WGJA WIP: 	bh->b_next_free = free_list;
-// TODO WGJA WIP: 	bh->b_prev_free = free_list->b_prev_free;
-// TODO WGJA WIP: 	free_list->b_prev_free->b_next_free = bh;
-// TODO WGJA WIP: 	free_list->b_prev_free = bh;
-// TODO WGJA WIP: 	free_list = bh;
-// TODO WGJA WIP: }
+static inline void put_first_free(struct buffer_head * bh)
+{
+	if (!bh || (bh == free_list))
+		return;
+	remove_from_free_list(bh);
+/* add to front of free list */
+	bh->b_next_free = free_list;
+	bh->b_prev_free = free_list->b_prev_free;
+	free_list->b_prev_free->b_next_free = bh;
+	free_list->b_prev_free = bh;
+	free_list = bh;
+}
 
 static inline void put_last_free(struct buffer_head * bh)
 {
