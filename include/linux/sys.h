@@ -205,7 +205,7 @@ fn_ptr sys_call_table[] = {
 	sys_acct, 			// #define __NR_acct		 51
 	sys_phys, 			// #define __NR_phys		 52
 	sys_lock, 			// #define __NR_lock		 53
-	sys_todo, 			// #define __NR_ioctl		 54
+	sys_ioctl, 			// #define __NR_ioctl		 54
 	sys_todo, 			// #define __NR_fcntl		 55	todo
 	sys_mpx, 			// #define __NR_mpx		 56	todo
 	sys_setpgid, 			// #define __NR_setpgid		 57
