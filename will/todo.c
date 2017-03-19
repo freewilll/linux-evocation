@@ -2,6 +2,7 @@
 #include <linux/errno.h>
 #include <linux/types.h>
 #include <linux/tty.h>
+#include <linux/user.h>
 
 // TODO WGJA syscall_trace
 extern "C" void syscall_trace(void)
@@ -11,9 +12,9 @@ extern "C" void syscall_trace(void)
 }
 
 // TODO WGJA syscalls
-extern "C" int sys_todo(void)
+extern "C" int sys_todo(struct pt_regs regs)
 {
-	printk("todo syscall.\n");
+	printk("todo syscall %#x (%d).\n", regs.orig_eax, regs.orig_eax);
 	return -ENOSYS;
 }
 
