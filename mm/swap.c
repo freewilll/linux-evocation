@@ -836,26 +836,26 @@ repeat:
 // TODO WGJA WIP: 	printk("Adding Swap: %dk swap-space\n",j<<2);
 // TODO WGJA WIP: 	return 0;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: void si_swapinfo(struct sysinfo *val)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	unsigned int i, j;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	val->freeswap = val->totalswap = 0;
-// TODO WGJA WIP: 	for (i = 0; i < nr_swapfiles; i++) {
-// TODO WGJA WIP: 		if (!(swap_info[i].flags & SWP_USED))
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		for (j = 0; j < SWAP_BITS; ++j)
-// TODO WGJA WIP: 			switch (swap_info[i].swap_map[j]) {
-// TODO WGJA WIP: 				case 128:
-// TODO WGJA WIP: 					continue;
-// TODO WGJA WIP: 				case 0:
-// TODO WGJA WIP: 					++val->freeswap;
-// TODO WGJA WIP: 				default:
-// TODO WGJA WIP: 					++val->totalswap;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	val->freeswap <<= PAGE_SHIFT;
-// TODO WGJA WIP: 	val->totalswap <<= PAGE_SHIFT;
-// TODO WGJA WIP: 	return;
-// TODO WGJA WIP: }
+
+void si_swapinfo(struct sysinfo *val)
+{
+	unsigned int i, j;
+
+	val->freeswap = val->totalswap = 0;
+	for (i = 0; i < nr_swapfiles; i++) {
+		if (!(swap_info[i].flags & SWP_USED))
+			continue;
+		for (j = 0; j < SWAP_BITS; ++j)
+			switch (swap_info[i].swap_map[j]) {
+				case 128:
+					continue;
+				case 0:
+					++val->freeswap;
+				default:
+					++val->totalswap;
+			}
+	}
+	val->freeswap <<= PAGE_SHIFT;
+	val->totalswap <<= PAGE_SHIFT;
+	return;
+}

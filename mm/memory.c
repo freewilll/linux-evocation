@@ -1093,31 +1093,31 @@ void mem_init(unsigned long start_low_mem,
 	return;
 }
 
-// TODO WGJA WIP: void si_meminfo(struct sysinfo *val)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	i = high_memory >> PAGE_SHIFT;
-// TODO WGJA WIP: 	val->totalram = 0;
-// TODO WGJA WIP: 	val->freeram = 0;
-// TODO WGJA WIP: 	val->sharedram = 0;
-// TODO WGJA WIP: 	val->bufferram = buffermem;
-// TODO WGJA WIP: 	while (i-- > 0)  {
-// TODO WGJA WIP: 		if (mem_map[i] & MAP_PAGE_RESERVED)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		val->totalram++;
-// TODO WGJA WIP: 		if (!mem_map[i]) {
-// TODO WGJA WIP: 			val->freeram++;
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		val->sharedram += mem_map[i]-1;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	val->totalram <<= PAGE_SHIFT;
-// TODO WGJA WIP: 	val->freeram <<= PAGE_SHIFT;
-// TODO WGJA WIP: 	val->sharedram <<= PAGE_SHIFT;
-// TODO WGJA WIP: 	return;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+void si_meminfo(struct sysinfo *val)
+{
+	int i;
+
+	i = high_memory >> PAGE_SHIFT;
+	val->totalram = 0;
+	val->freeram = 0;
+	val->sharedram = 0;
+	val->bufferram = buffermem;
+	while (i-- > 0)  {
+		if (mem_map[i] & MAP_PAGE_RESERVED)
+			continue;
+		val->totalram++;
+		if (!mem_map[i]) {
+			val->freeram++;
+			continue;
+		}
+		val->sharedram += mem_map[i]-1;
+	}
+	val->totalram <<= PAGE_SHIFT;
+	val->freeram <<= PAGE_SHIFT;
+	val->sharedram <<= PAGE_SHIFT;
+	return;
+}
+
 
 /* This handles a generic mmap of a disk file */
 void file_mmap_nopage(int error_code, struct vm_area_struct * area, unsigned long address)

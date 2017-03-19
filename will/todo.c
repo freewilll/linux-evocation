@@ -81,13 +81,6 @@ extern "C" int sys_swapoff(void)
 	return -ENOSYS;
 }
 
-// TODO WGJA sys_sysinfo 
-extern "C" int sys_sysinfo(void)
-{
-	printk("TODO: sys_sysinfo\n");
-	return -ENOSYS;
-}
-
 // TODO WGJA sys_ipc 
 extern "C" int sys_ipc(void)
 {
