@@ -25,13 +25,6 @@ extern "C" int sys_alarm(void)
 	return -ENOSYS;
 }
 
-// TODO WGJA sys_fcntl 
-extern "C" int sys_fcntl(void)
-{
-	printk("TODO: sys_fcntl\n");
-	return -ENOSYS;
-}
-
 // TODO WGJA sys_select 
 extern "C" int sys_select(void)
 {
@@ -88,35 +81,6 @@ extern "C" int sys_modify_ldt(void)
 	return -ENOSYS;
 }
 
-
-// kernel/kernel.o:(.data+0xb48): undefined reference to `sys_ptrace'
-// kernel/kernel.o:(.data+0xb4c): undefined reference to `sys_alarm'
-// kernel/kernel.o:(.data+0xbbc): undefined reference to `sys_fcntl'
-// kernel/kernel.o:(.data+0xc28): undefined reference to `sys_select'
-// kernel/kernel.o:(.data+0xc38): undefined reference to `sys_uselib'
-// kernel/kernel.o:(.data+0xc3c): undefined reference to `sys_swapon'
-// kernel/kernel.o:(.data+0xc78): undefined reference to `sys_socketcall'
-// kernel/kernel.o:(.data+0xc80): undefined reference to `sys_setitimer'
-// kernel/kernel.o:(.data+0xc84): undefined reference to `sys_getitimer'
-// kernel/kernel.o:(.data+0xcac): undefined reference to `sys_swapoff'
-// kernel/kernel.o:(.data+0xcb0): undefined reference to `sys_sysinfo'
-// kernel/kernel.o:(.data+0xcb4): undefined reference to `sys_ipc'
-// kernel/kernel.o:(.data+0xccc): undefined reference to `sys_modify_ldt'
-
-// // TODO WGJA syscall_trace
-// extern "C" void syscall_trace(void)
-// {
-// 	printk("TODO: syscall_trace\n");
-// 	for (;;);
-// }
-
-// // TODO WGJA syscalls
-// extern "C" int sys_todo(struct pt_regs regs)
-// {
-// 	printk("todo syscall %#x (%d).\n", regs.orig_eax, regs.orig_eax);
-// 	return -ENOSYS;
-// }
-
 // TODO WGJA move sound_mem_init to real thing
 void sound_mem_init(void)
 {
@@ -155,4 +119,12 @@ extern "C" void math_emulate(long arg)
 int core_dump(long signr, struct pt_regs * regs)
 {
 	printk("TODO WGJA core_dump\n");
+}
+
+
+// TODO WGJA sock_fcntl
+int sock_fcntl(struct file *filp, unsigned int cmd, unsigned long arg)
+{
+	printk("// TODO WGJA sock_fcntl\n");
+	return(-EINVAL);
 }
