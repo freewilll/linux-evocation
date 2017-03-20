@@ -531,8 +531,9 @@ void init(void)
 	system_utsname.machine[1] = '0' + x86;
 	printf(linux_banner);
 
-	i = execve("/hello-dyn",argv_rc,envp_rc);
-	for(;;) idle();
+	// i = execve("/bin/sh",argv_rc,envp_rc);
+	// printf("Something is wrong. execve result: %d\n", i);
+	// for(;;) idle();
 
 	// execve("/usr/root/a.out",argv_rc,envp_rc);
 	// printk("execve done\n");
@@ -541,52 +542,40 @@ void init(void)
 	// // printf("TODO: rest of init()\n");
 	// // for(;;) idle();
 
-	// printf("Here we go (1)!\n");
-	// execve("/etc/init",argv_init,envp_init);
-	// printf("Here we go (2)!\n");
-	// execve("/bin/init",argv_init,envp_init);
-	// printf("Here we go (3)!\n");
-	// execve("/sbin/init",argv_init,envp_init);
-	// /* if this fails, fall through to original stuff */
+	execve("/etc/init",argv_init,envp_init);
+	execve("/bin/init",argv_init,envp_init);
+	execve("/sbin/init",argv_init,envp_init);
+	/* if this fails, fall through to original stuff */
 
-	// printf("Here we go (4)!\n");
-	// if (!(pid=fork())) {
-	// 	close(0);
-	// 	printf("Here we go (5)!\n");
-	// 	if (open("/etc/rc",O_RDONLY,0))
-	// 		exit(1);
-	// 	printf("Here we go (6a)!\n");
-	// 	execve("/usr/root/a.out",argv_rc,envp_rc);
-	// 	printf("Here we go (6b)!\n");
-	// 	// execve("/bin/sh",argv_rc,envp_rc);
-	// 	exit(2);
-	// }
-	// if (pid>0)
-	// 	while (pid != wait(&i))
-	// 		/* nothing */;
+	if (!(pid=fork())) {
+		close(0);
+		if (open("/etc/rc",O_RDONLY,0))
+			exit(1);
+		execve("/bin/sh",argv_rc,envp_rc);
+		exit(2);
+	}
+	if (pid>0)
+		while (pid != wait(&i))
+			/* nothing */;
 
-	// printf("Here we go (7)!\n");
-
-	// while (1) {
-	// 	if ((pid = fork()) < 0) {
-	// 		printf("Fork failed in init\n\r");
-	// 		continue;
-	// 	}
-	// 	if (!pid) {
-	// 		close(0);close(1);close(2);
-	// 		setsid();
-	// 		(void) open("/dev/tty1",O_RDWR,0);
-	// 		(void) dup(0);
-	// 		(void) dup(0);
-	// 		printf("Here we go (8)!\n");
-	// 		exit(execve("/bin/sh",argv,envp));
-	// 	}
-	// 	while (1)
-	// 		if (pid == wait(&i))
-	// 			break;
-	// 	printf("\n\rchild %d died with code %04x\n\r",pid,i);
-	// 	for(;;) idle();								// WGJA
-	// 	sync();
-	// }
-	// exit(0);
+	while (1) {
+		if ((pid = fork()) < 0) {
+			printf("Fork failed in init\n\r");
+			continue;
+		}
+		if (!pid) {
+			close(0);close(1);close(2);
+			setsid();
+			(void) open("/dev/tty1",O_RDWR,0);
+			(void) dup(0);
+			(void) dup(0);
+			exit(execve("/bin/sh",argv,envp));
+		}
+		while (1)
+			if (pid == wait(&i))
+				break;
+		printf("\n\rchild %d died with code %04x\n\r",pid,i);
+		sync();
+	}
+	exit(0);
 }
