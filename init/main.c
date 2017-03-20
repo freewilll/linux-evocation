@@ -531,7 +531,7 @@ void init(void)
 	system_utsname.machine[1] = '0' + x86;
 	printf(linux_banner);
 
-	i = execve("/hello",argv_rc,envp_rc);
+	i = execve("/hello-dyn",argv_rc,envp_rc);
 	for(;;) idle();
 
 	// execve("/usr/root/a.out",argv_rc,envp_rc);

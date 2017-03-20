@@ -39,13 +39,6 @@ extern "C" int sys_select(void)
 	return -ENOSYS;
 }
 
-// TODO WGJA sys_uselib 
-extern "C" int sys_uselib(void)
-{
-	printk("TODO: sys_uselib\n");
-	return -ENOSYS;
-}
-
 // TODO WGJA sys_swapon 
 extern "C" int sys_swapon(void)
 {

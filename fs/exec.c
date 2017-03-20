@@ -218,37 +218,37 @@ static int open_inode(struct inode * inode, int mode)
 // TODO WGJA WIP: 	iput(inode);
 // TODO WGJA WIP: 	return has_dumped;
 // TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Note that a shared library must be both readable and executable due to
-// TODO WGJA WIP:  * security reasons.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Also note that we take the address to load from from the file itself.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: extern "C" int sys_uselib(const char * library)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int fd, retval;
-// TODO WGJA WIP: 	struct file * file;
-// TODO WGJA WIP: 	struct linux_binfmt * fmt;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	fd = sys_open(library, 0, 0);
-// TODO WGJA WIP: 	if (fd < 0)
-// TODO WGJA WIP: 		return fd;
-// TODO WGJA WIP: 	file = current->filp[fd];
-// TODO WGJA WIP: 	retval = -ENOEXEC;
-// TODO WGJA WIP: 	if (file && file->f_inode && file->f_op && file->f_op->read) {
-// TODO WGJA WIP: 		fmt = formats;
-// TODO WGJA WIP: 		do {
-// TODO WGJA WIP: 			int (*fn)(int) = fmt->load_shlib;
-// TODO WGJA WIP: 			if (!fn)
-// TODO WGJA WIP: 				break;
-// TODO WGJA WIP: 			retval = fn(fd);
-// TODO WGJA WIP: 			fmt++;
-// TODO WGJA WIP: 		} while (retval == -ENOEXEC);
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	sys_close(fd);
-// TODO WGJA WIP:   	return retval;
-// TODO WGJA WIP: }
+
+/*
+ * Note that a shared library must be both readable and executable due to
+ * security reasons.
+ *
+ * Also note that we take the address to load from from the file itself.
+ */
+extern "C" int sys_uselib(const char * library)
+{
+	int fd, retval;
+	struct file * file;
+	struct linux_binfmt * fmt;
+
+	fd = sys_open(library, 0, 0);
+	if (fd < 0)
+		return fd;
+	file = current->filp[fd];
+	retval = -ENOEXEC;
+	if (file && file->f_inode && file->f_op && file->f_op->read) {
+		fmt = formats;
+		do {
+			int (*fn)(int) = fmt->load_shlib;
+			if (!fn)
+				break;
+			retval = fn(fd);
+			fmt++;
+		} while (retval == -ENOEXEC);
+	}
+	sys_close(fd);
+  	return retval;
+}
 
 /*
  * create_tables() parses the env- and arg-strings in new user
