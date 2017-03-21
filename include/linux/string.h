@@ -31,23 +31,24 @@ extern inline char * strcpy(char * dest,const char *src)
 	return dest;
 }
 
-// TODO WGJA WIP: extern inline char * strncpy(char * dest,const char *src,size_t count)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: __asm__("cld\n"
-// TODO WGJA WIP: 	"1:\tdecl %2\n\t"
-// TODO WGJA WIP: 	"js 2f\n\t"
-// TODO WGJA WIP: 	"lodsb\n\t"
-// TODO WGJA WIP: 	"stosb\n\t"
-// TODO WGJA WIP: 	"testb %%al,%%al\n\t"
-// TODO WGJA WIP: 	"jne 1b\n\t"
-// TODO WGJA WIP: 	"rep\n\t"
-// TODO WGJA WIP: 	"stosb\n"
-// TODO WGJA WIP: 	"2:"
-// TODO WGJA WIP: 	: /* no output */
-// TODO WGJA WIP: 	:"S" (src),"D" (dest),"c" (count):"si","di","ax","cx","memory");
-// TODO WGJA WIP: return dest;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+static inline char * strncpy(char * dest,const char *src,size_t count)
+{
+int d0, d1, d2, d3;
+__asm__ __volatile__(
+	"1:\tdecl %2\n\t"
+	"js 2f\n\t"
+	"lodsb\n\t"
+	"stosb\n\t"
+	"testb %%al,%%al\n\t"
+	"jne 1b\n\t"
+	"rep\n\t"
+	"stosb\n"
+	"2:"
+	: "=&S" (d0), "=&D" (d1), "=&c" (d2), "=&a" (d3)
+	:"0" (src),"1" (dest),"2" (count) : "memory");
+return dest;
+}
+
 // TODO WGJA WIP: extern inline char * strcat(char * dest,const char * src)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: __asm__("cld\n\t"

@@ -68,7 +68,7 @@ bool 'Mitsumi CDROM driver support' CONFIG_MCD n
 *
 bool 'Standard (minix) fs support' CONFIG_MINIX_FS y
 bool 'Extended fs support' CONFIG_EXT_FS n
-bool 'Second extended fs support' CONFIG_EXT2_FS n
+bool 'Second extended fs support' CONFIG_EXT2_FS y
 bool 'xiafs filesystem support' CONFIG_XIA_FS n
 bool 'msdos fs support' CONFIG_MSDOS_FS n
 bool '/proc filesystem support' CONFIG_PROC_FS n

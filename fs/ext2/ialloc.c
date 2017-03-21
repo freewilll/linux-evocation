@@ -32,28 +32,30 @@
 
 #include <asm/bitops.h>
 
-static inline int find_first_zero_bit (unsigned long * addr, unsigned size)
+static __inline__ int find_first_zero_bit(void * addr, unsigned size)
 {
+	int d0, d1, d2;
 	int res;
+
 	if (!size)
 		return 0;
-	__asm__("
-		cld
-		movl $-1,%%eax
-		repe; scasl
-		je 1f
-		subl $4,%%edi
-		movl (%%edi),%%eax
-		notl %%eax
-		bsfl %%eax,%%edx
-		jmp 2f
-1:		xorl %%edx,%%edx
-2:		subl %%ebx,%%edi
-		shll $3,%%edi
-		addl %%edi,%%edx"
-		: "=d" (res)
-		:"c" ((size + 31) >> 5), "D" (addr), "b" (addr)
-		: "ax", "bx", "cx", "di");
+
+	__asm__ __volatile__(
+		"		cld\n\t"
+		"		movl $-1,%%eax\n\t"
+		"		repe; scasl\n\t"
+		"		je 1f\n\t"
+		"		subl $4,%%edi\n\t"
+		"		movl (%%edi),%%eax\n\t"
+		"		notl %%eax\n\t"
+		"		bsfl %%eax,%%edx\n\t"
+		"		jmp 2f\n\t"
+		"1:		xorl %%edx,%%edx\n\t"
+		"2:		subl %%ebx,%%edi\n\t"
+		"		shll $3,%%edi\n\t"
+		"		addl %%edi,%%edx\n\t"
+		:"=d" (res), "=&c" (d0), "=&D" (d1), "=&b" (d2)
+		:"1" ((size + 31) >> 5), "2" (addr), "3" (addr));
 	return res;
 }
 

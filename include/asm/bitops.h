@@ -39,20 +39,20 @@ extern __inline__ int clear_bit(int nr, void * addr)
 	return oldbit;
 }
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This routine doesn't need to be atomic, but it's faster to code it
-// TODO WGJA WIP:  * this way.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: extern __inline__ int test_bit(int nr, void * addr)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int oldbit;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	__asm__ __volatile__("btl %2,%1\n\tsbbl %0,%0"
-// TODO WGJA WIP: 		:"=r" (oldbit)
-// TODO WGJA WIP: 		:"m" (ADDR),"r" (nr));
-// TODO WGJA WIP: 	return oldbit;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+/*
+ * This routine doesn't need to be atomic, but it's faster to code it
+ * this way.
+ */
+extern __inline__ int test_bit(int nr, void * addr)
+{
+	int oldbit;
+
+	__asm__ __volatile__("btl %2,%1\n\tsbbl %0,%0"
+		:"=r" (oldbit)
+		:"m" (ADDR),"r" (nr));
+	return oldbit;
+}
+
 // TODO WGJA WIP: #else
 // TODO WGJA WIP: /*
 // TODO WGJA WIP:  * For the benefit of those who are trying to port Linux to another

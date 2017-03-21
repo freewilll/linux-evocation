@@ -11,6 +11,7 @@
 #include <linux/config.h>
 #include <linux/sched.h>
 #include <linux/minix_fs.h>
+#include <linux/ext2_fs.h>
 #include <linux/fs.h>
 #include <linux/kernel.h>
 #include <linux/string.h>
@@ -103,7 +104,8 @@ long rd_init(long mem_start, int length)
 void rd_load(void)
 {
 	struct buffer_head *bh;
-	struct minix_super_block s;
+	struct minix_super_block msb;
+	struct ext2_super_block esb;
 	int		block, tries;
 	int		i = 1;
 	int		nblocks;
@@ -124,6 +126,8 @@ void rd_load(void)
 	 * uses the enire diskette as a file system, so in that
 	 * case, we have to look at block 0.  Be intelligent about
 	 * this, and check both... - FvK
+	 *
+	 * Also look in multiples of 256 to allow for 1 MB images.
 	 */
 	for (tries = 0; tries < 1536; tries += 256) {
 		block = tries;
@@ -133,16 +137,26 @@ void rd_load(void)
 			return;
 		}
 
-		/* This is silly- why do we require it to be a MINIX FS? */
-		*((struct minix_super_block *) &s) =
+		*((struct minix_super_block *) &msb) =
 			*((struct minix_super_block *) bh->b_data);
+
+		*((struct ext2_super_block *) &esb) =
+			*((struct ext2_super_block *) bh->b_data);
+
 		brelse(bh);
-		nblocks = s.s_nzones << s.s_log_zone_size;
-		if (s.s_magic != MINIX_SUPER_MAGIC) {
+		
+		if (msb.s_magic == MINIX_SUPER_MAGIC) {
+			nblocks = msb.s_nzones << msb.s_log_zone_size;
+			printk("Found minix ramdisk at block %d\n", block);
+		}
+		else if (esb.s_magic == EXT2_SUPER_MAGIC || esb.s_magic == EXT2_OLD_SUPER_MAGIC) {
+			nblocks = esb.s_blocks_count;
+			printk("Found ext2 ramdisk at block %d\n", block);
+		}
+		else {
 			printk("RAMDISK: trying old-style RAM image.\n");
 			continue;
 		}
-		printk("Found ramdisk at block %d\n", block);
 
 		if (nblocks > (rd_length >> BLOCK_SIZE_BITS)) {
 			printk("RAMDISK: image too big! (%d/%d blocks)\n",
