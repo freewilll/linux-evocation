@@ -6,10 +6,10 @@
 typedef unsigned int size_t;
 #endif
 
-// TODO WGJA WIP: #ifndef _SSIZE_T
-// TODO WGJA WIP: #define _SSIZE_T
-// TODO WGJA WIP: typedef int ssize_t;
-// TODO WGJA WIP: #endif
+#ifndef _SSIZE_T
+#define _SSIZE_T
+typedef int ssize_t;
+#endif
 
 #ifndef _TIME_T
 #define _TIME_T
@@ -21,10 +21,10 @@ typedef long time_t;
 typedef long clock_t;
 #endif
 
-// TODO WGJA WIP: #ifndef _PTRDIFF_T
-// TODO WGJA WIP: #define _PTRDIFF_T
-// TODO WGJA WIP: typedef int ptrdiff_t;
-// TODO WGJA WIP: #endif
+#ifndef _PTRDIFF_T
+#define _PTRDIFF_T
+typedef int ptrdiff_t;
+#endif
 
 #ifndef NULL
 #define NULL 0
@@ -34,15 +34,15 @@ typedef int pid_t;
 typedef unsigned short uid_t;
 typedef unsigned short gid_t;
 typedef unsigned short dev_t;
-// TODO WGJA WIP: #ifdef OLD_LINUX
-// TODO WGJA WIP: typedef unsigned short ino_t;
-// TODO WGJA WIP: #else
-// TODO WGJA WIP: typedef unsigned long ino_t;
-// TODO WGJA WIP: #endif
+#ifdef OLD_LINUX
+typedef unsigned short ino_t;
+#else
+typedef unsigned long ino_t;
+#endif
 typedef unsigned short mode_t;
 typedef unsigned short umode_t;
 typedef unsigned short nlink_t;
-// TODO WGJA WIP: typedef int daddr_t;
+typedef int daddr_t;
 typedef long off_t;
 
 /* bsd */
@@ -63,16 +63,16 @@ typedef unsigned char cc_t;
 typedef unsigned int speed_t;
 typedef unsigned long tcflag_t;
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * This allows for 256 file descriptors: if NR_OPEN is ever grown beyond that
-// TODO WGJA WIP:  * you'll have to change this too. But 256 fd's seem to be enough even for such
-// TODO WGJA WIP:  * "real" unices like SunOS, so hopefully this is one limit that doesn't have
-// TODO WGJA WIP:  * to be changed.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Note that POSIX wants the FD_CLEAR(fd,fdsetp) defines to be in <sys/time.h>
-// TODO WGJA WIP:  * (and thus <linux/time.h>) - but this is a more logical place for them. Solved
-// TODO WGJA WIP:  * by having dummy defines in <sys/time.h>.
-// TODO WGJA WIP:  */
+/*
+ * This allows for 256 file descriptors: if NR_OPEN is ever grown beyond that
+ * you'll have to change this too. But 256 fd's seem to be enough even for such
+ * "real" unices like SunOS, so hopefully this is one limit that doesn't have
+ * to be changed.
+ *
+ * Note that POSIX wants the FD_CLEAR(fd,fdsetp) defines to be in <sys/time.h>
+ * (and thus <linux/time.h>) - but this is a more logical place for them. Solved
+ * by having dummy defines in <sys/time.h>.
+ */
 
 /*
  * Those macros may have been defined in <gnu/types.h>. But we always
@@ -120,11 +120,11 @@ do { \
 			"2" ((fd_set*) fdsetp) : "memory"); \
 } while (0)
 
-// TODO WGJA WIP: struct ustat {
-// TODO WGJA WIP: 	daddr_t f_tfree;
-// TODO WGJA WIP: 	ino_t f_tinode;
-// TODO WGJA WIP: 	char f_fname[6];
-// TODO WGJA WIP: 	char f_fpack[6];
-// TODO WGJA WIP: };
+struct ustat {
+	daddr_t f_tfree;
+	ino_t f_tinode;
+	char f_fname[6];
+	char f_fpack[6];
+};
 
 #endif
