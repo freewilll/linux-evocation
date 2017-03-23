@@ -86,11 +86,23 @@ static struct hd_struct hd[MAX_HD<<6]={{0,0},};
 static int hd_sizes[MAX_HD<<6] = {0, };
 static int hd_blocksizes[MAX_HD<<6] = {0, };
 
-#define port_read(port,buf,nr) \
-__asm__("cld;rep;insw": :"d" (port),"D" (buf),"c" (nr):"cx","di")
+static inline void port_read(int port, char* buf, int nr)
+{
+	int d0, d1, d2;
+	__asm__ __volatile__(
+		"cld;rep;insw"
+		: "=&d" (d0), "=D" (d1),  "=c" (d2)
+		: "0" (port), "1" (buf), "2" (nr));
+}
 
-#define port_write(port,buf,nr) \
-__asm__("cld;rep;outsw": :"d" (port),"S" (buf),"c" (nr):"cx","si")
+static inline void port_write(int port, char* buf, int nr)
+{
+	int d0, d1, d2;
+	__asm__ __volatile__(
+		"cld;rep;outsw"
+		: "=&d" (d0), "=S" (d1),  "=c" (d2)
+		: "0" (port), "1" (buf), "2" (nr));
+}
 
 #if (HD_DELAY > 0)
 unsigned long read_timer(void)
