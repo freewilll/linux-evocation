@@ -128,3 +128,24 @@ int sock_fcntl(struct file *filp, unsigned int cmd, unsigned long arg)
 	printk("// TODO WGJA sock_fcntl\n");
 	return(-EINVAL);
 }
+
+// TODO WGJA lp_init
+long lp_init(long mem_start)
+{
+	printk("TODO WGJA lp_init\n");
+	return mem_start;
+}
+
+// TODO WGJA mouse_init
+long mouse_init(unsigned long mem_start)
+{
+	printk("TODO WGJA mouse_init\n");
+	return mem_start;
+}
+
+// TODO WGJA soundcard_init
+long soundcard_init(long mem_start)
+{
+	printk("TODO WGJA soundcard_init\n");
+	return mem_start;
+}
