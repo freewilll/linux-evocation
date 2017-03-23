@@ -86,7 +86,6 @@ int ext2_check_dir_entry (char * function, struct inode * dir,
 			function, dir ? dir->i_dev : 0, dir->i_ino, error_msg);
 		printk ("offset=%d, inode=%d, rec_len=%d, name_len=%d\n",
 			offset, de->inode, de->rec_len,	de->name_len);
-		panic("ext2_check_dir_entry WGJA giving up\n");
 	}
 	return error_msg == NULL ? 1 : 0;
 }
