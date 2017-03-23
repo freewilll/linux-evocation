@@ -269,8 +269,6 @@ extern "C" int do_signal(unsigned long oldmask, struct pt_regs * regs)
 		}
 		if (sa->sa_handler == SIG_DFL) {
 			if (current->pid == 1) {
-				// TODO WGJA remove Eek, init got a signal
-				printk("Eek, init got a signal: %d\n", signr);
 				continue;
 			}
 			switch (signr) {
