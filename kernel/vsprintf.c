@@ -259,7 +259,7 @@ extern "C" int vsprintf(char *buf, const char *fmt, va_list args)
 	return str-buf;
 }
 
-int sprintf(char * buf, const char *fmt, ...)
+extern "C" int sprintf(char * buf, const char *fmt, ...)
 {
 	va_list args;
 	int i;

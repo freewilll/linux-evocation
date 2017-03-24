@@ -23,7 +23,7 @@ extern void math_error(void);
 void panic(const char * str);
 volatile void do_exit(long error_code);
 unsigned long simple_strtoul(const char *,char **,unsigned int);
-int sprintf(char * buf, const char * fmt, ...);
+extern "C" int sprintf(char * buf, const char * fmt, ...);
 
 extern "C" int printk(const char * fmt, ...);
 

@@ -78,12 +78,14 @@ int proc_match(int len,const char * name,struct proc_dir_entry * de)
 		return 1;
 	if (de->namelen != len)
 		return 0;
-	__asm__("cld\n\t"
+
+	int d0, d1, d2;
+	__asm__ __volatile__(
+		"cld\n\t"
 		"repe ; cmpsb\n\t"
 		"setz %%al"
-		:"=a" (same)
-		:"0" (0),"S" ((long) name),"D" ((long) de->name),"c" (len)
-		:"cx","di","si");
+		:"=a" (same), "=&S" (d0), "=&D" (d1), "=&c" (d2)
+		:"0" (0), "1" ((long) name),"2" ((long) de->name),"3" (len));
 	return same;
 }
 

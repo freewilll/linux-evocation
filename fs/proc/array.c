@@ -12,6 +12,7 @@
 #include <linux/sched.h>
 #include <linux/kernel.h>
 #include <linux/tty.h>
+#include <linux/string.h>
 
 #include <asm/segment.h>
 #include <asm/io.h>
