@@ -86,27 +86,12 @@ void sound_mem_init(void)
 {
 }
 
-// TODO WGJA rs_open
-int rs_open(struct tty_struct *tty, struct file * filp)
-{
-	printk("// TODO WGJA rs_open\n");
-	tty->write = con_write;
-	return 0;
-}
-
 // TODO WGJA pty_open
 int pty_open(struct tty_struct *tty, struct file * filp)
 {
 	printk("// TODO WGJA pty_open\n");
 	tty->write = con_write;
 	return 0;
-}
-
-// TODO WGJA rs_init
-long rs_init(long kmem_start)
-{
-	printk("TODO WGJA rs_init\n");
-	return kmem_start;
 }
 
 // TODO WGJA math_emulate
