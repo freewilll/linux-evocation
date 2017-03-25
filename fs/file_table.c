@@ -43,6 +43,7 @@ static void put_last_free(struct file *file)
 void grow_files(void)
 {
 	struct file * file;
+	struct file * prev_file;
 	int i;
 
 	file = (struct file*) __get_free_page(GFP_BUFFER);
@@ -52,8 +53,15 @@ void grow_files(void)
 
 	nr_files+=i= PAGE_SIZE/sizeof(struct file);
 
-	if (!first_file)
-		file->f_next = file->f_prev = first_file = file++, i--;
+	if (!first_file) {
+		prev_file = file;
+		file->f_next = 0;
+		file->f_prev = 0;
+		first_file = file++;
+		first_file->f_prev = prev_file;
+		first_file->f_next = prev_file;
+		i--;
+	}
 
 	for (; i ; i--)
 		insert_file_free(file++);
