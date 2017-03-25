@@ -73,7 +73,7 @@ WARNING_CFLAGS=\
 	-Wno-sequence-point \
 	-Wno-pointer-arith \
 	-Wno-format
-CFLAGS= -Wall $(WARNING_CFLAGS) -O6 -fomit-frame-pointer -x c++ -fno-stack-protector -nostdinc
+CFLAGS= -Wall $(WARNING_CFLAGS) -O3 -fomit-frame-pointer -x c++ -fno-stack-protector -fno-tree-loop-distribute-patterns -nostdinc
 
 ifdef CONFIG_M486
 CFLAGS := $(CFLAGS) -march=i486
