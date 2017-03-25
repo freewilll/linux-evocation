@@ -18,7 +18,7 @@
 
 /* I don't like nested includes, but the string functions are used too often */
 #if defined(HAVE_STRING_H) || defined(STDC_HEADERS)
-#  include <string.h>
+#  include "string.h"
 #  define memzero(s, n)     memset ((s), 0, (n))
 #else
 #  include <strings.h>

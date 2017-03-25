@@ -50,7 +50,7 @@ Sources:
 #include <asm/system.h>
 #include <asm/segment.h>
 #include <asm/io.h>
-#include <errno.h>
+#include <linux/errno.h>
 #include <linux/fcntl.h>
 #include <linux/in.h>
 #include <linux/interrupt.h>

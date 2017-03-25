@@ -23,8 +23,6 @@ static char rcsid[] = "$Id: unzip.c,v 0.9 1993/02/10 16:07:22 jloup Exp $";
 #include "gzip.h"
 #include "crypt.h"
 
-#include <stdio.h>
-
 /* PKZIP header definitions */
 #define LOCSIG 0x04034b50L      /* four-byte lead-in (lsb first) */
 #define LOCFLG 6                /* offset of bit flag */

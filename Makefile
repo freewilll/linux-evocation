@@ -77,7 +77,7 @@ WARNING_CFLAGS=\
 	-Wno-endif-labels \
 	-Wno-overflow \
 	-Wno-maybe-uninitialized
-CFLAGS= -Wall $(WARNING_CFLAGS) -O3 -fomit-frame-pointer -x c++ -fno-stack-protector -fno-tree-loop-distribute-patterns -nostdinc
+CFLAGS= -Wall $(WARNING_CFLAGS) -O3 -fomit-frame-pointer -x c++ -fno-stack-protector -fno-tree-loop-distribute-patterns
 
 ifdef CONFIG_M486
 CFLAGS := $(CFLAGS) -march=i486
@@ -103,6 +103,7 @@ HOSTCC		=gcc -I$(HPATH) -m32
 CC		=$(CROSS_COMPILE)gcc -D__KERNEL__ -I$(HPATH)
 MAKE		=make
 CPP		=$(CC) -E -Wno-extra-tokens
+HOSTCPP		=$(HOSTCC) -E -Wno-extra-tokens
 AR		=$(CROSS_COMPILE)ar
 STRIP		=$(CROSS_COMPILE)strip
 OBJCOPY		=$(CROSS_COMPILE)objcopy -O binary -R .note -R .comment -S
@@ -250,7 +251,8 @@ backup: mrproper
 depend dep:
 	touch tools/version.h
 	for i in init/*.c;do echo -n "init/";$(CPP) -M $$i;done > .depend~
-	for i in tools/*.c;do echo -n "tools/";$(CPP) -M $$i;done >> .depend~
+	echo -n "tools/";$(CPP) -M tools/version.c >> .depend~
+	echo -n "tools/";$(HOSTCPP) -M tools/build.c >> .depend~
 	for i in $(SUBDIRS); do (cd $$i && $(MAKE) dep) || exit; done
 	rm -f tools/version.h
 	mv .depend~ .depend

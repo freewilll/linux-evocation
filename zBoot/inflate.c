@@ -14,11 +14,9 @@ static char rcsid[] = "$Id: inflate.c,v 0.10 1993/02/04 13:21:06 jloup Exp $";
 
 #include "gzip.h"
 #define slide window
-
-#if defined(STDC_HEADERS) || defined(HAVE_STDLIB_H)
-#  include <sys/types.h>
-#  include <stdlib.h>
-#endif
+#include "linux/types.h"
+#include "string.h"
+#include "misc.h"
 
 struct huft {
   uch e;                /* number of extra bits or operation */

@@ -6,7 +6,7 @@ OBJCOPY = $(CROSS_COMPILE)objcopy -O binary -R .note -R .comment -R .eh_frame -S
 
 zOBJECTS = $(HEAD) inflate.o unzip.o misc.o string.o
 
-CFLAGS := -O6 -DSTDC_HEADERS $(TEST) -fno-stack-protector -fno-builtin
+CFLAGS := -O6 -DSTDC_HEADERS $(TEST) -fno-stack-protector -fno-builtin -fno-tree-loop-distribute-patterns
 
 ZIMAGE_OFFSET = 0x0
 ZLDFLAGS = -e startup_32

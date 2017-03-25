@@ -25,10 +25,10 @@
 #include <stdlib.h>	/* contains exit */
 #include <sys/types.h>	/* unistd.h needs this */
 #include <sys/stat.h>
-#include <unistd.h>	/* contains read/write */
+#include <unistd.h>
 #include <fcntl.h>
-#include <linux/config.h>
-#include <linux/a.out.h>
+#include "linux/config.h"
+#include "linux/a.out.h"
 
 #define MINIX_HEADER 32
 #define GCC_HEADER 1024

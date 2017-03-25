@@ -8,6 +8,7 @@
  * puts by Nick Holloway 1993
  */
 
+#include "string.h"
 #include "gzip.h"
 #include "lzw.h"
 
@@ -140,24 +141,6 @@ static void puts(char *s)
 	SCREEN_INFO.orig_x = x;
 	SCREEN_INFO.orig_y = y;
 }
-
-__ptr_t memset(__ptr_t s, int c, size_t n)
-{
-	int i;
-	char *ss = (char*)s;
-
-	for (i=0;i<n;i++) ss[i] = c;
-}
-
-__ptr_t memcpy(__ptr_t __dest, __const __ptr_t __src,
-			    size_t __n)
-{
-	int i;
-	char *d = (char *)__dest, *s = (char *)__src;
-
-	for (i=0;i<__n;i++) d[i] = s[i];
-}
-
 extern ulg crc_32_tab[];   /* crc table, defined below */
 
 /* ===========================================================================

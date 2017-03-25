@@ -70,8 +70,8 @@ make one yourself.  The wiring is:
 #include <linux/if_ether.h>
 #include <asm/system.h>
 #include <asm/io.h>
-#include <netinet/in.h>
-#include <errno.h>
+#include <linux/in.h>
+#include <linux/errno.h>
 
 #include "dev.h"
 #include "eth.h"
