@@ -85,6 +85,7 @@ static void put_last_free(struct inode *inode)
 void grow_inodes(void)
 {
 	struct inode * inode;
+	struct inode * prev_inode;
 	int i;
 
 	if(!(inode = (struct inode*) get_free_page(GFP_KERNEL)))
@@ -94,8 +95,15 @@ void grow_inodes(void)
 	nr_inodes += i;
 	nr_free_inodes += i;
 
-	if (!first_inode)
-		inode->i_next = inode->i_prev = first_inode = inode++, i--;
+	if (!first_inode) {
+		prev_inode = inode;
+		inode->i_next = 0;
+		inode->i_prev = 0;
+		first_inode = inode++;
+		first_inode->i_prev = prev_inode;
+		first_inode->i_next = prev_inode;
+		i--;
+	}
 
 	for ( ; i ; i-- )
 		insert_inode_free(inode++);

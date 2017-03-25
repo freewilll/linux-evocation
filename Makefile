@@ -70,7 +70,6 @@ WARNING_CFLAGS=\
 	-Wno-unused-but-set-variable \
 	-Wno-narrowing \
 	-Wno-write-strings \
-	-Wno-sequence-point \
 	-Wno-pointer-arith \
 	-Wno-format
 CFLAGS= -Wall $(WARNING_CFLAGS) -O3 -fomit-frame-pointer -x c++ -fno-stack-protector -fno-tree-loop-distribute-patterns -nostdinc
