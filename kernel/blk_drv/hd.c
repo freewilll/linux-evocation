@@ -652,11 +652,13 @@ static struct sigaction hd_sigaction = {
 	NULL
 };
 
+extern struct drive_info_struct { char dummy[32]; } drive_info;
+
 static void hd_geninit(void)
 {
 	int drive, i;
 #ifndef HD_TYPE
-	extern struct drive_info drive_info;
+	extern drive_info_struct drive_info;
 	void *BIOS = (void *) &drive_info;
 	int cmos_disks;
 	   
