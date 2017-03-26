@@ -18,13 +18,6 @@ extern "C" int sys_ptrace(void)
 	return -ENOSYS;
 }
 
-// TODO WGJA sys_select 
-extern "C" int sys_select(void)
-{
-	printk("TODO: sys_select\n");
-	return -ENOSYS;
-}
-
 // TODO WGJA sys_swapon 
 extern "C" int sys_swapon(void)
 {
