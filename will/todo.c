@@ -18,13 +18,6 @@ extern "C" int sys_ptrace(void)
 	return -ENOSYS;
 }
 
-// TODO WGJA sys_alarm 
-extern "C" int sys_alarm(void)
-{
-	printk("TODO: sys_alarm\n");
-	return -ENOSYS;
-}
-
 // TODO WGJA sys_select 
 extern "C" int sys_select(void)
 {
@@ -43,20 +36,6 @@ extern "C" int sys_swapon(void)
 extern "C" int sys_socketcall(void)
 {
 	printk("TODO: sys_socketcall\n");
-	return -ENOSYS;
-}
-
-// TODO WGJA sys_setitimer 
-extern "C" int sys_setitimer(void)
-{
-	printk("TODO: sys_setitimer\n");
-	return -ENOSYS;
-}
-
-// TODO WGJA sys_getitimer 
-extern "C" int sys_getitimer(void)
-{
-	printk("TODO: sys_getitimer\n");
 	return -ENOSYS;
 }
 

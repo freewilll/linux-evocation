@@ -35,7 +35,7 @@ extern int sys_setuid();
 extern int sys_getuid();
 extern int sys_stime();
 extern int sys_ptrace();
-extern int sys_alarm();
+extern int sys_alarm(long seconds);
 extern int sys_fstat();
 extern int sys_pause();
 extern int sys_utime();
@@ -176,7 +176,7 @@ fn_ptr sys_call_table[] = {
 	sys_getuid,		// __NR_getuid		24
 	sys_stime,		// __NR_stime		25
 	sys_ptrace,		// __NR_ptrace		26	todo
-	sys_alarm,		// __NR_alarm		27	todo
+	(fn_ptr) sys_alarm,	// __NR_alarm		27
 	sys_fstat,		// __NR_oldfstat	28
 	sys_pause,		// __NR_pause		29
 	sys_utime,		// __NR_utime		30

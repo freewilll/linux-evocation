@@ -22,7 +22,7 @@
 #include <linux/timer.h>
 #include <linux/fs.h>
 #include <linux/ctype.h>
-// TODO WGJA WIP: #include <linux/delay.h>
+#include <linux/delay.h>
 #include <linux/utsname.h>
 // TODO WGJA WIP: 
 // TODO WGJA WIP: extern unsigned long * prof_buffer;
@@ -237,32 +237,45 @@ int checksetup(char *line)
 	return(1);
 }
 
-// TODO WGJA WIP: unsigned long loops_per_sec = 1;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: static void calibrate_delay(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int ticks;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	printk("Calibrating delay loop.. ");
-// TODO WGJA WIP: 	while (loops_per_sec <<= 1) {
-// TODO WGJA WIP: 		ticks = jiffies;
-// TODO WGJA WIP: 		__delay(loops_per_sec);
-// TODO WGJA WIP: 		ticks = jiffies - ticks;
-// TODO WGJA WIP: 		if (ticks >= HZ) {
-// TODO WGJA WIP: 			__asm__("mull %1 ; divl %2"
-// TODO WGJA WIP: 				:"=a" (loops_per_sec)
-// TODO WGJA WIP: 				:"d" (HZ),
-// TODO WGJA WIP: 				 "r" (ticks),
-// TODO WGJA WIP: 				 "0" (loops_per_sec)
-// TODO WGJA WIP: 				:"dx");
-// TODO WGJA WIP: 			printk("ok - %d.%02d BogoMips (tm)\n",
-// TODO WGJA WIP: 				loops_per_sec/500000,
-// TODO WGJA WIP: 				(loops_per_sec/5000) % 100);
-// TODO WGJA WIP: 			return;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	printk("failed\n");
-// TODO WGJA WIP: }
+unsigned long loops_per_sec = 1;
+
+static void calibrate_delay(void)
+{
+	int ticks, d0, d1;
+	int calibration_ticks;
+
+	// For systems much faster than the 1993 standard, the calibration
+	// time is reduced for quicker booting.
+	calibration_ticks = HZ / 10;
+
+	printk("Calibrating delay loop.. ");
+	while (loops_per_sec <<= 1) {
+		/* Added wait from 1.2 kernel */
+		/* wait for "start of" clock tick */
+		ticks = jiffies;
+		while (ticks == jiffies)
+			/* nothing */;
+		/* Go .. */
+
+		ticks = jiffies;
+		__delay(loops_per_sec);
+		ticks = jiffies - ticks;
+		if (ticks >= calibration_ticks) {
+			loops_per_sec *= 10;
+			__asm__ __volatile__(
+				"mull %%edx ; divl %%ebx"
+				:"=a" (loops_per_sec), "=&d" (d0), "=&b" (d1)
+				:"0" (loops_per_sec),
+				 "1" (calibration_ticks),
+				 "2" (ticks));
+			printk("ok - %d.%02d BogoMips (tm)\n",
+				loops_per_sec/500000,
+				(loops_per_sec/5000) % 100);
+			return;
+		}
+	}
+	printk("failed\n");
+}
 
 
 /*
@@ -410,7 +423,7 @@ extern "C" void start_kernel(void)
 	ipc_init();
 #endif
 	sti();
-	// calibrate_delay();	// WGJA TODO calibrate_delay()
+	calibrate_delay();
 	/*
 	 * check if exception 16 works correctly.. This is truly evil
 	 * code: it disables the high 8 interrupts to make sure that

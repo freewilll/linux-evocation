@@ -23,7 +23,7 @@
 #include <linux/time.h>
 #include <linux/ptrace.h>
 #include <linux/segment.h>
-// TODO WGJA WIP: #include <linux/delay.h>
+#include <linux/delay.h>
  
 #include <asm/system.h>
 #include <asm/io.h>
@@ -39,13 +39,13 @@ int need_resched = 0;
 int hard_math = 0;		/* set by boot/head.S */
 int x86 = 0;			/* set by boot/head.S to 3 or 4 */
 int ignore_irq13 = 0;		/* set if exception 16 works */
-// TODO WGJA WIP: int wp_works_ok = 0;		/* not used currently */
+int wp_works_ok = 0;		/* not used currently */
 
-// TODO WGJA WIP: extern int _setitimer(int, struct itimerval *, struct itimerval *);
-// TODO WGJA WIP: unsigned long * prof_buffer = NULL;
-// TODO WGJA WIP: unsigned long prof_len = 0;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define _S(nr) (1<<((nr)-1))
+extern int _setitimer(int, struct itimerval *, struct itimerval *);
+unsigned long * prof_buffer = NULL;
+unsigned long prof_len = 0;
+
+#define _S(nr) (1<<((nr)-1))
 
 #define LATCH ((1193180 + HZ/2)/HZ)
 
@@ -425,16 +425,16 @@ static void do_timer(struct pt_regs * regs)
 	sti();
 }
 
-// TODO WGJA WIP: extern "C" int sys_alarm(long seconds)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct itimerval it_new, it_old;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	it_new.it_interval.tv_sec = it_new.it_interval.tv_usec = 0;
-// TODO WGJA WIP: 	it_new.it_value.tv_sec = seconds;
-// TODO WGJA WIP: 	it_new.it_value.tv_usec = 0;
-// TODO WGJA WIP: 	_setitimer(ITIMER_REAL, &it_new, &it_old);
-// TODO WGJA WIP: 	return(it_old.it_value.tv_sec + (it_old.it_value.tv_usec / 1000000));
-// TODO WGJA WIP: }
+extern "C" int sys_alarm(long seconds)
+{
+	struct itimerval it_new, it_old;
+
+	it_new.it_interval.tv_sec = it_new.it_interval.tv_usec = 0;
+	it_new.it_value.tv_sec = seconds;
+	it_new.it_value.tv_usec = 0;
+	_setitimer(ITIMER_REAL, &it_new, &it_old);
+	return(it_old.it_value.tv_sec + (it_old.it_value.tv_usec / 1000000));
+}
 
 extern "C" int sys_getpid(void)
 {
