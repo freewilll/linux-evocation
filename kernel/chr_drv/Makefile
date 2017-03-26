@@ -16,9 +16,7 @@
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-# TODO WGJA: Work in progress build
-# SUBDIRS= sound
-SUBDIRS=
+SUBDIRS= sound
 
 OBJS = mem.o tty_io.o keyboard.o defkeymap.o tty_ioctl.o console.o vt.o serial.o
 # OBJS  = tty_io.o console.o keyboard.o serial.o \

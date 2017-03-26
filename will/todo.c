@@ -39,11 +39,6 @@ extern "C" int sys_modify_ldt(void)
 	return -ENOSYS;
 }
 
-// TODO WGJA move sound_mem_init to real thing
-void sound_mem_init(void)
-{
-}
-
 // TODO WGJA pty_open
 int pty_open(struct tty_struct *tty, struct file * filp)
 {
@@ -76,12 +71,5 @@ long lp_init(long mem_start)
 long mouse_init(unsigned long mem_start)
 {
 	printk("TODO WGJA mouse_init\n");
-	return mem_start;
-}
-
-// TODO WGJA soundcard_init
-long soundcard_init(long mem_start)
-{
-	printk("TODO WGJA soundcard_init\n");
 	return mem_start;
 }

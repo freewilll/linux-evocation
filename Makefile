@@ -216,6 +216,7 @@ tools/zSystem:	will/todo.o will/tests.o will/early_printk.o boot/head.o init/mai
 		$(FILESYSTEMS) \
 		kernel/chr_drv/chr_drv.a \
 		kernel/blk_drv/blk_drv.a \
+		kernel/chr_drv/sound/sound.a \
 		-o tools/zSystem > zSystem.map
 
 # TODO WGJA: Work in progress build
