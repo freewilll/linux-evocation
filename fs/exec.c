@@ -88,136 +88,136 @@ static int open_inode(struct inode * inode, int mode)
 	return fd;
 }
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * These are the only things you should do on a core-file: use only these
-// TODO WGJA WIP:  * macros to write out all the necessary info.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: #define DUMP_WRITE(addr,nr) \
-// TODO WGJA WIP: while (file.f_op->write(inode,&file,(char *)(addr),(nr)) != (nr)) goto close_coredump
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define DUMP_SEEK(offset) \
-// TODO WGJA WIP: if (file.f_op->lseek) { \
-// TODO WGJA WIP: 	if (file.f_op->lseek(inode,&file,(offset),0) != (offset)) \
-// TODO WGJA WIP:  		goto close_coredump; \
-// TODO WGJA WIP: } else file.f_pos = (offset)		
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Routine writes a core dump image in the current directory.
-// TODO WGJA WIP:  * Currently only a stub-function.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Note that setuid/setgid files won't make a core-dump if the uid/gid
-// TODO WGJA WIP:  * changed due to the set[u|g]id. It's enforced by the "current->dumpable"
-// TODO WGJA WIP:  * field, which also makes sure the core-dumps won't be recursive if the
-// TODO WGJA WIP:  * dumping of the process results in another error..
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: int core_dump(long signr, struct pt_regs * regs)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct inode * inode = NULL;
-// TODO WGJA WIP: 	struct file file;
-// TODO WGJA WIP: 	unsigned short fs;
-// TODO WGJA WIP: 	int has_dumped = 0;
-// TODO WGJA WIP: 	register int dump_start, dump_size;
-// TODO WGJA WIP: 	struct user dump;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!current->dumpable)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	current->dumpable = 0;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /* See if we have enough room to write the upage.  */
-// TODO WGJA WIP: 	if (current->rlim[RLIMIT_CORE].rlim_cur < PAGE_SIZE)
-// TODO WGJA WIP: 		return 0;
-// TODO WGJA WIP: 	fs = get_fs();
-// TODO WGJA WIP: 	set_fs(KERNEL_DS);
-// TODO WGJA WIP: 	if (open_namei("core",O_CREAT | 2 | O_TRUNC,0600,&inode,NULL)) {
-// TODO WGJA WIP: 		inode = NULL;
-// TODO WGJA WIP: 		goto end_coredump;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (!S_ISREG(inode->i_mode))
-// TODO WGJA WIP: 		goto end_coredump;
-// TODO WGJA WIP: 	if (!inode->i_op || !inode->i_op->default_file_ops)
-// TODO WGJA WIP: 		goto end_coredump;
-// TODO WGJA WIP: 	file.f_mode = 3;
-// TODO WGJA WIP: 	file.f_flags = 0;
-// TODO WGJA WIP: 	file.f_count = 1;
-// TODO WGJA WIP: 	file.f_inode = inode;
-// TODO WGJA WIP: 	file.f_pos = 0;
-// TODO WGJA WIP: 	file.f_reada = 0;
-// TODO WGJA WIP: 	file.f_op = inode->i_op->default_file_ops;
-// TODO WGJA WIP: 	if (file.f_op->open)
-// TODO WGJA WIP: 		if (file.f_op->open(inode,&file))
-// TODO WGJA WIP: 			goto end_coredump;
-// TODO WGJA WIP: 	if (!file.f_op->write)
-// TODO WGJA WIP: 		goto close_coredump;
-// TODO WGJA WIP: 	has_dumped = 1;
-// TODO WGJA WIP: /* changed the size calculations - should hopefully work better. lbt */
-// TODO WGJA WIP: 	dump.magic = CMAGIC;
-// TODO WGJA WIP: 	dump.start_code = 0;
-// TODO WGJA WIP: 	dump.start_stack = regs->esp & ~(PAGE_SIZE - 1);
-// TODO WGJA WIP: 	dump.u_tsize = ((unsigned long) current->end_code) >> 12;
-// TODO WGJA WIP: 	dump.u_dsize = ((unsigned long) (current->brk + (PAGE_SIZE-1))) >> 12;
-// TODO WGJA WIP: 	dump.u_dsize -= dump.u_tsize;
-// TODO WGJA WIP: 	dump.u_ssize = 0;
-// TODO WGJA WIP: 	if (dump.start_stack < TASK_SIZE)
-// TODO WGJA WIP: 		dump.u_ssize = ((unsigned long) (TASK_SIZE - dump.start_stack)) >> 12;
-// TODO WGJA WIP: /* If the size of the dump file exceeds the rlimit, then see what would happen
-// TODO WGJA WIP:    if we wrote the stack, but not the data area.  */
-// TODO WGJA WIP: 	if ((dump.u_dsize+dump.u_ssize+1) * PAGE_SIZE >
-// TODO WGJA WIP: 	    current->rlim[RLIMIT_CORE].rlim_cur)
-// TODO WGJA WIP: 		dump.u_dsize = 0;
-// TODO WGJA WIP: /* Make sure we have enough room to write the stack and data areas. */
-// TODO WGJA WIP: 	if ((dump.u_ssize+1) * PAGE_SIZE >
-// TODO WGJA WIP: 	    current->rlim[RLIMIT_CORE].rlim_cur)
-// TODO WGJA WIP: 		dump.u_ssize = 0;
-// TODO WGJA WIP:        	dump.u_comm = 0;
-// TODO WGJA WIP: 	dump.u_ar0 = (struct pt_regs *)(((int)(&dump.regs)) -((int)(&dump)));
-// TODO WGJA WIP: 	dump.signal = signr;
-// TODO WGJA WIP: 	dump.regs = *regs;
-// TODO WGJA WIP: /* Flag indicating the math stuff is valid. We don't support this for the
-// TODO WGJA WIP:    soft-float routines yet */
-// TODO WGJA WIP: 	if (hard_math) {
-// TODO WGJA WIP: 		if ((dump.u_fpvalid = current->used_math) != 0) {
-// TODO WGJA WIP: 			if (last_task_used_math == current)
-// TODO WGJA WIP: 				__asm__("clts ; fnsave %0": :"m" (dump.i387));
-// TODO WGJA WIP: 			else
-// TODO WGJA WIP: 				memcpy(&dump.i387,&current->tss.i387.hard,sizeof(dump.i387));
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	} else {
-// TODO WGJA WIP: 		/* we should dump the emulator state here, but we need to
-// TODO WGJA WIP: 		   convert it into standard 387 format first.. */
-// TODO WGJA WIP: 		dump.u_fpvalid = 0;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	set_fs(KERNEL_DS);
-// TODO WGJA WIP: /* struct user */
-// TODO WGJA WIP: 	DUMP_WRITE(&dump,sizeof(dump));
-// TODO WGJA WIP: /* name of the executable */
-// TODO WGJA WIP: 	DUMP_WRITE(current->comm,16);
-// TODO WGJA WIP: /* Now dump all of the user data.  Include malloced stuff as well */
-// TODO WGJA WIP: 	DUMP_SEEK(PAGE_SIZE);
-// TODO WGJA WIP: /* now we start writing out the user space info */
-// TODO WGJA WIP: 	set_fs(USER_DS);
-// TODO WGJA WIP: /* Dump the data area */
-// TODO WGJA WIP: 	if (dump.u_dsize != 0) {
-// TODO WGJA WIP: 		dump_start = dump.u_tsize << 12;
-// TODO WGJA WIP: 		dump_size = dump.u_dsize << 12;
-// TODO WGJA WIP: 		DUMP_WRITE(dump_start,dump_size);
-// TODO WGJA WIP: 	};
-// TODO WGJA WIP: /* Now prepare to dump the stack area */
-// TODO WGJA WIP: 	if (dump.u_ssize != 0) {
-// TODO WGJA WIP: 		dump_start = dump.start_stack;
-// TODO WGJA WIP: 		dump_size = dump.u_ssize << 12;
-// TODO WGJA WIP: 		DUMP_WRITE(dump_start,dump_size);
-// TODO WGJA WIP: 	};
-// TODO WGJA WIP: /* Finally dump the task struct.  Not be used by gdb, but could be useful */
-// TODO WGJA WIP: 	set_fs(KERNEL_DS);
-// TODO WGJA WIP: 	DUMP_WRITE(current,sizeof(*current));
-// TODO WGJA WIP: close_coredump:
-// TODO WGJA WIP: 	if (file.f_op->release)
-// TODO WGJA WIP: 		file.f_op->release(inode,&file);
-// TODO WGJA WIP: end_coredump:
-// TODO WGJA WIP: 	set_fs(fs);
-// TODO WGJA WIP: 	iput(inode);
-// TODO WGJA WIP: 	return has_dumped;
-// TODO WGJA WIP: }
+/*
+ * These are the only things you should do on a core-file: use only these
+ * macros to write out all the necessary info.
+ */
+#define DUMP_WRITE(addr,nr) \
+while (file.f_op->write(inode,&file,(char *)(addr),(nr)) != (nr)) goto close_coredump
+
+#define DUMP_SEEK(offset) \
+if (file.f_op->lseek) { \
+	if (file.f_op->lseek(inode,&file,(offset),0) != (offset)) \
+ 		goto close_coredump; \
+} else file.f_pos = (offset)		
+
+/*
+ * Routine writes a core dump image in the current directory.
+ * Currently only a stub-function.
+ *
+ * Note that setuid/setgid files won't make a core-dump if the uid/gid
+ * changed due to the set[u|g]id. It's enforced by the "current->dumpable"
+ * field, which also makes sure the core-dumps won't be recursive if the
+ * dumping of the process results in another error..
+ */
+int core_dump(long signr, struct pt_regs * regs)
+{
+	struct inode * inode = NULL;
+	struct file file;
+	unsigned short fs;
+	int has_dumped = 0;
+	register int dump_start, dump_size;
+	struct user dump;
+
+	if (!current->dumpable)
+		return 0;
+	current->dumpable = 0;
+
+/* See if we have enough room to write the upage.  */
+	if (current->rlim[RLIMIT_CORE].rlim_cur < PAGE_SIZE)
+		return 0;
+	fs = get_fs();
+	set_fs(KERNEL_DS);
+	if (open_namei("core",O_CREAT | 2 | O_TRUNC,0600,&inode,NULL)) {
+		inode = NULL;
+		goto end_coredump;
+	}
+	if (!S_ISREG(inode->i_mode))
+		goto end_coredump;
+	if (!inode->i_op || !inode->i_op->default_file_ops)
+		goto end_coredump;
+	file.f_mode = 3;
+	file.f_flags = 0;
+	file.f_count = 1;
+	file.f_inode = inode;
+	file.f_pos = 0;
+	file.f_reada = 0;
+	file.f_op = inode->i_op->default_file_ops;
+	if (file.f_op->open)
+		if (file.f_op->open(inode,&file))
+			goto end_coredump;
+	if (!file.f_op->write)
+		goto close_coredump;
+	has_dumped = 1;
+/* changed the size calculations - should hopefully work better. lbt */
+	dump.magic = CMAGIC;
+	dump.start_code = 0;
+	dump.start_stack = regs->esp & ~(PAGE_SIZE - 1);
+	dump.u_tsize = ((unsigned long) current->end_code) >> 12;
+	dump.u_dsize = ((unsigned long) (current->brk + (PAGE_SIZE-1))) >> 12;
+	dump.u_dsize -= dump.u_tsize;
+	dump.u_ssize = 0;
+	if (dump.start_stack < TASK_SIZE)
+		dump.u_ssize = ((unsigned long) (TASK_SIZE - dump.start_stack)) >> 12;
+/* If the size of the dump file exceeds the rlimit, then see what would happen
+   if we wrote the stack, but not the data area.  */
+	if ((dump.u_dsize+dump.u_ssize+1) * PAGE_SIZE >
+	    current->rlim[RLIMIT_CORE].rlim_cur)
+		dump.u_dsize = 0;
+/* Make sure we have enough room to write the stack and data areas. */
+	if ((dump.u_ssize+1) * PAGE_SIZE >
+	    current->rlim[RLIMIT_CORE].rlim_cur)
+		dump.u_ssize = 0;
+       	dump.u_comm = 0;
+	dump.u_ar0 = (struct pt_regs *)(((int)(&dump.regs)) -((int)(&dump)));
+	dump.signal = signr;
+	dump.regs = *regs;
+/* Flag indicating the math stuff is valid. We don't support this for the
+   soft-float routines yet */
+	if (hard_math) {
+		if ((dump.u_fpvalid = current->used_math) != 0) {
+			if (last_task_used_math == current)
+				__asm__("clts ; fnsave %0": :"m" (dump.i387));
+			else
+				memcpy(&dump.i387,&current->tss.i387.hard,sizeof(dump.i387));
+		}
+	} else {
+		/* we should dump the emulator state here, but we need to
+		   convert it into standard 387 format first.. */
+		dump.u_fpvalid = 0;
+	}
+	set_fs(KERNEL_DS);
+/* struct user */
+	DUMP_WRITE(&dump,sizeof(dump));
+/* name of the executable */
+	DUMP_WRITE(current->comm,16);
+/* Now dump all of the user data.  Include malloced stuff as well */
+	DUMP_SEEK(PAGE_SIZE);
+/* now we start writing out the user space info */
+	set_fs(USER_DS);
+/* Dump the data area */
+	if (dump.u_dsize != 0) {
+		dump_start = dump.u_tsize << 12;
+		dump_size = dump.u_dsize << 12;
+		DUMP_WRITE(dump_start,dump_size);
+	};
+/* Now prepare to dump the stack area */
+	if (dump.u_ssize != 0) {
+		dump_start = dump.start_stack;
+		dump_size = dump.u_ssize << 12;
+		DUMP_WRITE(dump_start,dump_size);
+	};
+/* Finally dump the task struct.  Not be used by gdb, but could be useful */
+	set_fs(KERNEL_DS);
+	DUMP_WRITE(current,sizeof(*current));
+close_coredump:
+	if (file.f_op->release)
+		file.f_op->release(inode,&file);
+end_coredump:
+	set_fs(fs);
+	iput(inode);
+	return has_dumped;
+}
 
 /*
  * Note that a shared library must be both readable and executable due to

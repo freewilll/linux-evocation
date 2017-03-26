@@ -72,13 +72,6 @@ extern "C" void math_emulate(long arg)
 	printk("TODO WGJA math_emulate\n");
 }
 
-// TODO WGJA core_dump
-int core_dump(long signr, struct pt_regs * regs)
-{
-	printk("TODO WGJA core_dump\n");
-}
-
-
 // TODO WGJA sock_fcntl
 int sock_fcntl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
