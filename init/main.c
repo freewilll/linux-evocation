@@ -24,9 +24,9 @@
 #include <linux/ctype.h>
 #include <linux/delay.h>
 #include <linux/utsname.h>
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern unsigned long * prof_buffer;
-// TODO WGJA WIP: extern unsigned long prof_len;
+
+extern unsigned long * prof_buffer;
+extern unsigned long prof_len;
 extern char edata, end;
 extern char *linux_banner;
 extern "C" void lcall7(void);
