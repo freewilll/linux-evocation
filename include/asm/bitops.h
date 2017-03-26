@@ -53,55 +53,55 @@ extern __inline__ int test_bit(int nr, void * addr)
 	return oldbit;
 }
 
-// TODO WGJA WIP: #else
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * For the benefit of those who are trying to port Linux to another
-// TODO WGJA WIP:  * architecture, here are some C-language equivalents.  You should
-// TODO WGJA WIP:  * recode these in the native assmebly language, if at all possible.
-// TODO WGJA WIP:  * To guarantee atomicity, these routines call cli() and sti() to
-// TODO WGJA WIP:  * disable interrupts while they operate.  (You have to provide inline
-// TODO WGJA WIP:  * routines to cli() and sti().)
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * Also note, these routines assume that you have 32 bit integers.
-// TODO WGJA WIP:  * You will have to change this if you are trying to port Linux to the
-// TODO WGJA WIP:  * Alpha architecture or to a Cray.  :-)
-// TODO WGJA WIP:  * 
-// TODO WGJA WIP:  * C language equivalents written by Theodore Ts'o, 9/26/92
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern __inline__ int set_bit(int nr,int * addr)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int	mask, retval;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	addr += nr >> 5;
-// TODO WGJA WIP: 	mask = 1 << (nr & 0x1f);
-// TODO WGJA WIP: 	cli();
-// TODO WGJA WIP: 	retval = (mask & *addr) != 0;
-// TODO WGJA WIP: 	*addr |= mask;
-// TODO WGJA WIP: 	sti();
-// TODO WGJA WIP: 	return retval;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern __inline__ int clear_bit(int nr, int * addr)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int	mask, retval;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	addr += nr >> 5;
-// TODO WGJA WIP: 	mask = 1 << (nr & 0x1f);
-// TODO WGJA WIP: 	cli();
-// TODO WGJA WIP: 	retval = (mask & *addr) == 0;
-// TODO WGJA WIP: 	*addr &= ~mask;
-// TODO WGJA WIP: 	sti();
-// TODO WGJA WIP: 	return retval;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern __inline__ int test_bit(int nr, int * addr)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int	mask;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	addr += nr >> 5;
-// TODO WGJA WIP: 	mask = 1 << (nr & 0x1f);
-// TODO WGJA WIP: 	return ((mask & *addr) != 0);
-// TODO WGJA WIP: }
+#else
+/*
+ * For the benefit of those who are trying to port Linux to another
+ * architecture, here are some C-language equivalents.  You should
+ * recode these in the native assmebly language, if at all possible.
+ * To guarantee atomicity, these routines call cli() and sti() to
+ * disable interrupts while they operate.  (You have to provide inline
+ * routines to cli() and sti().)
+ *
+ * Also note, these routines assume that you have 32 bit integers.
+ * You will have to change this if you are trying to port Linux to the
+ * Alpha architecture or to a Cray.  :-)
+ * 
+ * C language equivalents written by Theodore Ts'o, 9/26/92
+ */
+
+extern __inline__ int set_bit(int nr,int * addr)
+{
+	int	mask, retval;
+
+	addr += nr >> 5;
+	mask = 1 << (nr & 0x1f);
+	cli();
+	retval = (mask & *addr) != 0;
+	*addr |= mask;
+	sti();
+	return retval;
+}
+
+extern __inline__ int clear_bit(int nr, int * addr)
+{
+	int	mask, retval;
+
+	addr += nr >> 5;
+	mask = 1 << (nr & 0x1f);
+	cli();
+	retval = (mask & *addr) == 0;
+	*addr &= ~mask;
+	sti();
+	return retval;
+}
+
+extern __inline__ int test_bit(int nr, int * addr)
+{
+	int	mask;
+
+	addr += nr >> 5;
+	mask = 1 << (nr & 0x1f);
+	return ((mask & *addr) != 0);
+}
 #endif	/* i386 */
 #endif /* _ASM_BITOPS_H */

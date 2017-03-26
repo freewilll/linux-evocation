@@ -90,21 +90,21 @@ extern void init_IRQ(void);
 extern long blk_dev_init(long,long);
 extern long chr_dev_init(long,long);
 extern void floppy_init(void);
-// TODO WGJA WIP: extern void sock_init(void);
+extern void sock_init(void);
 extern long rd_init(long mem_start, int length);
 extern long kernel_mktime(struct mktime * time);
 extern unsigned long simple_strtoul(const char *,char **,unsigned int);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern void hd_setup(char *str, int *ints);
-// TODO WGJA WIP: extern void bmouse_setup(char *str, int *ints);
-// TODO WGJA WIP: extern void eth_setup(char *str, int *ints);
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #ifdef CONFIG_SYSVIPC
-// TODO WGJA WIP: extern void ipc_init(void);
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: #ifdef CONFIG_SCSI
-// TODO WGJA WIP: extern unsigned long scsi_dev_init(unsigned long, unsigned long);
-// TODO WGJA WIP: #endif
+
+extern void hd_setup(char *str, int *ints);
+extern void bmouse_setup(char *str, int *ints);
+extern void eth_setup(char *str, int *ints);
+
+#ifdef CONFIG_SYSVIPC
+extern void ipc_init(void);
+#endif
+#ifdef CONFIG_SCSI
+extern unsigned long scsi_dev_init(unsigned long, unsigned long);
+#endif
 
 /*
  * This is set up by the setup-routine at boot-time
@@ -209,15 +209,15 @@ struct bootsetup_struct {
 	void (*setup_func)(char *, int *);
 };
 bootsetup_struct bootsetups[] = {
-// TODO WGJA WIP: #ifdef CONFIG_INET
-// TODO WGJA WIP: 	{ "ether=", eth_setup },
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: #ifdef CONFIG_BLK_DEV_HD
-// TODO WGJA WIP: 	{ "hd=", hd_setup },
-// TODO WGJA WIP: #endif
-// TODO WGJA WIP: #ifdef CONFIG_BUSMOUSE
-// TODO WGJA WIP: 	{ "bmouse=", bmouse_setup },
-// TODO WGJA WIP: #endif
+#ifdef CONFIG_INET
+	{ "ether=", eth_setup },
+#endif
+#ifdef CONFIG_BLK_DEV_HD
+	{ "hd=", hd_setup },
+#endif
+#ifdef CONFIG_BUSMOUSE
+	{ "bmouse=", bmouse_setup },
+#endif
 	{ 0, 0 }
 };
 
