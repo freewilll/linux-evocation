@@ -928,24 +928,26 @@ unsigned long __bad_pagetable(void)
 {
 	extern char empty_bad_page_table[PAGE_SIZE];
 
-	__asm__ __volatile__("cld ; rep ; stosl":
+	int d0, d1;
+	__asm__ __volatile__("cld ; rep ; stosl"
+		:"=&D" (d0), "=&c" (d1)
 		:"a" (BAD_PAGE + PAGE_TABLE),
-		 "D" ((long) empty_bad_page_table),
-		 "c" (PTRS_PER_PAGE)
-		:"di","cx");
+		 "0" ((long) empty_bad_page_table),
+		 "1" (PTRS_PER_PAGE));
 	return (unsigned long) empty_bad_page_table;
 }
 
 unsigned long __bad_page(void)
 {
-	printk("TODO __bad_page\n");for(;;); // TODO WGJA __bad_page
 	extern char empty_bad_page[PAGE_SIZE];
 
-	// __asm__ __volatile__("cld ; rep ; stosl":
-	// 	:"a" (0),
-	// 	 "D" ((long) empty_bad_page),
-	// 	 "c" (PTRS_PER_PAGE)
-	// 	:"di","cx");
+	int d0, d1;
+	__asm__ __volatile__("cld ; rep ; stosl"
+		:"=&D" (d0), "=&c" (d1)
+		:"a" (0),
+		 "0" ((long) empty_bad_page),
+		 "1" (PTRS_PER_PAGE));
+
 	return (unsigned long) empty_bad_page;
 }
 
