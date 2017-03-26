@@ -18,24 +18,10 @@ extern "C" int sys_ptrace(void)
 	return -ENOSYS;
 }
 
-// TODO WGJA sys_swapon 
-extern "C" int sys_swapon(void)
-{
-	printk("TODO: sys_swapon\n");
-	return -ENOSYS;
-}
-
 // TODO WGJA sys_socketcall 
 extern "C" int sys_socketcall(void)
 {
 	printk("TODO: sys_socketcall\n");
-	return -ENOSYS;
-}
-
-// TODO WGJA sys_swapoff 
-extern "C" int sys_swapoff(void)
-{
-	printk("TODO: sys_swapoff\n");
 	return -ENOSYS;
 }
 

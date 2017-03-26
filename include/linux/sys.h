@@ -204,8 +204,8 @@ fn_ptr sys_call_table[] = {
 	sys_phys,		// __NR_phys		52
 	sys_lock,		// __NR_lock		53
 	sys_ioctl,		// __NR_ioctl		54
-	sys_fcntl,		// __NR_fcntl		55	todo
-	sys_mpx,		// __NR_mpx		56	todo
+	sys_fcntl,		// __NR_fcntl		55
+	sys_mpx,		// __NR_mpx		56
 	sys_setpgid,		// __NR_setpgid		57
 	sys_ulimit,		// __NR_ulimit		58
 	sys_olduname,		// __NR_oldolduname	59
@@ -231,12 +231,12 @@ fn_ptr sys_call_table[] = {
 	sys_settimeofday,	// __NR_settimeofday	79
 	sys_getgroups,		// __NR_getgroups	80
 	sys_setgroups,		// __NR_setgroups	81
-	sys_select,		// __NR_select		82	todo
+	sys_select,		// __NR_select		82
 	sys_symlink,		// __NR_symlink		83
 	sys_lstat,		// __NR_oldlstat	84
 	sys_readlink,		// __NR_readlink	85
-	sys_uselib,		// __NR_uselib		86	todo
-	sys_swapon,		// __NR_swapon		87	todo
+	sys_uselib,		// __NR_uselib		86
+	sys_swapon,		// __NR_swapon		87
 	sys_reboot,		// __NR_reboot		88
 	sys_readdir,		// __NR_readdir		89
 	sys_mmap,		// __NR_mmap		90
@@ -252,9 +252,9 @@ fn_ptr sys_call_table[] = {
 	sys_fstatfs,		// __NR_fstatfs		100
 	sys_ioperm,		// __NR_ioperm		101
 	sys_socketcall,		// __NR_socketcall	102	todo
-	sys_syslog,		// __NR_syslog		103	todo
-	sys_setitimer,		// __NR_setitimer	104	todo
-	sys_getitimer,		// __NR_getitimer	105	todo
+	sys_syslog,		// __NR_syslog		103
+	sys_setitimer,		// __NR_setitimer	104
+	sys_getitimer,		// __NR_getitimer	105
 	sys_newstat,		// __NR_stat		106
 	sys_newlstat,		// __NR_lstat		107
 	sys_newfstat,		// __NR_fstat		108
@@ -264,8 +264,8 @@ fn_ptr sys_call_table[] = {
 	sys_idle,		// __NR_idle		112
 	sys_vm86,		// __NR_vm86		113
 	sys_wait4,		// __NR_wait4		114
-	sys_swapoff,		// __NR_swapoff		115	todo
-	sys_sysinfo,		// __NR_sysinfo		116	todo
+	sys_swapoff,		// __NR_swapoff		115
+	sys_sysinfo,		// __NR_sysinfo		116
 	sys_ipc,		// __NR_ipc		117	todo
 	sys_fsync,		// __NR_fsync		118
 	sys_sigreturn,		// __NR_sigreturn	119

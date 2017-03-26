@@ -602,240 +602,240 @@ repeat:
 	return 0;
 }
 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Trying to stop swapping from a file is fraught with races, so
-// TODO WGJA WIP:  * we repeat quite a bit here when we have to pause. swapoff()
-// TODO WGJA WIP:  * isn't exactly timing-critical, so who cares?
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: static int try_to_unuse(unsigned int type)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	int nr, pgt, pg;
-// TODO WGJA WIP: 	unsigned long page, *ppage;
-// TODO WGJA WIP: 	unsigned long tmp = 0;
-// TODO WGJA WIP: 	struct task_struct *p;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	nr = 0;
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * When we have to sleep, we restart the whole algorithm from the same
-// TODO WGJA WIP:  * task we stopped in. That at least rids us of all races.
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: repeat:
-// TODO WGJA WIP: 	for (; nr < NR_TASKS ; nr++) {
-// TODO WGJA WIP: 		p = task[nr];
-// TODO WGJA WIP: 		if (!p)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		for (pgt = 0 ; pgt < PTRS_PER_PAGE ; pgt++) {
-// TODO WGJA WIP: 			ppage = pgt + ((unsigned long *) p->tss.cr3);
-// TODO WGJA WIP: 			page = *ppage;
-// TODO WGJA WIP: 			if (!page)
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 			if (!(page & PAGE_PRESENT) || (page >= high_memory))
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 			if (mem_map[MAP_NR(page)] & MAP_PAGE_RESERVED)
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 			ppage = (unsigned long *) (page & PAGE_MASK);	
-// TODO WGJA WIP: 			for (pg = 0 ; pg < PTRS_PER_PAGE ; pg++,ppage++) {
-// TODO WGJA WIP: 				page = *ppage;
-// TODO WGJA WIP: 				if (!page)
-// TODO WGJA WIP: 					continue;
-// TODO WGJA WIP: 				if (page & PAGE_PRESENT)
-// TODO WGJA WIP: 					continue;
-// TODO WGJA WIP: 				if (SWP_TYPE(page) != type)
-// TODO WGJA WIP: 					continue;
-// TODO WGJA WIP: 				if (!tmp) {
-// TODO WGJA WIP: 					if (!(tmp = __get_free_page(GFP_KERNEL)))
-// TODO WGJA WIP: 						return -ENOMEM;
-// TODO WGJA WIP: 					goto repeat;
-// TODO WGJA WIP: 				}
-// TODO WGJA WIP: 				read_swap_page(page, (char *) tmp);
-// TODO WGJA WIP: 				if (*ppage == page) {
-// TODO WGJA WIP: 					*ppage = tmp | (PAGE_DIRTY | PAGE_PRIVATE);
-// TODO WGJA WIP: 					++p->rss;
-// TODO WGJA WIP: 					swap_free(page);
-// TODO WGJA WIP: 					tmp = 0;
-// TODO WGJA WIP: 				}
-// TODO WGJA WIP: 				goto repeat;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	free_page(tmp);
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern "C" int sys_swapoff(const char * specialfile)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct swap_info_struct * p;
-// TODO WGJA WIP: 	struct inode * inode;
-// TODO WGJA WIP: 	unsigned int type;
-// TODO WGJA WIP: 	int i;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!suser())
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	i = namei(specialfile,&inode);
-// TODO WGJA WIP: 	if (i)
-// TODO WGJA WIP: 		return i;
-// TODO WGJA WIP: 	p = swap_info;
-// TODO WGJA WIP: 	for (type = 0 ; type < nr_swapfiles ; type++,p++) {
-// TODO WGJA WIP: 		if ((p->flags & SWP_WRITEOK) != SWP_WRITEOK)
-// TODO WGJA WIP: 			continue;
-// TODO WGJA WIP: 		if (p->swap_file) {
-// TODO WGJA WIP: 			if (p->swap_file == inode)
-// TODO WGJA WIP: 				break;
-// TODO WGJA WIP: 		} else {
-// TODO WGJA WIP: 			if (!S_ISBLK(inode->i_mode))
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 			if (p->swap_device == inode->i_rdev)
-// TODO WGJA WIP: 				break;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	iput(inode);
-// TODO WGJA WIP: 	if (type >= nr_swapfiles)
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	p->flags = SWP_USED;
-// TODO WGJA WIP: 	i = try_to_unuse(type);
-// TODO WGJA WIP: 	if (i) {
-// TODO WGJA WIP: 		p->flags = SWP_WRITEOK;
-// TODO WGJA WIP: 		return i;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	nr_swap_pages -= p->pages;
-// TODO WGJA WIP: 	iput(p->swap_file);
-// TODO WGJA WIP: 	p->swap_file = NULL;
-// TODO WGJA WIP: 	p->swap_device = 0;
-// TODO WGJA WIP: 	free_page((long) p->swap_map);
-// TODO WGJA WIP: 	p->swap_map = NULL;
-// TODO WGJA WIP: 	free_page((long) p->swap_lockmap);
-// TODO WGJA WIP: 	p->swap_lockmap = NULL;
-// TODO WGJA WIP: 	p->flags = 0;
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: /*
-// TODO WGJA WIP:  * Written 01/25/92 by Simmule Turner, heavily changed by Linus.
-// TODO WGJA WIP:  *
-// TODO WGJA WIP:  * The swapon system call
-// TODO WGJA WIP:  */
-// TODO WGJA WIP: extern "C" int sys_swapon(const char * specialfile)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	struct swap_info_struct * p;
-// TODO WGJA WIP: 	struct inode * swap_inode;
-// TODO WGJA WIP: 	unsigned int type;
-// TODO WGJA WIP: 	unsigned char * tmp;
-// TODO WGJA WIP: 	int i,j;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	if (!suser())
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	p = swap_info;
-// TODO WGJA WIP: 	for (type = 0 ; type < nr_swapfiles ; type++,p++)
-// TODO WGJA WIP: 		if (!(p->flags & SWP_USED))
-// TODO WGJA WIP: 			break;
-// TODO WGJA WIP: 	if (type >= MAX_SWAPFILES)
-// TODO WGJA WIP: 		return -EPERM;
-// TODO WGJA WIP: 	if (type >= nr_swapfiles)
-// TODO WGJA WIP: 		nr_swapfiles = type+1;
-// TODO WGJA WIP: 	p->flags = SWP_USED;
-// TODO WGJA WIP: 	p->swap_file = NULL;
-// TODO WGJA WIP: 	p->swap_device = 0;
-// TODO WGJA WIP: 	p->swap_map = NULL;
-// TODO WGJA WIP: 	p->swap_lockmap = NULL;
-// TODO WGJA WIP: 	p->lowest_bit = 0;
-// TODO WGJA WIP: 	p->highest_bit = 0;
-// TODO WGJA WIP: 	i = namei(specialfile,&swap_inode);
-// TODO WGJA WIP: 	if (i) {
-// TODO WGJA WIP: 		p->flags = 0;
-// TODO WGJA WIP: 		return i;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (swap_inode->i_count != 1) {
-// TODO WGJA WIP: 		iput(swap_inode);
-// TODO WGJA WIP: 		p->flags = 0;
-// TODO WGJA WIP: 		return -EBUSY;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	if (S_ISBLK(swap_inode->i_mode)) {
-// TODO WGJA WIP: 		p->swap_device = swap_inode->i_rdev;
-// TODO WGJA WIP: 		iput(swap_inode);
-// TODO WGJA WIP: 		if (!p->swap_device) {
-// TODO WGJA WIP: 			p->flags = 0;
-// TODO WGJA WIP: 			return -ENODEV;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 		for (i = 0 ; i < nr_swapfiles ; i++) {
-// TODO WGJA WIP: 			if (i == type)
-// TODO WGJA WIP: 				continue;
-// TODO WGJA WIP: 			if (p->swap_device == swap_info[i].swap_device) {
-// TODO WGJA WIP: 				p->swap_device = 0;
-// TODO WGJA WIP: 				p->flags = 0;
-// TODO WGJA WIP: 				return -EBUSY;
-// TODO WGJA WIP: 			}
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	} else if (S_ISREG(swap_inode->i_mode))
-// TODO WGJA WIP: 		p->swap_file = swap_inode;
-// TODO WGJA WIP: 	else {
-// TODO WGJA WIP: 		iput(swap_inode);
-// TODO WGJA WIP: 		p->flags = 0;
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	tmp = (unsigned char *) get_free_page(GFP_USER);
-// TODO WGJA WIP: 	p->swap_lockmap = (unsigned char *) get_free_page(GFP_USER);
-// TODO WGJA WIP: 	if (!tmp || !p->swap_lockmap) {
-// TODO WGJA WIP: 		printk("Unable to start swapping: out of memory :-)\n");
-// TODO WGJA WIP: 		free_page((long) tmp);
-// TODO WGJA WIP: 		free_page((long) p->swap_lockmap);
-// TODO WGJA WIP: 		iput(p->swap_file);
-// TODO WGJA WIP: 		p->swap_device = 0;
-// TODO WGJA WIP: 		p->swap_file = NULL;
-// TODO WGJA WIP: 		p->swap_map = NULL;
-// TODO WGJA WIP: 		p->swap_lockmap = NULL;
-// TODO WGJA WIP: 		p->flags = 0;
-// TODO WGJA WIP: 		return -ENOMEM;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	read_swap_page(SWP_ENTRY(type,0), (char *) tmp);
-// TODO WGJA WIP: 	if (memcmp("SWAP-SPACE",tmp+4086,10)) {
-// TODO WGJA WIP: 		printk("Unable to find swap-space signature\n");
-// TODO WGJA WIP: 		free_page((long) tmp);
-// TODO WGJA WIP: 		free_page((long) p->swap_lockmap);
-// TODO WGJA WIP: 		iput(p->swap_file);
-// TODO WGJA WIP: 		p->swap_device = 0;
-// TODO WGJA WIP: 		p->swap_file = NULL;
-// TODO WGJA WIP: 		p->swap_map = NULL;
-// TODO WGJA WIP: 		p->swap_lockmap = NULL;
-// TODO WGJA WIP: 		p->flags = 0;
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	memset(tmp+PAGE_SIZE-10,0,10);
-// TODO WGJA WIP: 	j = 0;
-// TODO WGJA WIP: 	p->lowest_bit = 0;
-// TODO WGJA WIP: 	p->highest_bit = 0;
-// TODO WGJA WIP: 	for (i = 1 ; i < SWAP_BITS ; i++)
-// TODO WGJA WIP: 		if (test_bit(i,tmp)) {
-// TODO WGJA WIP: 			if (!p->lowest_bit)
-// TODO WGJA WIP: 				p->lowest_bit = i;
-// TODO WGJA WIP: 			p->highest_bit = i;
-// TODO WGJA WIP: 			j++;
-// TODO WGJA WIP: 		}
-// TODO WGJA WIP: 	if (!j) {
-// TODO WGJA WIP: 		printk("Empty swap-file\n");
-// TODO WGJA WIP: 		free_page((long) tmp);
-// TODO WGJA WIP: 		free_page((long) p->swap_lockmap);
-// TODO WGJA WIP: 		iput(p->swap_file);
-// TODO WGJA WIP: 		p->swap_device = 0;
-// TODO WGJA WIP: 		p->swap_file = NULL;
-// TODO WGJA WIP: 		p->swap_map = NULL;
-// TODO WGJA WIP: 		p->swap_lockmap = NULL;
-// TODO WGJA WIP: 		p->flags = 0;
-// TODO WGJA WIP: 		return -EINVAL;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: 	i = SWAP_BITS;
-// TODO WGJA WIP: 	while (i--)
-// TODO WGJA WIP: 		if (test_bit(i,tmp))
-// TODO WGJA WIP: 			tmp[i] = 0;
-// TODO WGJA WIP: 		else
-// TODO WGJA WIP: 			tmp[i] = 0x80;
-// TODO WGJA WIP: 	tmp[0] = 0x80;
-// TODO WGJA WIP: 	p->swap_map = tmp;
-// TODO WGJA WIP: 	p->flags = SWP_WRITEOK;
-// TODO WGJA WIP: 	p->pages = j;
-// TODO WGJA WIP: 	nr_swap_pages += j;
-// TODO WGJA WIP: 	printk("Adding Swap: %dk swap-space\n",j<<2);
-// TODO WGJA WIP: 	return 0;
-// TODO WGJA WIP: }
+/*
+ * Trying to stop swapping from a file is fraught with races, so
+ * we repeat quite a bit here when we have to pause. swapoff()
+ * isn't exactly timing-critical, so who cares?
+ */
+static int try_to_unuse(unsigned int type)
+{
+	int nr, pgt, pg;
+	unsigned long page, *ppage;
+	unsigned long tmp = 0;
+	struct task_struct *p;
+
+	nr = 0;
+/*
+ * When we have to sleep, we restart the whole algorithm from the same
+ * task we stopped in. That at least rids us of all races.
+ */
+repeat:
+	for (; nr < NR_TASKS ; nr++) {
+		p = task[nr];
+		if (!p)
+			continue;
+		for (pgt = 0 ; pgt < PTRS_PER_PAGE ; pgt++) {
+			ppage = pgt + ((unsigned long *) p->tss.cr3);
+			page = *ppage;
+			if (!page)
+				continue;
+			if (!(page & PAGE_PRESENT) || (page >= high_memory))
+				continue;
+			if (mem_map[MAP_NR(page)] & MAP_PAGE_RESERVED)
+				continue;
+			ppage = (unsigned long *) (page & PAGE_MASK);	
+			for (pg = 0 ; pg < PTRS_PER_PAGE ; pg++,ppage++) {
+				page = *ppage;
+				if (!page)
+					continue;
+				if (page & PAGE_PRESENT)
+					continue;
+				if (SWP_TYPE(page) != type)
+					continue;
+				if (!tmp) {
+					if (!(tmp = __get_free_page(GFP_KERNEL)))
+						return -ENOMEM;
+					goto repeat;
+				}
+				read_swap_page(page, (char *) tmp);
+				if (*ppage == page) {
+					*ppage = tmp | (PAGE_DIRTY | PAGE_PRIVATE);
+					++p->rss;
+					swap_free(page);
+					tmp = 0;
+				}
+				goto repeat;
+			}
+		}
+	}
+	free_page(tmp);
+	return 0;
+}
+
+extern "C" int sys_swapoff(const char * specialfile)
+{
+	struct swap_info_struct * p;
+	struct inode * inode;
+	unsigned int type;
+	int i;
+
+	if (!suser())
+		return -EPERM;
+	i = namei(specialfile,&inode);
+	if (i)
+		return i;
+	p = swap_info;
+	for (type = 0 ; type < nr_swapfiles ; type++,p++) {
+		if ((p->flags & SWP_WRITEOK) != SWP_WRITEOK)
+			continue;
+		if (p->swap_file) {
+			if (p->swap_file == inode)
+				break;
+		} else {
+			if (!S_ISBLK(inode->i_mode))
+				continue;
+			if (p->swap_device == inode->i_rdev)
+				break;
+		}
+	}
+	iput(inode);
+	if (type >= nr_swapfiles)
+		return -EINVAL;
+	p->flags = SWP_USED;
+	i = try_to_unuse(type);
+	if (i) {
+		p->flags = SWP_WRITEOK;
+		return i;
+	}
+	nr_swap_pages -= p->pages;
+	iput(p->swap_file);
+	p->swap_file = NULL;
+	p->swap_device = 0;
+	free_page((long) p->swap_map);
+	p->swap_map = NULL;
+	free_page((long) p->swap_lockmap);
+	p->swap_lockmap = NULL;
+	p->flags = 0;
+	return 0;
+}
+
+/*
+ * Written 01/25/92 by Simmule Turner, heavily changed by Linus.
+ *
+ * The swapon system call
+ */
+extern "C" int sys_swapon(const char * specialfile)
+{
+	struct swap_info_struct * p;
+	struct inode * swap_inode;
+	unsigned int type;
+	unsigned char * tmp;
+	int i,j;
+
+	if (!suser())
+		return -EPERM;
+	p = swap_info;
+	for (type = 0 ; type < nr_swapfiles ; type++,p++)
+		if (!(p->flags & SWP_USED))
+			break;
+	if (type >= MAX_SWAPFILES)
+		return -EPERM;
+	if (type >= nr_swapfiles)
+		nr_swapfiles = type+1;
+	p->flags = SWP_USED;
+	p->swap_file = NULL;
+	p->swap_device = 0;
+	p->swap_map = NULL;
+	p->swap_lockmap = NULL;
+	p->lowest_bit = 0;
+	p->highest_bit = 0;
+	i = namei(specialfile,&swap_inode);
+	if (i) {
+		p->flags = 0;
+		return i;
+	}
+	if (swap_inode->i_count != 1) {
+		iput(swap_inode);
+		p->flags = 0;
+		return -EBUSY;
+	}
+	if (S_ISBLK(swap_inode->i_mode)) {
+		p->swap_device = swap_inode->i_rdev;
+		iput(swap_inode);
+		if (!p->swap_device) {
+			p->flags = 0;
+			return -ENODEV;
+		}
+		for (i = 0 ; i < nr_swapfiles ; i++) {
+			if (i == type)
+				continue;
+			if (p->swap_device == swap_info[i].swap_device) {
+				p->swap_device = 0;
+				p->flags = 0;
+				return -EBUSY;
+			}
+		}
+	} else if (S_ISREG(swap_inode->i_mode))
+		p->swap_file = swap_inode;
+	else {
+		iput(swap_inode);
+		p->flags = 0;
+		return -EINVAL;
+	}
+	tmp = (unsigned char *) get_free_page(GFP_USER);
+	p->swap_lockmap = (unsigned char *) get_free_page(GFP_USER);
+	if (!tmp || !p->swap_lockmap) {
+		printk("Unable to start swapping: out of memory :-)\n");
+		free_page((long) tmp);
+		free_page((long) p->swap_lockmap);
+		iput(p->swap_file);
+		p->swap_device = 0;
+		p->swap_file = NULL;
+		p->swap_map = NULL;
+		p->swap_lockmap = NULL;
+		p->flags = 0;
+		return -ENOMEM;
+	}
+	read_swap_page(SWP_ENTRY(type,0), (char *) tmp);
+	if (memcmp("SWAP-SPACE",tmp+4086,10)) {
+		printk("Unable to find swap-space signature\n");
+		free_page((long) tmp);
+		free_page((long) p->swap_lockmap);
+		iput(p->swap_file);
+		p->swap_device = 0;
+		p->swap_file = NULL;
+		p->swap_map = NULL;
+		p->swap_lockmap = NULL;
+		p->flags = 0;
+		return -EINVAL;
+	}
+	memset(tmp+PAGE_SIZE-10,0,10);
+	j = 0;
+	p->lowest_bit = 0;
+	p->highest_bit = 0;
+	for (i = 1 ; i < SWAP_BITS ; i++)
+		if (test_bit(i,tmp)) {
+			if (!p->lowest_bit)
+				p->lowest_bit = i;
+			p->highest_bit = i;
+			j++;
+		}
+	if (!j) {
+		printk("Empty swap-file\n");
+		free_page((long) tmp);
+		free_page((long) p->swap_lockmap);
+		iput(p->swap_file);
+		p->swap_device = 0;
+		p->swap_file = NULL;
+		p->swap_map = NULL;
+		p->swap_lockmap = NULL;
+		p->flags = 0;
+		return -EINVAL;
+	}
+	i = SWAP_BITS;
+	while (i--)
+		if (test_bit(i,tmp))
+			tmp[i] = 0;
+		else
+			tmp[i] = 0x80;
+	tmp[0] = 0x80;
+	p->swap_map = tmp;
+	p->flags = SWP_WRITEOK;
+	p->pages = j;
+	nr_swap_pages += j;
+	printk("Adding Swap: %dk swap-space\n",j<<2);
+	return 0;
+}
 
 void si_swapinfo(struct sysinfo *val)
 {
