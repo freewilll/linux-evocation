@@ -36,13 +36,13 @@ __asm__ __volatile__ ( \
 	:"ax")
 
 
-// TODO WGJA WIP: extern inline int tas(char * m)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	char res;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 	__asm__("xchgb %0,%1":"=q" (res),"=m" (*m):"0" (0x1));
-// TODO WGJA WIP: 	return res;
-// TODO WGJA WIP: }
+extern inline int tas(char * m)
+{
+	char res;
+
+	__asm__("xchgb %0,%1":"=q" (res),"=m" (*m):"0" (0x1));
+	return res;
+}
 
 #define save_flags(x) \
 __asm__ __volatile__("pushfl ; popl %0":"=r" (x): /* no input */ :"memory")
@@ -50,7 +50,7 @@ __asm__ __volatile__("pushfl ; popl %0":"=r" (x): /* no input */ :"memory")
 #define restore_flags(x) \
 __asm__ __volatile__("pushl %0 ; popfl": /* no output */ :"r" (x):"memory")
 
-// TODO WGJA WIP: #define iret() __asm__ __volatile__ ("iret": : :"memory")
+#define iret() __asm__ __volatile__ ("iret": : :"memory")
 
 #define _set_gate(gate_addr,type,dpl,addr) \
 do { \
@@ -76,17 +76,17 @@ do { \
 
 #define set_call_gate(a,addr) \
 	_set_gate(a,12,3,addr)
-// TODO WGJA WIP: 
-// TODO WGJA WIP: #define _set_seg_desc(gate_addr,type,dpl,base,limit) {\
-// TODO WGJA WIP: 	*((gate_addr)+1) = ((base) & 0xff000000) | \
-// TODO WGJA WIP: 		(((base) & 0x00ff0000)>>16) | \
-// TODO WGJA WIP: 		((limit) & 0xf0000) | \
-// TODO WGJA WIP: 		((dpl)<<13) | \
-// TODO WGJA WIP: 		(0x00408000) | \
-// TODO WGJA WIP: 		((type)<<8); \
-// TODO WGJA WIP: 	*(gate_addr) = (((base) & 0x0000ffff)<<16) | \
-// TODO WGJA WIP: 		((limit) & 0x0ffff); }
-// TODO WGJA WIP: 
+
+#define _set_seg_desc(gate_addr,type,dpl,base,limit) {\
+	*((gate_addr)+1) = ((base) & 0xff000000) | \
+		(((base) & 0x00ff0000)>>16) | \
+		((limit) & 0xf0000) | \
+		((dpl)<<13) | \
+		(0x00408000) | \
+		((type)<<8); \
+	*(gate_addr) = (((base) & 0x0000ffff)<<16) | \
+		((limit) & 0x0ffff); }
+
 #define _set_tssldt_desc(n,addr,limit,type) \
 __asm__ __volatile__ ("movw $" #limit ",%1\n\t" \
 	"movw %%ax,%2\n\t" \
