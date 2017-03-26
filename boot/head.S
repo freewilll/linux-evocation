@@ -11,8 +11,8 @@
 .text
 .globl idt,gdt,
 .globl swapper_pg_dir,pg0
-.globl _empty_bad_page
-.globl _empty_bad_page_table
+.globl empty_bad_page
+.globl empty_bad_page_table
 .globl empty_zero_page
 .globl tmp_floppy_area,floppy_track_buffer
 
@@ -253,10 +253,10 @@ swapper_pg_dir:
 pg0:
 
 .org 0x3000
-_empty_bad_page:
+empty_bad_page:
 
 .org 0x4000
-_empty_bad_page_table:
+empty_bad_page_table:
 
 .org 0x5000
 empty_zero_page:
