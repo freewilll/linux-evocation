@@ -19,9 +19,9 @@
 .text
 	.align 2,144
 
-.globl _div_small
+.globl div_small
 
-_div_small:
+div_small:
 	pushl	%ebp
 	movl	%esp,%ebp
 

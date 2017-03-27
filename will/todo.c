@@ -47,12 +47,6 @@ int pty_open(struct tty_struct *tty, struct file * filp)
 	return 0;
 }
 
-// TODO WGJA math_emulate
-extern "C" void math_emulate(long arg)
-{
-	printk("TODO WGJA math_emulate\n");
-}
-
 // TODO WGJA sock_fcntl
 int sock_fcntl(struct file *filp, unsigned int cmd, unsigned long arg)
 {

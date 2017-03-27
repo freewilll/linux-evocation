@@ -124,7 +124,7 @@ void get_address(unsigned char FPU_modrm)
 
   if (FPU_rm == 4 && mod != 3)
     {
-      FPU_data_address = sib(mod);
+      FPU_data_address = (long int) sib(mod);
       return;
     }
 
@@ -139,12 +139,12 @@ void get_address(unsigned char FPU_modrm)
 	  offset = get_fs_long((unsigned long *) FPU_EIP);
 	  RE_ENTRANT_CHECK_ON
 	  FPU_EIP += 4;
-	  FPU_data_address = (void *) offset;
+	  FPU_data_address = (long int) offset;
 	  return;
 	}
       else
 	{
-	  FPU_data_address = (void *)*cpu_reg_ptr;  /* Just return the contents
+	  FPU_data_address = (long int) *cpu_reg_ptr;  /* Just return the contents
 						   of the cpu register */
 	  return;
 	}
@@ -167,5 +167,5 @@ void get_address(unsigned char FPU_modrm)
       EXCEPTION(EX_Invalid);
     }
 
-  FPU_data_address = offset + (char *)*cpu_reg_ptr;
+  FPU_data_address = offset + (long int)*cpu_reg_ptr;
 }

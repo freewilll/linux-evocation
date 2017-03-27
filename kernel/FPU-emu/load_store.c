@@ -254,7 +254,7 @@ switch ( type )
     break;
   case 034:      /* fstcw m16int */
     RE_ENTRANT_CHECK_OFF;
-    verify_area(VERIFY_WRITE,FPU_data_address,2);
+    verify_area(VERIFY_WRITE,(void*) FPU_data_address,2);
     put_fs_word(control_word, (short *) FPU_data_address);
     RE_ENTRANT_CHECK_ON;
     NO_NET_DATA_EFFECT;
@@ -271,7 +271,7 @@ switch ( type )
     break;
   case 036:      /* fstsw m2byte */
     RE_ENTRANT_CHECK_OFF;
-    verify_area(VERIFY_WRITE,FPU_data_address,2);
+    verify_area(VERIFY_WRITE,(void*) FPU_data_address,2);
     put_fs_word(status_word(),(short *) FPU_data_address);
     RE_ENTRANT_CHECK_ON;
     NO_NET_DATA_EFFECT;

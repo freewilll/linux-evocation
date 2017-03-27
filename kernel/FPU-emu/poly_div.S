@@ -20,8 +20,8 @@
 
 /*---------------------------------------------------------------------------*/
 	.align 2,144
-.globl _poly_div2
-_poly_div2:
+.globl poly_div2
+poly_div2:
 	pushl %ebp
 	movl %esp,%ebp
 
@@ -42,8 +42,8 @@ poly_div2_exit:
 	ret
 /*---------------------------------------------------------------------------*/
 	.align 2,144
-.globl _poly_div4
-_poly_div4:
+.globl poly_div4
+poly_div4:
 	pushl %ebp
 	movl %esp,%ebp
 
@@ -69,8 +69,8 @@ poly_div4_exit:
 	ret
 /*---------------------------------------------------------------------------*/
 	.align 2,144
-.globl _poly_div16
-_poly_div16:
+.globl poly_div16
+poly_div16:
 	pushl %ebp
 	movl %esp,%ebp
 

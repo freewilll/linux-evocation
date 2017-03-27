@@ -736,9 +736,10 @@ static void rem_kernel(unsigned long long st0, unsigned long long *y,
   x = st0 << n;
 
   /* Do the required multiplication and subtraction in the one operation */
-  asm volatile ("movl %2,%%eax; mull %4; subl %%eax,%0; sbbl %%edx,%1;
-                 movl %3,%%eax; mull %4; subl %%eax,%1;
-                 movl %2,%%eax; mull %5; subl %%eax,%1;"
+  asm volatile (
+    "movl %2,%%eax; mull %4; subl %%eax,%0; sbbl %%edx,%1;\n\t"
+    "movl %3,%%eax; mull %4; subl %%eax,%1;\n\t"
+    "movl %2,%%eax; mull %5; subl %%eax,%1;"
 		:"=m" (x), "=m" (((unsigned *)&x)[1])
 		:"m" (st1),"m" (((unsigned *)&st1)[1]),
 		 "m" (q),"m" (((unsigned *)&q)[1])

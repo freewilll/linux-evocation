@@ -71,7 +71,8 @@ WARNING_CFLAGS=\
 	-Wno-narrowing \
 	-Wno-write-strings \
 	-Wno-pointer-arith \
-	-Wno-format
+	-Wno-format \
+	-Wno-endif-labels
 CFLAGS= -Wall $(WARNING_CFLAGS) -O3 -fomit-frame-pointer -x c++ -fno-stack-protector -fno-tree-loop-distribute-patterns -nostdinc
 
 ifdef CONFIG_M486
@@ -214,6 +215,7 @@ tools/zSystem:	will/todo.o will/tests.o will/early_printk.o boot/head.o init/mai
 		ipc/ipc.o \
 		$(LIBS) \
 		$(FILESYSTEMS) \
+		$(MATH) \
 		kernel/chr_drv/chr_drv.a \
 		kernel/blk_drv/blk_drv.a \
 		kernel/chr_drv/sound/sound.a \

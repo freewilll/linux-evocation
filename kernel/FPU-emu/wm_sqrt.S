@@ -57,9 +57,9 @@ fsqrt_arg_0:
 .text
 	.align 2,144
 
-.globl _wm_sqrt
+.globl wm_sqrt
 
-_wm_sqrt:
+wm_sqrt:
 	pushl	%ebp
 	movl	%esp,%ebp
 	pushl	%esi

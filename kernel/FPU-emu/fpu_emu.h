@@ -71,7 +71,7 @@ extern char emulating;
 /* These are to defeat the default action, giving the instruction
    no net effect: */
 #define NO_NET_DATA_EFFECT \
-      { FPU_data_address = (void *)data_operand_offset; \
+      { FPU_data_address = data_operand_offset; \
 	FPU_data_selector = operand_selector; }
 #define NO_NET_INSTR_EFFECT \
       { FPU_entry_eip = ip_offset; \

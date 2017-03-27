@@ -1223,7 +1223,7 @@ void frstor(void)
   for ( i = 0; i < 8; i++ )
     {
       /* Load each register. */
-      FPU_data_address = (void *)(s+i*10);
+      FPU_data_address = (long int)(s+i*10);
       reg_load_extended();
       stnr = (i+top) & 7;
       tag = regs[stnr].tag;   /* Derived from the loaded tag word. */

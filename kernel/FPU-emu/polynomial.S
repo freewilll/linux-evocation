@@ -36,8 +36,8 @@
 
 .text
 	.align 2,144
-.globl _polynomial
-_polynomial:
+.globl polynomial
+polynomial:
 	pushl	%ebp
 	movl	%esp,%ebp
 	subl	$32,%esp

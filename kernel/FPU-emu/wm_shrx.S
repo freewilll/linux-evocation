@@ -33,9 +33,9 @@
  |   Results returned in the 64 bit arg and eax.                             |
  +---------------------------------------------------------------------------*/
 
-	.globl	_shrx
+	.globl	shrx
 
-_shrx:
+shrx:
 	push	%ebp
 	movl	%esp,%ebp
 	pushl	%esi
@@ -113,8 +113,8 @@ L_more_than_95:
  |   part which has been shifted out of the arg.                             |
  |   Results returned in the 64 bit arg and eax.                             |
  +---------------------------------------------------------------------------*/
-	.globl	_shrxs
-_shrxs:
+	.globl	shrxs
+shrxs:
 	push	%ebp
 	movl	%esp,%ebp
 	pushl	%esi

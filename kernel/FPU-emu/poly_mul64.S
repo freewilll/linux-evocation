@@ -16,8 +16,8 @@
 
 .text
 	.align 2,144
-.globl _mul64
-_mul64:
+.globl mul64
+mul64:
 	pushl %ebp
 	movl %esp,%ebp
 	subl $16,%esp

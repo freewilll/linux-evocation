@@ -4,13 +4,13 @@
 
 #DEBUG	= -DDEBUGGING
 DEBUG	=
-CFLAGS	:= $(CFLAGS) -DPARANOID $(DEBUG) -fno-builtin
+CFLAGS	:= $(CFLAGS) -DPARANOID $(DEBUG) -fno-builtin -Wno-endif-labels -Wno-maybe-uninitialized
 
 .c.o:
 	$(CC) $(CFLAGS) $(MATH_EMULATION) -c $<
 
 .S.o:
-	$(CC) -D__ASSEMBLER__ -c $<
+	$(CC) -D__ASSEMBLER__ -Wno-endif-labels -Wno-maybe-uninitialized -c $<
 
 .s.o:
 	$(CC) -c $<

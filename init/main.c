@@ -351,17 +351,17 @@ static void parse_options(char *line)
 	envp_init[envs+1] = (char*) NULL;
 }
 
-// TODO WGJA WIP: static void copro_timeout(void)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: 	fpu_error = 1;
-// TODO WGJA WIP: 	timer_table[COPRO_TIMER].expires = jiffies+100;
-// TODO WGJA WIP: 	timer_active |= 1<<COPRO_TIMER;
-// TODO WGJA WIP: 	printk("387 failed: trying to reset\n");
-// TODO WGJA WIP: 	send_sig(SIGFPE, last_task_used_math, 1);
-// TODO WGJA WIP: 	outb_p(0,0xf1);
-// TODO WGJA WIP: 	outb_p(0,0xf0);
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+static void copro_timeout(void)
+{
+	fpu_error = 1;
+	timer_table[COPRO_TIMER].expires = jiffies+100;
+	timer_active |= 1<<COPRO_TIMER;
+	printk("387 failed: trying to reset\n");
+	send_sig(SIGFPE, last_task_used_math, 1);
+	outb_p(0,0xf1);
+	outb_p(0,0xf0);
+}
+
 
 extern "C" void start_kernel(void)
 {
@@ -433,30 +433,30 @@ extern "C" void start_kernel(void)
 	 * So the irq13 will happen eventually, but the exception 16
 	 * should get there first..
 	 */
-// TODO WGJA WIP: 	if (hard_math) {
-// TODO WGJA WIP: 		unsigned short control_word;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: 		printk("Checking 386/387 coupling... ");
-// TODO WGJA WIP: 		timer_table[COPRO_TIMER].expires = jiffies+50;
-// TODO WGJA WIP: 		timer_table[COPRO_TIMER].fn = copro_timeout;
-// TODO WGJA WIP: 		timer_active |= 1<<COPRO_TIMER;
-// TODO WGJA WIP: 		__asm__("clts ; fninit ; fnstcw %0 ; fwait":"=m" (*&control_word));
-// TODO WGJA WIP: 		control_word &= 0xffc0;
-// TODO WGJA WIP: 		__asm__("fldcw %0 ; fwait": :"m" (*&control_word));
-// TODO WGJA WIP: 		outb_p(inb_p(0x21) | (1 << 2), 0x21);
-// TODO WGJA WIP: 		__asm__("fldz ; fld1 ; fdiv %st,%st(1) ; fwait");
-// TODO WGJA WIP: 		timer_active &= ~(1<<COPRO_TIMER);
-// TODO WGJA WIP: 		if (!fpu_error)
-// TODO WGJA WIP: 			printk("Ok, fpu using %s error reporting.\n",
-// TODO WGJA WIP: 				ignore_irq13?"exception 16":"irq13");
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: #ifndef CONFIG_MATH_EMULATION
-// TODO WGJA WIP: 	else {
-// TODO WGJA WIP: 		printk("No coprocessor found and no math emulation present.\n");
-// TODO WGJA WIP: 		printk("Giving up.\n");
-// TODO WGJA WIP: 		for (;;) ;
-// TODO WGJA WIP: 	}
-// TODO WGJA WIP: #endif
+	if (hard_math) {
+		unsigned short control_word;
+
+		printk("Checking 386/387 coupling... ");
+		timer_table[COPRO_TIMER].expires = jiffies+50;
+		timer_table[COPRO_TIMER].fn = copro_timeout;
+		timer_active |= 1<<COPRO_TIMER;
+		__asm__("clts ; fninit ; fnstcw %0 ; fwait":"=m" (*&control_word));
+		control_word &= 0xffc0;
+		__asm__("fldcw %0 ; fwait": :"m" (*&control_word));
+		outb_p(inb_p(0x21) | (1 << 2), 0x21);
+		__asm__("fldz ; fld1 ; fdiv %st,%st(1) ; fwait");
+		timer_active &= ~(1<<COPRO_TIMER);
+		if (!fpu_error)
+			printk("Ok, fpu using %s error reporting.\n",
+				ignore_irq13?"exception 16":"irq13");
+	}
+#ifndef CONFIG_MATH_EMULATION
+	else {
+		printk("No coprocessor found and no math emulation present.\n");
+		printk("Giving up.\n");
+		for (;;) ;
+	}
+#endif
 	// blank_screen();
 	// panic("foo");
 	// blank_screen(); 
