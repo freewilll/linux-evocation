@@ -266,7 +266,7 @@ fn_ptr sys_call_table[] = {
 	sys_wait4,		// __NR_wait4		114
 	sys_swapoff,		// __NR_swapoff		115
 	sys_sysinfo,		// __NR_sysinfo		116
-	sys_ipc,		// __NR_ipc		117	todo
+	sys_ipc,		// __NR_ipc		117
 	sys_fsync,		// __NR_fsync		118
 	sys_sigreturn,		// __NR_sigreturn	119
 	sys_clone,		// __NR_clone		120

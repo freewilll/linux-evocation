@@ -18,9 +18,9 @@ SUBDIRS =
 
 OBJS	=  util.o 
 
-# ifdef CONFIG_SYSVIPC
-# OBJS	:= $(OBJS) msg.o sem.o shm.o
-# endif
+ifdef CONFIG_SYSVIPC
+OBJS	:= $(OBJS) msg.o sem.o shm.o
+endif
 
 ipc.o: $(OBJS) 
 	$(LD) -r -o ipc.o $(OBJS) 

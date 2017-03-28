@@ -25,13 +25,6 @@ extern "C" int sys_socketcall(void)
 	return -ENOSYS;
 }
 
-// TODO WGJA sys_ipc 
-extern "C" int sys_ipc(void)
-{
-	printk("TODO: sys_ipc\n");
-	return -ENOSYS;
-}
-
 // TODO WGJA sys_modify_ldt 
 extern "C" int sys_modify_ldt(void)
 {
