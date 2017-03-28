@@ -32,23 +32,6 @@ extern char *linux_banner;
 extern "C" void lcall7(void);
 struct desc_struct default_ldt;
 
-extern void show_state(void);
-extern void test_fork();
-extern void test_fork_memory();
-extern void test_memset();
-extern void test_memcpy();
-extern void test_page_map();
-extern void test_kmalloc();
-extern void init_test_keyboard();
-extern void test_dev_zero();
-extern void test_minix();
-extern void test_tty1_read();
-extern void test_printf();
-extern void test_memmove();
-extern void test_general_protection_fault();
-extern void test_file_read_write();
-extern void test_mmap();
-
 /*
  * we need this inline - forking from kernel space will result
  * in NO COPY ON WRITE (!!!), until an execve is executed. This
@@ -82,7 +65,6 @@ static inline pid_t wait(int * wait_stat)
 
 static char printbuf[1024];
 
-void init_early_printk();
 extern char empty_zero_page[PAGE_SIZE];
 extern "C" int vsprintf(char *,const char *,va_list);
 extern void init(void);
@@ -365,8 +347,6 @@ static void copro_timeout(void)
 
 extern "C" void start_kernel(void)
 {
-	// For easy work in progress early kernel debugging
-	init_early_printk();
 /*
  * Interrupts are still disabled. Do necessary setups, then
  * enable them
@@ -418,7 +398,7 @@ extern "C" void start_kernel(void)
 	buffer_init();
 	time_init();
 	floppy_init();	
-	// sock_init();		// WGJA TODO sock_init()
+	sock_init();
 #ifdef CONFIG_SYSVIPC
 	ipc_init();
 #endif
@@ -457,12 +437,6 @@ extern "C" void start_kernel(void)
 		for (;;) ;
 	}
 #endif
-	// blank_screen();
-	// panic("foo");
-	// blank_screen(); 
-	// // panic("foo");
-	// for(;;) idle();
-
 	move_to_user_mode();
 	if (!fork())		/* we count on this going ok */
 		init();
@@ -477,35 +451,6 @@ extern "C" void start_kernel(void)
  */
 	for(;;)
 		idle();
-
-	// WGJA WIP
-
-	// sti();
-
-	// printk("Moving to user mode\n");
-
-	// move_to_user_mode();
-	// if (!fork()) {		/* we count on this going ok */
-	// 	setup((void *) &drive_info);
-	// 	printk("setup() done\n");
-	// 	for (;;);
-	// }
-
-	// // test_page_map();
-	// // test_kmalloc();
-	// // init_test_keyboard();
-	// // test_dev_zero();
-	// // test_fork();
-	// // test_fork_memory();
-	// // test_memset();
-	// // test_memcpy();
-
-	// printk("Falling through to an idle loop\n");
-	// for (;;) {
-	// 	idle();
-	// }
-
-
 }
 
 static int printf(const char *fmt, ...)
@@ -525,35 +470,12 @@ void init(void)
 
 	setup((void *) &drive_info);
 
-	// test_dev_zero();
-	// test_minix();cli(); // cli panics due to an unhandled trap
-	// test_tty1_read();
-
 	(void) open("/dev/tty1",O_RDWR,0);
 	(void) dup(0);
 	(void) dup(0);
 
-	// test_general_protection_fault();
-
-	// test_printf();
-	// test_memmove();
-	// test_file_read_write();
-	// test_mmap();
-	// for(;;) idle();
-
 	system_utsname.machine[1] = '0' + x86;
 	printf(linux_banner);
-
-	// i = execve("/bin/sh",argv_rc,envp_rc);
-	// printf("Something is wrong. execve result: %d\n", i);
-	// for(;;) idle();
-
-	// execve("/usr/root/a.out",argv_rc,envp_rc);
-	// printk("execve done\n");
-	// for(;;) idle();
-
-	// // printf("TODO: rest of init()\n");
-	// // for(;;) idle();
 
 	execve("/etc/init",argv_init,envp_init);
 	execve("/bin/init",argv_init,envp_init);

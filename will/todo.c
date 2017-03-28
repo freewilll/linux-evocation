@@ -60,3 +60,9 @@ long mouse_init(unsigned long mem_start)
 	printk("TODO WGJA mouse_init\n");
 	return mem_start;
 }
+
+// TODO WGJA sock_init
+void sock_init()
+{
+	printk("TODO WGJA sock_init\n");
+}
