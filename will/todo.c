@@ -54,13 +54,6 @@ long lp_init(long mem_start)
 	return mem_start;
 }
 
-// TODO WGJA mouse_init
-long mouse_init(unsigned long mem_start)
-{
-	printk("TODO WGJA mouse_init\n");
-	return mem_start;
-}
-
 // TODO WGJA sock_init
 void sock_init()
 {

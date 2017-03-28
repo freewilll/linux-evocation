@@ -174,6 +174,55 @@ void test_dev_zero()
 
 }
 
+static int printf(const char *fmt, ...)
+{
+	va_list args;
+	int i;
+
+	va_start(args, fmt);
+	write(1,printbuf,i=vsprintf(printbuf, fmt, args));
+	va_end(args);
+	return i;
+}
+
+// http://stackoverflow.com/questions/111928/is-there-a-printf-converter-to-print-in-binary-format
+
+#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c"
+#define BYTE_TO_BINARY(byte)  \
+  (byte & 0x80 ? '1' : '0'), \
+  (byte & 0x40 ? '1' : '0'), \
+  (byte & 0x20 ? '1' : '0'), \
+  (byte & 0x10 ? '1' : '0'), \
+  (byte & 0x08 ? '1' : '0'), \
+  (byte & 0x04 ? '1' : '0'), \
+  (byte & 0x02 ? '1' : '0'), \
+  (byte & 0x01 ? '1' : '0') 
+
+// http://wiki.osdev.org/PS/2_Mouse
+void test_dev_psaux()
+{
+	int fd;
+	char buffer[16];
+	int c;
+
+	fd = open("/dev/ps2aux", O_RDONLY, 0);
+	if (fd < 0) printf("Could not open /dev/ps2aux: %d\n", fd);
+
+	printf("fd=%d\n", fd);
+	while (1) {
+		c = read(fd, buffer, 3);
+		if (c < 0) 
+			printf("Bad read\n");
+		else if (c != 3) 
+			printf("Didn't get 3 bytes\n");
+		else {
+			printf("Got " BYTE_TO_BINARY_PATTERN, BYTE_TO_BINARY(buffer[0]));
+			printf(" %d %d\n", buffer[1], buffer[2]);
+		}
+	}
+
+}
+
 void test_minix_mkdir() {
 	int fd;
 	printk("\nmkdir\n");
@@ -214,17 +263,6 @@ void test_minix()
 	test_minix_readdir();
 	test_minix_rmdir();
 	test_minix_readdir();
-}
-
-static int printf(const char *fmt, ...)
-{
-	va_list args;
-	int i;
-
-	va_start(args, fmt);
-	write(1,printbuf,i=vsprintf(printbuf, fmt, args));
-	va_end(args);
-	return i;
 }
 
 void test_tty1_read()
