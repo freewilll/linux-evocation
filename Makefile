@@ -72,7 +72,8 @@ WARNING_CFLAGS=\
 	-Wno-write-strings \
 	-Wno-pointer-arith \
 	-Wno-format \
-	-Wno-endif-labels
+	-Wno-endif-labels \
+	-Wno-overflow
 CFLAGS= -Wall $(WARNING_CFLAGS) -O3 -fomit-frame-pointer -x c++ -fno-stack-protector -fno-tree-loop-distribute-patterns -nostdinc
 
 ifdef CONFIG_M486
