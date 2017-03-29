@@ -47,13 +47,6 @@ int sock_fcntl(struct file *filp, unsigned int cmd, unsigned long arg)
 	return(-EINVAL);
 }
 
-// TODO WGJA lp_init
-long lp_init(long mem_start)
-{
-	printk("TODO WGJA lp_init\n");
-	return mem_start;
-}
-
 // TODO WGJA sock_init
 void sock_init()
 {
