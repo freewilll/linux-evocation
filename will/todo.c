@@ -32,14 +32,6 @@ extern "C" int sys_modify_ldt(void)
 	return -ENOSYS;
 }
 
-// TODO WGJA pty_open
-int pty_open(struct tty_struct *tty, struct file * filp)
-{
-	printk("// TODO WGJA pty_open\n");
-	tty->write = con_write;
-	return 0;
-}
-
 // TODO WGJA sock_fcntl
 int sock_fcntl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
