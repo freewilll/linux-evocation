@@ -361,6 +361,7 @@ static struct exception_list_type {
 #define NR_OF_EXC	(sizeof(exception_list)/sizeof(struct exception_list_type))
 
 
+static void finish_rw(int cmd);
 
 static void tpqputs(char *s)
 {
@@ -887,7 +888,6 @@ static int get_ext_status3(void)
 static int tp_sense(int ignore)
 {
 	unsigned err = 0, exnr = 0, gs = 0;
-	static void finish_rw(int cmd);
 
 	printk(TPQIC_NAME ": tp_sense(ignore=0x%x) enter\n", ignore);
 

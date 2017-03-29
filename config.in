@@ -84,7 +84,7 @@ bool 'PS/2 mouse (aka "auxiliary device") support' CONFIG_PSMOUSE y
 bool 'Microsoft busmouse support' CONFIG_MS_BUSMOUSE y
 bool 'ATIXL busmouse support' CONFIG_ATIXL_BUSMOUSE y
 bool 'Selection (cut and paste for virtual consoles)' CONFIG_SELECTION n
-bool 'QIC-02 tape support' CONFIG_TAPE_QIC02 n
+bool 'QIC-02 tape support' CONFIG_TAPE_QIC02 y
 *
 * Sound
 *

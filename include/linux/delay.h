@@ -31,11 +31,11 @@ extern __inline__ void __delay(int loops)
  */
 extern __inline__ void udelay(unsigned long usecs)
 {
+	int d0;
 	usecs *= 0x000010c6;		/* 2**32 / 1000000 */
 	__asm__("mull %0"
-		:"=d" (usecs)
-		:"a" (usecs),"0" (loops_per_sec)
-		:"ax");
+		:"=d" (usecs), "=&a" (d0)
+		:"1" (usecs),"0" (loops_per_sec));
 	__delay(usecs);
 }
 

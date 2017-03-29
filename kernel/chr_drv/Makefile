@@ -19,7 +19,7 @@
 SUBDIRS= sound
 
 OBJS = mem.o tty_io.o keyboard.o defkeymap.o tty_ioctl.o console.o vt.o serial.o mouse.o psaux.o \
-	busmouse.o msbusmouse.o atixlmouse.o lp.o
+	busmouse.o msbusmouse.o atixlmouse.o lp.o tpqic02.o
 # OBJS  = tty_io.o console.o keyboard.o serial.o \
 # 	tty_ioctl.o pty.o lp.o vt.o mem.o mouse.o \
 # 	busmouse.o psaux.o msbusmouse.o atixlmouse.o \
