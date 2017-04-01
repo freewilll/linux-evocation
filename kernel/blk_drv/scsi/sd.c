@@ -54,7 +54,7 @@ extern void resetup_one_dev(struct gendisk *, unsigned int);
 
 extern int sd_ioctl(struct inode *, struct file *, unsigned int, unsigned long);
 
-static sd_init_onedisk(int);
+static int sd_init_onedisk(int);
 
 static void requeue_sd_request (Scsi_Cmnd * SCpnt);
 
@@ -774,8 +774,10 @@ static int sd_init_onedisk(int i)
 	    rscsi_disks[i].capacity = 0;
 	  } else {
 	    printk ("scsi : deleting disk entry.\n");
-	    for  (j=i;  j < NR_SD - 1;)
-	      rscsi_disks[j] = rscsi_disks[++j];
+	    for  (j=i;  j < NR_SD - 1;) {
+	      rscsi_disks[j] = rscsi_disks[j + 1];
+	      j++;
+	    }
 	    --i;
 	    --NR_SD;
 	    scsi_free(buffer, 512);

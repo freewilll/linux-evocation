@@ -348,7 +348,7 @@ static inline void build_sg_list(Scsi_Cmnd *SCpnt)
 	/* Save ourselves some casts; can eliminate when we don't have to look at it anymore! */
 	sglist = (ultrastor_sg_list *) SCpnt->host_scribble;
 	for (i = 0; i < SCpnt->use_sg; i++) {
-		sglist[i].address = sl[i].address;
+		sglist[i].address = (long unsigned int) sl[i].address;
 		sglist[i].num_bytes = sl[i].length;
 		transfer_length += sl[i].length;
 	}

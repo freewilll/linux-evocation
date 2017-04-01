@@ -61,6 +61,8 @@
   indices need not be involved.
 */
 
+extern "C" int vsprintf(char *buf, const char *fmt, va_list args);
+
 static struct {
        struct wd_mailbox ogmb[OGMB_CNT]; 
        struct wd_mailbox icmb[ICMB_CNT];
@@ -97,8 +99,8 @@ static inline void wd7000_enable_dma(void)
 
 
 #define WAIT(port, mask, allof, noneof)					\
- { register WAITbits;							\
-   register WAITtimeout = WAITnexttimeout;				\
+ { register int WAITbits;							\
+   register int WAITtimeout = WAITnexttimeout;				\
    while (1) {								\
      WAITbits = inb(port) & (mask);					\
      if ((WAITbits & (allof)) == (allof) && ((WAITbits & (noneof)) == 0)) \
@@ -203,8 +205,10 @@ static int mail_out( Scb *scbptr )
 
 	    next_ogmb = (ogmb+1) % OGMB_CNT;
 	    break;
-	}  else
-	    ogmb = (++ogmb) % OGMB_CNT;
+	}  else {
+        ogmb++;
+        ogmb = ogmb % OGMB_CNT;
+    }
     }
     restore_flags(flags);
     DEB(printk(", scb is %x",scbptr);)
@@ -547,14 +551,12 @@ int wd7000_detect(int hostnum)
 }
 
 
-
 static void wd7000_append_info( char *info, const char *fmt, ... )
 /*
  *  This is just so I can use vsprintf...
  */
 {
     va_list args;
-    extern int vsprintf(char *buf, const char *fmt, va_list args);
 
     va_start(args, fmt);
     vsprintf(info, fmt, args);

@@ -46,26 +46,28 @@ __asm__ __volatile__(
 	"rep\n\t"
 	"stosb\n"
 	"2:"
-	: "=&S" (d0), "=&D" (d1), "=&c" (d2), "=&a" (d3)
+	:"=&S" (d0), "=&D" (d1), "=&c" (d2), "=&a" (d3)
 	:"0" (src),"1" (dest),"2" (count) : "memory");
 return dest;
 }
 
-// TODO WGJA WIP: extern inline char * strcat(char * dest,const char * src)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: __asm__("cld\n\t"
-// TODO WGJA WIP: 	"repne\n\t"
-// TODO WGJA WIP: 	"scasb\n\t"
-// TODO WGJA WIP: 	"decl %1\n"
-// TODO WGJA WIP: 	"1:\tlodsb\n\t"
-// TODO WGJA WIP: 	"stosb\n\t"
-// TODO WGJA WIP: 	"testb %%al,%%al\n\t"
-// TODO WGJA WIP: 	"jne 1b"
-// TODO WGJA WIP: 	: /* no output */
-// TODO WGJA WIP: 	:"S" (src),"D" (dest),"a" (0),"c" (0xffffffff):"si","di","ax","cx");
-// TODO WGJA WIP: return dest;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+extern inline char * strcat(char * dest,const char * src)
+{
+int d0, d1, d2, d3;
+__asm__ __volatile__(
+	"cld\n\t"
+	"repne\n\t"
+	"scasb\n\t"
+	"decl %1\n"
+	"1:\tlodsb\n\t"
+	"stosb\n\t"
+	"testb %%al,%%al\n\t"
+	"jne 1b"
+	:"=&S" (d0), "=&D" (d1), "=&a" (d2), "=&c" (d3)
+	:"0" (src), "1" (dest), "2" (0), "3" (0xffffffff));
+return dest;
+}
+
 // TODO WGJA WIP: extern inline char * strncat(char * dest,const char * src,size_t count)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: __asm__("cld\n\t"
@@ -147,22 +149,25 @@ __asm__ __volatile__(
 return __res;
 }
 
-// TODO WGJA WIP: extern inline char * strrchr(const char * s,char c)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: register char * __res __asm__("dx");
-// TODO WGJA WIP: __asm__("cld\n\t"
-// TODO WGJA WIP: 	"movb %%al,%%ah\n"
-// TODO WGJA WIP: 	"1:\tlodsb\n\t"
-// TODO WGJA WIP: 	"cmpb %%ah,%%al\n\t"
-// TODO WGJA WIP: 	"jne 2f\n\t"
-// TODO WGJA WIP: 	"movl %%esi,%0\n\t"
-// TODO WGJA WIP: 	"decl %0\n"
-// TODO WGJA WIP: 	"2:\ttestb %%al,%%al\n\t"
-// TODO WGJA WIP: 	"jne 1b"
-// TODO WGJA WIP: 	:"=d" (__res):"0" (0),"S" (s),"a" (c):"ax","si");
-// TODO WGJA WIP: return __res;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
+extern inline char * strrchr(const char * s,char c)
+{
+register char * __res __asm__("dx");
+int d0, d1;
+__asm__ __volatile__(
+	"cld\n\t"
+	"movb %%al,%%ah\n"
+	"1:\tlodsb\n\t"
+	"cmpb %%ah,%%al\n\t"
+	"jne 2f\n\t"
+	"movl %%esi,%0\n\t"
+	"decl %0\n"
+	"2:\ttestb %%al,%%al\n\t"
+	"jne 1b"
+	:"=d" (__res), "=&a" (d0), "=&S" (d1)
+	:"0" (0),"2" (s),"1" (c));
+return __res;
+}
+
 // TODO WGJA WIP: extern inline size_t strspn(const char * cs, const char * ct)
 // TODO WGJA WIP: {
 // TODO WGJA WIP: register char * __res __asm__("si");

@@ -342,14 +342,26 @@ inline static void outw( unsigned short value, unsigned short port )
 
 /* These defines are copied from kernel/blk_drv/hd.c */
 
-#define insw( buf, count, port ) \
-   __asm__ volatile \
-      ("cld;rep;insw": :"d" (port),"D" (buf),"c" (count):"cx","di" )
+static inline void port_read(int port, char* buf, int nr)
+{
+  int d0, d1, d2;
+  __asm__ __volatile__(
+    "cld;rep;insw"
+    : "=&d" (d0), "=D" (d1),  "=c" (d2)
+    : "0" (port), "1" (buf), "2" (nr));
+}
 
-#define outsw( buf, count, port ) \
-    __asm__ volatile \
-       ("cld;rep;outsw": :"d" (port),"S" (buf),"c" (count):"cx","si")
+static inline void port_write(int port, char* buf, int nr)
+{
+  int d0, d1, d2;
+  __asm__ __volatile__(
+    "cld;rep;outsw"
+    : "=&d" (d0), "=S" (d1),  "=c" (d2)
+    : "0" (port), "1" (buf), "2" (nr));
+}
 
+#define insw(buf, count, port) port_read(port, buf, count)
+#define outsw(buf, count, port) port_write(port, buf, count)
 
 static void print_banner( void )
 {

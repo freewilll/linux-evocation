@@ -15,7 +15,7 @@ bool 'Use -m486 flag for 486-specific optimizations' CONFIG_M486 n
 *
 * SCSI support
 *
-bool 'SCSI support?' CONFIG_SCSI n
+bool 'SCSI support?' CONFIG_SCSI y
 if [ "$CONFIG_SCSI" = "n" ]
 :
 : Skipping SCSI configuration options...
@@ -24,18 +24,18 @@ else
 	*
 	* SCSI support type (disk, tape, CDrom)
 	*
-bool 'Scsi disk support' CONFIG_BLK_DEV_SD n
-bool 'Scsi tape support' CONFIG_BLK_DEV_ST n
-bool 'Scsi CDROM support' CONFIG_BLK_DEV_SR n
+bool 'Scsi disk support' CONFIG_BLK_DEV_SD y
+bool 'Scsi tape support' CONFIG_BLK_DEV_ST y
+bool 'Scsi CDROM support' CONFIG_BLK_DEV_SR y
 	*
 	* SCSI low-level drivers
 	*
-bool 'Adaptec AHA1542 support' CONFIG_SCSI_AHA1542 n
-bool 'Adaptec AHA1740 support' CONFIG_SCSI_AHA1740 n
-bool 'Future Domain SCSI support' CONFIG_SCSI_FUTURE_DOMAIN n
-bool 'Seagate ST-02 and Future Domain TMC-8xx SCSI support' CONFIG_SCSI_SEAGATE n
-bool 'UltraStor SCSI support' CONFIG_SCSI_ULTRASTOR n
-bool '7000FASST SCSI support' CONFIG_SCSI_7000FASST n
+bool 'Adaptec AHA1542 support' CONFIG_SCSI_AHA1542 y
+bool 'Adaptec AHA1740 support' CONFIG_SCSI_AHA1740 y
+bool 'Future Domain SCSI support' CONFIG_SCSI_FUTURE_DOMAIN y
+bool 'Seagate ST-02 and Future Domain TMC-8xx SCSI support' CONFIG_SCSI_SEAGATE y
+bool 'UltraStor SCSI support' CONFIG_SCSI_ULTRASTOR y
+bool '7000FASST SCSI support' CONFIG_SCSI_7000FASST y
 fi
 *
 * Network device support

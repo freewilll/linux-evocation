@@ -458,3 +458,23 @@ void test_strtok()
 		token = strtok(NULL, s);
 	}
 }
+
+// http://www.cplusplus.com/reference/cstring/strrchr/
+void test_strrchr()
+{
+	char str[] = "This is a sample string";
+	char * pch;
+	pch=strrchr(str,'s');
+	printf ("Last occurence of 's' found at %d \n",pch-str+1);
+}
+
+// http://www.cplusplus.com/reference/cstring/strcat/
+void test_strcat()
+{
+	char str[80];
+	strcpy (str,"these ");
+	strcat (str,"strings ");
+	strcat (str,"are ");
+	strcat (str,"concatenated.");
+	printf("%s\n", str);
+}

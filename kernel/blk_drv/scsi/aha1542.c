@@ -73,8 +73,8 @@ static void setup_mailboxes(void);
 #define aha1542_intr_reset()  outb(IRST, CONTROL)
 
 #define WAIT(port, mask, allof, noneof)					\
- { register WAITbits;							\
-   register WAITtimeout = WAITnexttimeout;				\
+ { register int WAITbits;							\
+   register int WAITtimeout = WAITnexttimeout;				\
    while (1) {								\
      WAITbits = inb(port) & (mask);					\
      if ((WAITbits & (allof)) == (allof) && ((WAITbits & (noneof)) == 0)) \

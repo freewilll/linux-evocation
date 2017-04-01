@@ -129,7 +129,7 @@ static int st_chk_result(Scsi_Cmnd * SCpnt)
 {
   int dev = SCpnt->request.dev;
   int result = SCpnt->result;
-  char * sense = SCpnt->sense_buffer;
+  unsigned char * sense = SCpnt->sense_buffer;
 
   if (!result)
     return 0;
