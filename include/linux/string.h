@@ -19,6 +19,8 @@
  *		Copyright (C) 1991, 1992 Linus Torvalds
  */
 
+extern char * strtok(char * s,const char * ct);
+
 extern inline char * strcpy(char * dest,const char *src)
 {
 	int d0, d1, d2;
@@ -275,67 +277,6 @@ __asm__ __volatile__(
 	:"=c" (__res), "=&D" (d0) :"1" (s),"a" (0), "0" (0xffffffff));
 return __res;
 }
-
-// TODO WGJA WIP: extern char * ___strtok;
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern inline char * strtok(char * s,const char * ct)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: register char * __res;
-// TODO WGJA WIP: __asm__("testl %1,%1\n\t"
-// TODO WGJA WIP: 	"jne 1f\n\t"
-// TODO WGJA WIP: 	"testl %0,%0\n\t"
-// TODO WGJA WIP: 	"je 8f\n\t"
-// TODO WGJA WIP: 	"movl %0,%1\n"
-// TODO WGJA WIP: 	"1:\txorl %0,%0\n\t"
-// TODO WGJA WIP: 	"movl $-1,%%ecx\n\t"
-// TODO WGJA WIP: 	"xorl %%eax,%%eax\n\t"
-// TODO WGJA WIP: 	"cld\n\t"
-// TODO WGJA WIP: 	"movl %4,%%edi\n\t"
-// TODO WGJA WIP: 	"repne\n\t"
-// TODO WGJA WIP: 	"scasb\n\t"
-// TODO WGJA WIP: 	"notl %%ecx\n\t"
-// TODO WGJA WIP: 	"decl %%ecx\n\t"
-// TODO WGJA WIP: 	"je 7f\n\t"			/* empty delimeter-string */
-// TODO WGJA WIP: 	"movl %%ecx,%%edx\n"
-// TODO WGJA WIP: 	"2:\tlodsb\n\t"
-// TODO WGJA WIP: 	"testb %%al,%%al\n\t"
-// TODO WGJA WIP: 	"je 7f\n\t"
-// TODO WGJA WIP: 	"movl %4,%%edi\n\t"
-// TODO WGJA WIP: 	"movl %%edx,%%ecx\n\t"
-// TODO WGJA WIP: 	"repne\n\t"
-// TODO WGJA WIP: 	"scasb\n\t"
-// TODO WGJA WIP: 	"je 2b\n\t"
-// TODO WGJA WIP: 	"decl %1\n\t"
-// TODO WGJA WIP: 	"cmpb $0,(%1)\n\t"
-// TODO WGJA WIP: 	"je 7f\n\t"
-// TODO WGJA WIP: 	"movl %1,%0\n"
-// TODO WGJA WIP: 	"3:\tlodsb\n\t"
-// TODO WGJA WIP: 	"testb %%al,%%al\n\t"
-// TODO WGJA WIP: 	"je 5f\n\t"
-// TODO WGJA WIP: 	"movl %4,%%edi\n\t"
-// TODO WGJA WIP: 	"movl %%edx,%%ecx\n\t"
-// TODO WGJA WIP: 	"repne\n\t"
-// TODO WGJA WIP: 	"scasb\n\t"
-// TODO WGJA WIP: 	"jne 3b\n\t"
-// TODO WGJA WIP: 	"decl %1\n\t"
-// TODO WGJA WIP: 	"cmpb $0,(%1)\n\t"
-// TODO WGJA WIP: 	"je 5f\n\t"
-// TODO WGJA WIP: 	"movb $0,(%1)\n\t"
-// TODO WGJA WIP: 	"incl %1\n\t"
-// TODO WGJA WIP: 	"jmp 6f\n"
-// TODO WGJA WIP: 	"5:\txorl %1,%1\n"
-// TODO WGJA WIP: 	"6:\tcmpb $0,(%0)\n\t"
-// TODO WGJA WIP: 	"jne 7f\n\t"
-// TODO WGJA WIP: 	"xorl %0,%0\n"
-// TODO WGJA WIP: 	"7:\ttestl %0,%0\n\t"
-// TODO WGJA WIP: 	"jne 8f\n\t"
-// TODO WGJA WIP: 	"movl %0,%1\n"
-// TODO WGJA WIP: 	"8:"
-// TODO WGJA WIP: 	:"=b" (__res),"=S" (___strtok)
-// TODO WGJA WIP: 	:"0" (___strtok),"1" (s),"g" (ct)
-// TODO WGJA WIP: 	:"ax","cx","dx","di","memory");
-// TODO WGJA WIP: return __res;
-// TODO WGJA WIP: }
 
 // From 2.4 kernel
 static inline void * memcpy(void * to, const void * from, size_t n)

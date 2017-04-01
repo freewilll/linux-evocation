@@ -12,6 +12,7 @@
 #include <linux/msdos_fs.h>
 #include <linux/errno.h>
 #include <linux/stat.h>
+#include <linux/string.h>
 
 
 static int msdos_dir_read(struct inode * inode,struct file * filp, char * buf,int count)
@@ -58,7 +59,8 @@ static int msdos_readdir(struct inode *inode,struct file *filp,
     struct dirent *dirent,int count)
 {
 	int ino,i,i2,last;
-	char c,*walk;
+	char c;
+	const char* walk;
 	struct buffer_head *bh;
 	struct msdos_dir_entry *de;
 

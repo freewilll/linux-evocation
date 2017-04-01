@@ -70,7 +70,7 @@ int is_binary(char conversion,char *extension)
 /* (rename might deadlock before detecting cross-FS moves.) */
 
 static struct wait_queue *creation_wait = NULL;
-static creation_lock = 0;
+static int creation_lock = 0;
 
 
 void lock_creation(void)

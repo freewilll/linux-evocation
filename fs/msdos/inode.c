@@ -71,6 +71,7 @@ static int parse_options(char *options,char *check,char *conversion,uid_t *uid,
 {
 	char *this_char,*value;
 
+	const char comma[2] = ",";
 	*check = 'n';
 	*conversion = 'b';
 	*uid = current->uid;
@@ -78,7 +79,7 @@ static int parse_options(char *options,char *check,char *conversion,uid_t *uid,
 	*umask = current->umask;
 	*debug = *fat = *quiet = 0;
 	if (!options) return 1;
-	for (this_char = strtok(options,","); this_char; this_char = strtok(NULL,",")) {
+	for (this_char = strtok(options,comma); this_char; this_char = strtok(NULL,comma)) {
 		if ((value = strchr(this_char,'=')) != NULL)
 			*value++ = 0;
 		if (!strcmp(this_char,"check") && value) {
