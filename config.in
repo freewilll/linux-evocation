@@ -7,7 +7,7 @@
 *
 bool 'Kernel math emulation' CONFIG_MATH_EMULATION n
 bool 'Normal harddisk support' CONFIG_BLK_DEV_HD y
-bool 'XT harddisk support' CONFIG_BLK_DEV_XD n
+bool 'XT harddisk support' CONFIG_BLK_DEV_XD y
 bool 'TCP/IP networking' CONFIG_INET n
 bool 'Limit memory to low 16MB' CONFIG_MAX_16M n
 bool 'System V IPC' CONFIG_SYSVIPC y

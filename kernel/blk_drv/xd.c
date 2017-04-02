@@ -19,6 +19,7 @@
 #include <linux/kernel.h>
 #include <linux/genhd.h>
 #include <linux/xd.h>
+#include <linux/string.h>
 
 #include <asm/system.h>
 #include <asm/io.h>
