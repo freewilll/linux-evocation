@@ -44,12 +44,13 @@ static int isofs_match(int len,const char * name, char * compare, int dlen)
 	
 	if (dlen != len)
 		return 0;
-	__asm__("cld\n\t"
+	int d0, d1, d2;
+	__asm__ __volatile__(
+		"cld\n\t"
 		"repe ; cmpsb\n\t"
 		"setz %%al"
-		:"=a" (same)
-		:"0" (0),"S" ((long) name),"D" ((long) compare),"c" (len)
-		:"cx","di","si");
+		:"=a" (same), "=&c" (d0), "=&S" (d1), "=&D" (d2)
+		:"0" (0), "2" ((long) name), "3" ((long) compare),"1" (len));
 	return same;
 }
 

@@ -68,26 +68,28 @@ __asm__ __volatile__(
 return dest;
 }
 
-// TODO WGJA WIP: extern inline char * strncat(char * dest,const char * src,size_t count)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: __asm__("cld\n\t"
-// TODO WGJA WIP: 	"repne\n\t"
-// TODO WGJA WIP: 	"scasb\n\t"
-// TODO WGJA WIP: 	"decl %1\n\t"
-// TODO WGJA WIP: 	"movl %4,%3\n"
-// TODO WGJA WIP: 	"1:\tdecl %3\n\t"
-// TODO WGJA WIP: 	"js 2f\n\t"
-// TODO WGJA WIP: 	"lodsb\n\t"
-// TODO WGJA WIP: 	"stosb\n\t"
-// TODO WGJA WIP: 	"testb %%al,%%al\n\t"
-// TODO WGJA WIP: 	"jne 1b\n"
-// TODO WGJA WIP: 	"2:\txorl %2,%2\n\t"
-// TODO WGJA WIP: 	"stosb"
-// TODO WGJA WIP: 	: /* no output */
-// TODO WGJA WIP: 	:"S" (src),"D" (dest),"a" (0),"c" (0xffffffff),"g" (count)
-// TODO WGJA WIP: 	:"si","di","ax","cx","memory");
-// TODO WGJA WIP: return dest;
-// TODO WGJA WIP: }
+// Taken from 2.4 kernel
+static inline char * strncat(char * dest,const char * src,size_t count)
+{
+int d0, d1, d2, d3;
+__asm__ __volatile__(
+	"repne\n\t"
+	"scasb\n\t"
+	"decl %1\n\t"
+	"movl %8,%3\n"
+	"1:\tdecl %3\n\t"
+	"js 2f\n\t"
+	"lodsb\n\t"
+	"stosb\n\t"
+	"testb %%al,%%al\n\t"
+	"jne 1b\n"
+	"2:\txorl %2,%2\n\t"
+	"stosb"
+	: "=&S" (d0), "=&D" (d1), "=&a" (d2), "=&c" (d3)
+	: "0" (src),"1" (dest),"2" (0),"3" (0xffffffff), "g" (count)
+	: "memory");
+return dest;
+}
 
 static inline int strcmp(const char * cs,const char * ct)
 {

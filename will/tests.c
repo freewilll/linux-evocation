@@ -478,3 +478,14 @@ void test_strcat()
 	strcat (str,"concatenated.");
 	printf("%s\n", str);
 }
+
+// http://www.cplusplus.com/reference/cstring/strncat/
+void test_strncat()
+{
+	char str1[20];
+	char str2[20];
+	strcpy (str1,"To be ");
+	strcpy (str2,"or not to be");
+	strncat (str1, str2, 6);
+	printf("%s\n ", str1); 
+}
