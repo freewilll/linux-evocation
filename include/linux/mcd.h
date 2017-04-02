@@ -62,8 +62,14 @@
 
 /* borrowed from hd.c */
 
-#define READ_DATA(port, buf, nr) \
-__asm__("cld;rep;insb": :"d" (port),"D" (buf),"c" (nr):"cx","di")
+static inline void READ_DATA(int port, char* buf, int nr)
+{
+	int d0, d1, d2;
+	__asm__ __volatile__(
+		"cld;rep;insb"
+		:"=&d" (d0), "=&D" (d1), "=c" (d1)
+		:"0" (port),"1" (buf), "2" (nr));
+}
 
 #define SET_TIMER(func, jifs) \
 	((timer_table[MCD_TIMER].expires = jiffies + jifs), \

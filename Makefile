@@ -74,8 +74,7 @@ WARNING_CFLAGS=\
 	-Wno-format \
 	-Wno-endif-labels \
 	-Wno-overflow \
-	-Wno-maybe-uninitialized \
-	-Wno-header-guard
+	-Wno-maybe-uninitialized
 CFLAGS= -Wall $(WARNING_CFLAGS) -O3 -fomit-frame-pointer -x c++ -fno-stack-protector -fno-tree-loop-distribute-patterns -nostdinc
 
 ifdef CONFIG_M486

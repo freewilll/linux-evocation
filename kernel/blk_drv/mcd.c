@@ -40,6 +40,7 @@
 #include <linux/fs.h>
 #include <linux/kernel.h>
 #include <linux/cdrom.h>
+#include <linux/string.h>
 
 /* #define REALLY_SLOW_IO  */
 #include <asm/system.h>
