@@ -28,7 +28,7 @@ extern inline void * memmove(void * dest,const void * src, size_t n);
 
 static char printbuf[1024];
 
-// WGJA Add a temporary keyboard handler to be able to check aliveness
+// Add a keyboard handler to be able to check aliveness
 #define KEYBOARD_IRQ 1
 static void keyboard_interrupt(int int_pt_regs)
 {
@@ -51,7 +51,7 @@ static void keyboard_interrupt(int int_pt_regs)
 
 void init_test_keyboard()
 {
-	// WGJA Add a temporary keyboard handler to be able to check aliveness
+	// Add a temporary keyboard handler to be able to check aliveness
 	request_irq(KEYBOARD_IRQ, keyboard_interrupt);
 
 }
