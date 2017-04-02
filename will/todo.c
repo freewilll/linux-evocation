@@ -25,13 +25,6 @@ extern "C" int sys_socketcall(void)
 	return -ENOSYS;
 }
 
-// TODO WGJA sys_modify_ldt 
-extern "C" int sys_modify_ldt(void)
-{
-	printk("TODO: sys_modify_ldt\n");
-	return -ENOSYS;
-}
-
 // TODO WGJA sock_fcntl
 int sock_fcntl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
