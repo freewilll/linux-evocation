@@ -61,7 +61,7 @@ bool 'D-Link DE600 pocket adaptor support' CONFIG_DE600 y
 #bool 'EtherExpress support' CONFIG_EEXPRESS n
 fi
 *
-bool 'Sony CDU31A CDROM driver support' CONFIG_CDU31A n
+bool 'Sony CDU31A CDROM driver support' CONFIG_CDU31A y
 bool 'Mitsumi CDROM driver support' CONFIG_MCD n
 *
 * Filesystems

@@ -70,6 +70,7 @@
 #include <linux/kernel.h>
 #include <linux/hdreg.h>
 #include <linux/genhd.h>
+#include <linux/string.h>
 
 #include <asm/system.h>
 #include <asm/io.h>
@@ -1132,7 +1133,7 @@ static int
 scd_ioctl(struct inode *inode,
           struct file  *file,
           unsigned int cmd,
-          unsigned int arg)
+          long unsigned int arg)
 {
    unsigned int dev;
    unsigned char res_reg[2];
