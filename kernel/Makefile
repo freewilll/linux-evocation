@@ -16,16 +16,12 @@
 .c.o:
 	$(CC) $(CFLAGS) -c $<
 
-# TODO WGJA: Work in progress build
 SUBDIRS	= chr_drv blk_drv FPU-emu
 
-# TODO WGJA: Work in progress build
-OBJS  = sched.o sys_call.o traps.o irq.o vsprintf.o fork.o sys.o dma.o panic.o \
-	exit.o printk.o ioport.o signal.o mktime.o info.o itimer.o ldt.o
-# OBJS  = sched.o sys_call.o traps.o irq.o dma.o fork.o \
-# 	panic.o printk.o sys.o exit.o \
-# 	signal.o mktime.o ptrace.o ioport.o itimer.o \
-# 	info.o ldt.o
+OBJS  = sched.o sys_call.o traps.o irq.o dma.o fork.o \
+	panic.o printk.o vsprintf.o sys.o exit.o \
+	signal.o mktime.o ptrace.o ioport.o itimer.o \
+	info.o ldt.o
 
 all: kernel.o kernelsubdirs
 

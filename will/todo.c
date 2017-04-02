@@ -4,20 +4,6 @@
 #include <linux/tty.h>
 #include <linux/user.h>
 
-// TODO WGJA syscall_trace 
-extern "C" int syscall_trace(void)
-{
-	printk("TODO: syscall_trace\n");
-	return -ENOSYS;
-}
-
-// TODO WGJA sys_ptrace 
-extern "C" int sys_ptrace(void)
-{
-	printk("TODO: sys_ptrace\n");
-	return -ENOSYS;
-}
-
 // TODO WGJA sys_socketcall 
 extern "C" int sys_socketcall(void)
 {
