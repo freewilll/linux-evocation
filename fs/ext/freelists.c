@@ -22,7 +22,7 @@
    The free inodes are also managed by a linked list in a similar way. The
    super block contains the number of the first free inode. This inode contains
    14 numbers of other free inodes and the number of the next inode in the list.
-   
+
    The number of the first free inode is stored in
    s->u.ext_sb.s_firstfreeinodenumber and the header of the block containing
    the inode is stored in s->u.ext_sb.s_firstfreeinodeblock.
@@ -37,12 +37,17 @@
 #include <linux/string.h>
 #include <linux/locks.h>
 
-#define clear_block(addr) \
-__asm__("cld\n\t" \
-        "rep\n\t" \
-        "stosl" \
-        : \
-        :"a" (0),"c" (BLOCK_SIZE/4),"D" ((long) (addr)):"cx","di")
+extern inline void * clear_block(void * addr)
+{
+int d0, d1;
+__asm__ __volatile__(
+	"cld\n\t"
+	"rep\n\t"
+	"stosl"
+	: "=&c" (d0), "=&D" (d1)
+	:"a" (0),"1" (addr),"0" (BLOCK_SIZE/4)
+	:"memory");
+}
 
 void ext_free_block(struct super_block * sb, int block)
 {
@@ -321,7 +326,7 @@ unsigned long ext_count_free_inodes(struct super_block *sb)
 		ino = efi->next;
 		while (ino) {
 			if (ino < 1 || ino > sb->u.ext_sb.s_ninodes) {
-				printk ("u.ext_sb.s_firstfreeinodenumber = %d, ino = %d\n", 
+				printk ("u.ext_sb.s_firstfreeinodenumber = %d, ino = %d\n",
 					(int) sb->u.ext_sb.s_firstfreeinodenumber,ino);
 				panic ("ext_count_fre_inodes: bad inode number in free list\n");
 			}
