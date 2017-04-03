@@ -170,107 +170,66 @@ __asm__ __volatile__(
 return __res;
 }
 
-// TODO WGJA WIP: extern inline size_t strspn(const char * cs, const char * ct)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: register char * __res __asm__("si");
-// TODO WGJA WIP: __asm__("cld\n\t"
-// TODO WGJA WIP: 	"movl %4,%%edi\n\t"
-// TODO WGJA WIP: 	"repne\n\t"
-// TODO WGJA WIP: 	"scasb\n\t"
-// TODO WGJA WIP: 	"notl %%ecx\n\t"
-// TODO WGJA WIP: 	"decl %%ecx\n\t"
-// TODO WGJA WIP: 	"movl %%ecx,%%edx\n"
-// TODO WGJA WIP: 	"1:\tlodsb\n\t"
-// TODO WGJA WIP: 	"testb %%al,%%al\n\t"
-// TODO WGJA WIP: 	"je 2f\n\t"
-// TODO WGJA WIP: 	"movl %4,%%edi\n\t"
-// TODO WGJA WIP: 	"movl %%edx,%%ecx\n\t"
-// TODO WGJA WIP: 	"repne\n\t"
-// TODO WGJA WIP: 	"scasb\n\t"
-// TODO WGJA WIP: 	"je 1b\n"
-// TODO WGJA WIP: 	"2:\tdecl %0"
-// TODO WGJA WIP: 	:"=S" (__res):"a" (0),"c" (0xffffffff),"0" (cs),"g" (ct)
-// TODO WGJA WIP: 	:"ax","cx","dx","di");
-// TODO WGJA WIP: return __res-cs;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern inline size_t strcspn(const char * cs, const char * ct)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: register char * __res __asm__("si");
-// TODO WGJA WIP: __asm__("cld\n\t"
-// TODO WGJA WIP: 	"movl %4,%%edi\n\t"
-// TODO WGJA WIP: 	"repne\n\t"
-// TODO WGJA WIP: 	"scasb\n\t"
-// TODO WGJA WIP: 	"notl %%ecx\n\t"
-// TODO WGJA WIP: 	"decl %%ecx\n\t"
-// TODO WGJA WIP: 	"movl %%ecx,%%edx\n"
-// TODO WGJA WIP: 	"1:\tlodsb\n\t"
-// TODO WGJA WIP: 	"testb %%al,%%al\n\t"
-// TODO WGJA WIP: 	"je 2f\n\t"
-// TODO WGJA WIP: 	"movl %4,%%edi\n\t"
-// TODO WGJA WIP: 	"movl %%edx,%%ecx\n\t"
-// TODO WGJA WIP: 	"repne\n\t"
-// TODO WGJA WIP: 	"scasb\n\t"
-// TODO WGJA WIP: 	"jne 1b\n"
-// TODO WGJA WIP: 	"2:\tdecl %0"
-// TODO WGJA WIP: 	:"=S" (__res):"a" (0),"c" (0xffffffff),"0" (cs),"g" (ct)
-// TODO WGJA WIP: 	:"ax","cx","dx","di");
-// TODO WGJA WIP: return __res-cs;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern inline char * strpbrk(const char * cs,const char * ct)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: register char * __res __asm__("si");
-// TODO WGJA WIP: __asm__("cld\n\t"
-// TODO WGJA WIP: 	"movl %4,%%edi\n\t"
-// TODO WGJA WIP: 	"repne\n\t"
-// TODO WGJA WIP: 	"scasb\n\t"
-// TODO WGJA WIP: 	"notl %%ecx\n\t"
-// TODO WGJA WIP: 	"decl %%ecx\n\t"
-// TODO WGJA WIP: 	"movl %%ecx,%%edx\n"
-// TODO WGJA WIP: 	"1:\tlodsb\n\t"
-// TODO WGJA WIP: 	"testb %%al,%%al\n\t"
-// TODO WGJA WIP: 	"je 2f\n\t"
-// TODO WGJA WIP: 	"movl %4,%%edi\n\t"
-// TODO WGJA WIP: 	"movl %%edx,%%ecx\n\t"
-// TODO WGJA WIP: 	"repne\n\t"
-// TODO WGJA WIP: 	"scasb\n\t"
-// TODO WGJA WIP: 	"jne 1b\n\t"
-// TODO WGJA WIP: 	"decl %0\n\t"
-// TODO WGJA WIP: 	"jmp 3f\n"
-// TODO WGJA WIP: 	"2:\txorl %0,%0\n"
-// TODO WGJA WIP: 	"3:"
-// TODO WGJA WIP: 	:"=S" (__res):"a" (0),"c" (0xffffffff),"0" (cs),"g" (ct)
-// TODO WGJA WIP: 	:"ax","cx","dx","di");
-// TODO WGJA WIP: return __res;
-// TODO WGJA WIP: }
-// TODO WGJA WIP: 
-// TODO WGJA WIP: extern inline char * strstr(const char * cs,const char * ct)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: register char * __res __asm__("ax");
-// TODO WGJA WIP: __asm__("cld\n\t" \
-// TODO WGJA WIP: 	"movl %4,%%edi\n\t"
-// TODO WGJA WIP: 	"repne\n\t"
-// TODO WGJA WIP: 	"scasb\n\t"
-// TODO WGJA WIP: 	"notl %%ecx\n\t"
-// TODO WGJA WIP: 	"decl %%ecx\n\t"	/* NOTE! This also sets Z if searchstring='' */
-// TODO WGJA WIP: 	"movl %%ecx,%%edx\n"
-// TODO WGJA WIP: 	"1:\tmovl %4,%%edi\n\t"
-// TODO WGJA WIP: 	"movl %%esi,%%eax\n\t"
-// TODO WGJA WIP: 	"movl %%edx,%%ecx\n\t"
-// TODO WGJA WIP: 	"repe\n\t"
-// TODO WGJA WIP: 	"cmpsb\n\t"
-// TODO WGJA WIP: 	"je 2f\n\t"		/* also works for empty string, see above */
-// TODO WGJA WIP: 	"xchgl %%eax,%%esi\n\t"
-// TODO WGJA WIP: 	"incl %%esi\n\t"
-// TODO WGJA WIP: 	"cmpb $0,-1(%%eax)\n\t"
-// TODO WGJA WIP: 	"jne 1b\n\t"
-// TODO WGJA WIP: 	"xorl %%eax,%%eax\n\t"
-// TODO WGJA WIP: 	"2:"
-// TODO WGJA WIP: 	:"=a" (__res):"0" (0),"c" (0xffffffff),"S" (cs),"g" (ct)
-// TODO WGJA WIP: 	:"cx","dx","di","si");
-// TODO WGJA WIP: return __res;
-// TODO WGJA WIP: }
+extern size_t strspn(const char *s, const char *accept);
+
+// From 2.4 kernel
+static inline size_t strcspn(const char * cs, const char * ct)
+{
+int	d0, d1;
+register char * __res;
+__asm__ __volatile__(
+	"movl %6,%%edi\n\t"
+	"repne\n\t"
+	"scasb\n\t"
+	"notl %%ecx\n\t"
+	"decl %%ecx\n\t"
+	"movl %%ecx,%%edx\n"
+	"1:\tlodsb\n\t"
+	"testb %%al,%%al\n\t"
+	"je 2f\n\t"
+	"movl %6,%%edi\n\t"
+	"movl %%edx,%%ecx\n\t"
+	"repne\n\t"
+	"scasb\n\t"
+	"jne 1b\n"
+	"2:\tdecl %0"
+	:"=S" (__res), "=&a" (d0), "=&c" (d1)
+	:"0" (cs), "1" (0), "2" (0xffffffff), "g" (ct)
+	:"dx", "di");
+return __res-cs;
+}
+
+extern char * strpbrk(const char * cs,const char * ct);
+
+// From 2.4 kernel
+static inline char * strstr(const char * cs,const char * ct)
+{
+int	d0, d1;
+register char * __res;
+__asm__ __volatile__(
+	"movl %6,%%edi\n\t"
+	"repne\n\t"
+	"scasb\n\t"
+	"notl %%ecx\n\t"
+	"decl %%ecx\n\t"	/* NOTE! This also sets Z if searchstring='' */
+	"movl %%ecx,%%edx\n"
+	"1:\tmovl %6,%%edi\n\t"
+	"movl %%esi,%%eax\n\t"
+	"movl %%edx,%%ecx\n\t"
+	"repe\n\t"
+	"cmpsb\n\t"
+	"je 2f\n\t"		/* also works for empty string, see above */
+	"xchgl %%eax,%%esi\n\t"
+	"incl %%esi\n\t"
+	"cmpb $0,-1(%%eax)\n\t"
+	"jne 1b\n\t"
+	"xorl %%eax,%%eax\n\t"
+	"2:"
+	:"=a" (__res), "=&c" (d0), "=&S" (d1)
+	:"0" (0), "1" (0xffffffff), "2" (cs), "g" (ct)
+	:"dx", "di");
+return __res;
+}
 
 static inline size_t strlen(const char * s)
 {
@@ -344,21 +303,22 @@ __asm__ __volatile__(
 return __res;
 }
 
-// TODO WGJA WIP: extern inline void * memchr(const void * cs,char c,size_t count)
-// TODO WGJA WIP: {
-// TODO WGJA WIP: register void * __res __asm__("di");
-// TODO WGJA WIP: if (!count)
-// TODO WGJA WIP: 	return NULL;
-// TODO WGJA WIP: __asm__("cld\n\t"
-// TODO WGJA WIP: 	"repne\n\t"
-// TODO WGJA WIP: 	"scasb\n\t"
-// TODO WGJA WIP: 	"je 1f\n\t"
-// TODO WGJA WIP: 	"movl $1,%0\n"
-// TODO WGJA WIP: 	"1:\tdecl %0"
-// TODO WGJA WIP: 	:"=D" (__res):"a" (c),"D" (cs),"c" (count)
-// TODO WGJA WIP: 	:"cx");
-// TODO WGJA WIP: return __res;
-// TODO WGJA WIP: }
+// From 2.4 kernel
+static inline void * memchr(const void * cs,int c,size_t count)
+{
+int d0;
+register void * __res;
+if (!count)
+	return NULL;
+__asm__ __volatile__(
+	"repne\n\t"
+	"scasb\n\t"
+	"je 1f\n\t"
+	"movl $1,%0\n"
+	"1:\tdecl %0"
+	:"=D" (__res), "=&c" (d0) : "a" (c),"0" (cs),"1" (count));
+return __res;
+}
 
 extern inline void * memset(void * s,char c,size_t count)
 {

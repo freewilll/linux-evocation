@@ -489,3 +489,47 @@ void test_strncat()
 	strncat (str1, str2, 6);
 	printf("%s\n ", str1); 
 }
+
+// http://www.cplusplus.com/reference/cstring/strspn/
+void test_strspn()
+{
+	int i;
+	char strtext[] = "129th";
+	char cset[] = "1234567890";
+
+	i = strspn (strtext,cset);
+	printf("The initial number has %d digits.\n",i);
+}
+
+// http://www.cplusplus.com/reference/cstring/strcspn/
+void test_strcspn()
+{
+	char str[] = "fcba73";
+	char keys[] = "1234567890";
+	int i;
+	i = strcspn(str,keys);
+	printf ("The first number in str is at position %d.\n", i+1);
+}
+
+
+// http://www.cplusplus.com/reference/cstring/strstr/
+void test_strstr()
+{
+	char str[] ="This is a simple string";
+	char * pch;
+	pch = strstr (str,"simple");
+	strncpy (pch,"sample",6);
+	printf("%s\n", str);
+}
+
+// http://www.cplusplus.com/reference/cstring/memchr/
+void test_memchr()
+{
+	char * pch;
+	char str[] = "Example string";
+	pch = (char*) memchr (str, 'p', strlen(str));
+	if (pch!=NULL)
+		printf ("'p' found at position %d.\n", pch-str+1);
+	else
+		printf ("'p' not found.\n");
+}
