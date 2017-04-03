@@ -77,13 +77,13 @@ bool 'ISO9660 cdrom filesystem support' CONFIG_ISO9660_FS y
 *
 *  character devices
 *
-bool 'Keyboard meta-key sends ESC-prefix' CONFIG_KBD_META n
-bool 'Keyboard Num Lock on by default' CONFIG_KBD_NUML n
+bool 'Keyboard meta-key sends ESC-prefix' CONFIG_KBD_META y
+bool 'Keyboard Num Lock on by default' CONFIG_KBD_NUML y
 bool 'Logitech busmouse support' CONFIG_BUSMOUSE y
 bool 'PS/2 mouse (aka "auxiliary device") support' CONFIG_PSMOUSE y
 bool 'Microsoft busmouse support' CONFIG_MS_BUSMOUSE y
 bool 'ATIXL busmouse support' CONFIG_ATIXL_BUSMOUSE y
-bool 'Selection (cut and paste for virtual consoles)' CONFIG_SELECTION n
+bool 'Selection (cut and paste for virtual consoles)' CONFIG_SELECTION y
 bool 'QIC-02 tape support' CONFIG_TAPE_QIC02 y
 *
 * Sound
