@@ -110,9 +110,7 @@ DRIVERS		=kernel/blk_drv/blk_drv.a kernel/chr_drv/chr_drv.a \
 		 ibcs/ibcs.o
 MATH		=kernel/FPU-emu/math.a
 LIBS		=lib/lib.a
-# TODO WGJA: Work in progress build
-SUBDIRS		=kernel mm fs ibcs ipc lib
-#SUBDIRS	=kernel mm fs net ipc ibcs lib
+SUBDIRS		=kernel mm fs net ipc ibcs lib
 
 KERNELHDRS	=/usr/src/linux/include
 
@@ -203,36 +201,17 @@ zlilo: $(CONFIGURE) zImage
 	/etc/lilo/install
 
 # TODO WGJA: Work in progress build
-tools/zSystem:	will/todo.o will/tests.o will/early_printk.o boot/head.o init/main.o tools/version.o linuxsubdirs
-	$(LD) $(LDFLAGS) -Ttext 100000 -M boot/head.o \
+tools/zSystem:	boot/head.o init/main.o tools/version.o linuxsubdirs will/todo.o will/tests.o will/early_printk.o
+	$(LD) $(LDFLAGS) -Ttext 100000 -M boot/head.o init/main.o tools/version.o \
+		$(ARCHIVES) \
+		$(FILESYSTEMS) \
+		$(DRIVERS) \
+		$(MATH) \
+		$(LIBS) \
 		will/todo.o \
 		will/early_printk.o \
 		will/tests.o \
-		init/main.o \
-		tools/version.o \
-		kernel/kernel.o \
-		ibcs/ibcs.o \
-		mm/mm.o \
-		fs/fs.o \
-		ipc/ipc.o \
-		$(LIBS) \
-		$(FILESYSTEMS) \
-		$(MATH) \
-		kernel/chr_drv/chr_drv.a \
-		kernel/blk_drv/blk_drv.a \
-		kernel/blk_drv/scsi/scsi.a \
-		kernel/chr_drv/sound/sound.a \
 		-o tools/zSystem > zSystem.map
-
-# TODO WGJA: Work in progress build
-# tools/zSystem:	boot/head.o init/main.o tools/version.o linuxsubdirs
-# 	$(LD) $(LDFLAGS) -T 100000 -M boot/head.o init/main.o tools/version.o \
-# 		$(ARCHIVES) \
-# 		$(FILESYSTEMS) \
-# 		$(DRIVERS) \
-# 		$(MATH) \
-# 		$(LIBS) \
-# 		-o tools/zSystem > zSystem.map
 
 fs: dummy
 	$(MAKE) linuxsubdirs SUBDIRS=fs

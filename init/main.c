@@ -402,6 +402,7 @@ extern "C" void start_kernel(void)
 #ifdef CONFIG_SYSVIPC
 	ipc_init();
 #endif
+
 	sti();
 	calibrate_delay();
 	/*

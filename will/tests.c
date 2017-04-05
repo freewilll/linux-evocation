@@ -7,6 +7,7 @@
 #include <linux/fcntl.h>
 #include <linux/mman.h>
 #include <asm/segment.h>
+#include <linux/socket.h>
 
 extern "C" int vsprintf(char *,const char *,va_list);
 
@@ -23,6 +24,7 @@ static inline _syscall1(int,rmdir,const char*,pathname)
 static inline _syscall1(int,dup,int,fd)
 static inline _syscall1(int,mmap,unsigned long*,buffer)
 
+// extern struct socket *sock_alloc(int wait);
 
 extern inline void * memmove(void * dest,const void * src, size_t n);
 
@@ -532,4 +534,13 @@ void test_memchr()
 		printf ("'p' found at position %d.\n", pch-str+1);
 	else
 		printf ("'p' not found.\n");
+}
+
+void test_sock_alloc()
+{
+	// Requires sock_alloc to be made non-static
+	// printk("test_sock_alloc\n");
+	// struct socket *sock;
+	// sock = sock_alloc(1);
+	// printk("sock=%d\n", sock);
 }

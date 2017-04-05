@@ -10,8 +10,11 @@
 # only these two lines should need to be changed to remove inet sockets.
 # (and the inet/tcpip.o in net.o)
 
-DRIVERS     = drv
-SUBDIRS     := unix inet
+# TODO WGJA: Work in progress build
+DRIVERS=
+SUBDIRS=
+# DRIVERS     = drv
+# SUBDIRS     := unix inet
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
@@ -25,13 +28,16 @@ OBJS	=  Space.o ddi.o socket.o
 all:		net.o
 
 net.o:		$(OBJS) subdirs
-		$(LD) -r -o net.o $(OBJS) $(DRIVERS)/$(DRIVERS).a network.a
+		# TODO WGJA: Work in progress build
+		# $(LD) -r -o net.o $(OBJS) $(DRIVERS)/$(DRIVERS).a network.a
+		$(LD) -r -o net.o $(OBJS)
 
 subdirs:	dummy
 		@rm -f network.a
 		@for i in $(DRIVERS); do (cd $$i && echo $$i && $(MAKE) $$i.a) || exit; done
 		@for i in $(SUBDIRS); do (cd $$i && echo $$i && $(MAKE) && ar rcs ../network.a $$i.o) || exit; done
-		@ranlib network.a
+		# TODO WGJA: Work in progress build
+		# @ranlib network.a
 
 clean:
 		rm -f core *.o *.a *.s .depend

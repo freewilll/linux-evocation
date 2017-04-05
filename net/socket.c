@@ -169,7 +169,8 @@ sock_alloc(int wait)
 			 * inode.  The close system call will iput this inode
 			 * for us.
 			 */
-			if (!(SOCK_INODE(sock) = get_empty_inode())) {
+			sock->dummy = get_empty_inode();
+			if (!sock->dummy) {
 				printk("NET: sock_alloc: no more inodes\n");
 				sock->state = SS_FREE;
 				return(NULL);
