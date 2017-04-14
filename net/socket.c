@@ -34,6 +34,8 @@
 #define DPRINTF(x) /**/
 #endif
 
+extern "C" int vsprintf(char * buf, const char * fmt, va_list args);
+
 static int sock_lseek(struct inode *inode, struct file *file, off_t offset,
 		      int whence);
 static int sock_read(struct inode *inode, struct file *file, char *buf,
@@ -72,7 +74,6 @@ dprintf(int level, char *fmt, ...)
 {
   char buff[1024];
   va_list args;
-  extern int vsprintf(char * buf, const char * fmt, va_list args);
 
   if (level == 0) return;
   va_start(args, fmt);

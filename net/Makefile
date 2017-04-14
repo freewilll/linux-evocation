@@ -12,7 +12,7 @@
 
 # TODO WGJA: Work in progress build
 DRIVERS=
-SUBDIRS=
+SUBDIRS     := unix
 # DRIVERS     = drv
 # SUBDIRS     := unix inet
 
@@ -30,14 +30,12 @@ all:		net.o
 net.o:		$(OBJS) subdirs
 		# TODO WGJA: Work in progress build
 		# $(LD) -r -o net.o $(OBJS) $(DRIVERS)/$(DRIVERS).a network.a
-		$(LD) -r -o net.o $(OBJS)
+		$(LD) -r -o net.o $(OBJS) network.a
 
 subdirs:	dummy
 		@rm -f network.a
 		@for i in $(DRIVERS); do (cd $$i && echo $$i && $(MAKE) $$i.a) || exit; done
-		@for i in $(SUBDIRS); do (cd $$i && echo $$i && $(MAKE) && ar rcs ../network.a $$i.o) || exit; done
-		# TODO WGJA: Work in progress build
-		# @ranlib network.a
+		@for i in $(SUBDIRS); do (cd $$i && echo $$i && $(MAKE) && $(AR) rcs ../network.a $$i.o) || exit; done
 
 clean:
 		rm -f core *.o *.a *.s .depend

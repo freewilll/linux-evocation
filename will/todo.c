@@ -18,13 +18,6 @@ int udp_get_info(char* buffer)
 	return 0;
 }
 
-// TODO WGJA unix_get_info
-int unix_get_info(char* buffer)
-{
-	printk("TODO WGJA unix_get_info\n");
-	return 0;
-}
-
 // TODO WGJA arp_get_info
 int arp_get_info(char* buffer)
 {
@@ -64,12 +57,6 @@ void eth_setup(char *str, int *ints)
 int arp_ioctl(unsigned int cmd, void* arg)
 {
 	printk("TODO WGJA arp_ioctl\n");
-}
-
-// TODO WGJA unix_proto_init
-void unix_proto_init(struct ddi_proto *pro)
-{
-	printk("TODO WGJA unix_proto_init\n");
 }
 
 // TODO WGJA inet_proto_init

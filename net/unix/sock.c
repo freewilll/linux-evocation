@@ -35,6 +35,7 @@
 #include <stdarg.h>
 #include "unix.h"
 
+extern "C" int vsprintf(char * buf, const char * fmt, va_list args);
 
 struct unix_proto_data unix_datas[NSOCKETS];
 static int unix_debug = 0;
@@ -84,7 +85,6 @@ dprintf(int level, char *fmt, ...)
 {
   va_list args;
   char *buff;
-  extern int vsprintf(char * buf, const char * fmt, va_list args);
 
   if (level != unix_debug) return;
 
@@ -289,7 +289,7 @@ unix_proto_create(struct socket *sock, int protocol)
   }
   upd->protocol = protocol;
   upd->socket = sock;
-  UN_DATA(sock) = upd;
+  sock->data = upd;
   dprintf(1, "UNIX: create: allocated data 0x%x\n", upd);
   return(0);
 }
@@ -320,7 +320,7 @@ unix_proto_release(struct socket *sock, struct socket *peer)
 	iput(upd->inode);
 	upd->inode = NULL;
   }
-  UN_DATA(sock) = NULL;
+  sock->data = NULL;
   upd->socket = NULL;
   if (upd->peerupd) unix_data_deref(upd->peerupd);
   unix_data_deref(upd);
