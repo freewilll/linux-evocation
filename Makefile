@@ -9,6 +9,8 @@ CONFIG_SHELL := $(shell if [ -x "$$BASH" ]; then echo $$BASH; \
 
 SHELL = /bin/bash
 
+OS := $(shell uname)
+
 #
 # Make "config" the default target if there is no configuration file or
 # "depend" the target if there is no top-level dependency information.
@@ -86,13 +88,15 @@ endif
 # size in blocks.
 #
 
-# RAMDISK =
 RAMDISK ?= -DRAMDISK=1024
 
 AS86	=as86 -0 -a
 LD86	=ld86 -0
 
-CROSS_COMPILE 	?=
+ifeq ($(OS), Darwin)
+CROSS_COMPILE 	?=i386-elf-
+endif
+
 AS		=$(CROSS_COMPILE)as
 LD		=$(CROSS_COMPILE)ld
 HOSTCC		=gcc -I$(HPATH) -m32
