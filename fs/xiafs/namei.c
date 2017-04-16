@@ -310,7 +310,9 @@ int xiafs_mknod(struct inode *dir, const char *name, int len, int mode, int rdev
     	init_fifo(inode);
     if (S_ISBLK(mode) || S_ISCHR(mode))
         inode->i_rdev = rdev;
-    inode->i_atime = inode->i_ctime = inode->i_atime = CURRENT_TIME;
+    inode->i_atime = CURRENT_TIME;
+    inode->i_ctime = CURRENT_TIME;
+    inode->i_atime = CURRENT_TIME;
     inode->i_dirt = 1;
     bh = xiafs_add_entry(dir, name, len, &de, NULL);
     if (!bh) {
