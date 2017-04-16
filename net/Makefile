@@ -12,9 +12,8 @@
 
 # TODO WGJA: Work in progress build
 DRIVERS=
-SUBDIRS     := unix
 # DRIVERS     = drv
-# SUBDIRS     := unix inet
+SUBDIRS     := unix inet
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<
@@ -28,9 +27,7 @@ OBJS	=  Space.o ddi.o socket.o
 all:		net.o
 
 net.o:		$(OBJS) subdirs
-		# TODO WGJA: Work in progress build
-		# $(LD) -r -o net.o $(OBJS) $(DRIVERS)/$(DRIVERS).a network.a
-		$(LD) -r -o net.o $(OBJS) network.a
+		$(LD) -r -o net.o $(OBJS)
 
 subdirs:	dummy
 		@rm -f network.a

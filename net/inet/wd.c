@@ -22,7 +22,7 @@ static char *version =
 #include <linux/sched.h>
 #include <asm/io.h>
 #include <asm/system.h>
-#include <memory.h>
+#include <linux/string.h>
 
 #include "dev.h"
 #include "8390.h"
@@ -35,7 +35,7 @@ static void wd_reset_8390(struct device *dev);
 static int wd_block_input(struct device *dev, int count,
 			  char *buf, int ring_offset);
 static void wd_block_output(struct device *dev, int count,
-			    const unsigned char *buf, const start_page);
+			    const unsigned char *buf, const int start_page);
 static int wd_close_card(struct device *dev);
 
 
@@ -292,7 +292,7 @@ wd_block_input(struct device *dev, int count, char *buf, int ring_offset)
 
     if (xfer_start + count > (void*) dev->rmem_end) {
 	/* We must wrap the input move. */
-	int semi_count = (void*)dev->rmem_end - xfer_start;
+	int semi_count = (int) dev->rmem_end - (int) xfer_start;
 	memcpy(buf, xfer_start, semi_count);
 	count -= semi_count;
 	memcpy(buf + semi_count, (char *)dev->rmem_start, count);

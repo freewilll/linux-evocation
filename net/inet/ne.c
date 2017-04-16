@@ -174,11 +174,17 @@ static int neprobe1(int ioaddr, struct device *dev, int verbose)
     /* Set up the rest of the parameters. */
     if (neX000 || dlink) {
 	if (wordlength == 2) {
-	    name = dlink ? "DE200" : "NE2000";
+            if (dlink)
+                name = "DE200";
+            else
+                name = "NE2000";
 	    start_page = NESM_START_PG;
 	    stop_page = NESM_STOP_PG;
 	} else {
-	    name = dlink ? "DE100" : "D-Link";
+            if (dlink)
+                name = "DE100";
+            else
+                name = "D-Link";
 	    start_page = NE1SM_START_PG;
 	    stop_page = NE1SM_STOP_PG;
 	}
@@ -289,13 +295,14 @@ ne_block_input(struct device *dev, int count, char *buf, int ring_offset)
     outb_p(ring_offset & 0xff, nic_base + EN0_RSARLO);
     outb_p(ring_offset >> 8, nic_base + EN0_RSARHI);
     outb_p(E8390_RREAD+E8390_START, nic_base + NE_CMD);
-    if (ei_status.word16) {
-      port_read(NE_BASE + NE_DATAPORT,buf,count>>1);
-      if (count & 0x01)
-	buf[count-1] = inb(NE_BASE + NE_DATAPORT), xfer_count++;
-    } else {
-	port_read_b(NE_BASE + NE_DATAPORT, buf, count);
-    }
+    // TODO WGJA ne asm 2
+ //    if (ei_status.word16) {
+ //      port_read(NE_BASE + NE_DATAPORT,buf,count>>1);
+ //      if (count & 0x01)
+	// buf[count-1] = inb(NE_BASE + NE_DATAPORT), xfer_count++;
+ //    } else {
+	// port_read_b(NE_BASE + NE_DATAPORT, buf, count);
+ //    }
 
     /* This was for the ALPHA version only, but enough people have
        encountering problems that it is still here.  If you see
@@ -368,11 +375,12 @@ ne_block_output(struct device *dev, int count,
     outb_p(start_page, nic_base + EN0_RSARHI);
 
     outb_p(E8390_RWRITE+E8390_START, nic_base + NE_CMD);
-    if (ei_status.word16) {
-	port_write(NE_BASE + NE_DATAPORT, buf, count>>1);
-    } else {
-	port_write_b(NE_BASE + NE_DATAPORT, buf, count);
-    }
+    // TODO WGJA ne asm 1
+ //    if (ei_status.word16) {
+	// port_write(NE_BASE + NE_DATAPORT, buf, count>>1);
+ //    } else {
+	// port_write_b(NE_BASE + NE_DATAPORT, buf, count);
+ //    }
 
     /* This was for the ALPHA version only, but enough people have
        encountering problems that it is still here. */

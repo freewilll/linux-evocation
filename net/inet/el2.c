@@ -22,6 +22,7 @@ static char *version =
 #include <linux/kernel.h>
 #include <linux/sched.h>
 #include <linux/errno.h>
+#include <linux/string.h>
 #include <asm/io.h>
 #include <asm/system.h>
 
@@ -39,7 +40,7 @@ static int el2_close(struct device *dev);
 static void el2_reset_8390(struct device *dev);
 static void el2_init_card(struct device *dev);
 static void el2_block_output(struct device *dev, int count,
-			     const unsigned char *buf, const start_page);
+			     const unsigned char *buf, const int start_page);
 static int el2_block_input(struct device *dev, int count, char *buf,
 			   int ring_offset);
 
@@ -322,7 +323,7 @@ el2_init_card(struct device *dev)
    out through the ASIC FIFO.  The latter is probably much slower. */
 static void
 el2_block_output(struct device *dev, int count,
-		 const unsigned char *buf, const start_page)
+		 const unsigned char *buf, const int start_page)
 {
     int i;				/* Buffer index */
     int boguscount = 0;		/* timeout counter */

@@ -109,6 +109,7 @@ OBJCOPY		=$(CROSS_COMPILE)objcopy -O binary -R .note -R .comment -S
 
 ARCHIVES	=kernel/kernel.o mm/mm.o fs/fs.o net/net.o ipc/ipc.o
 FILESYSTEMS	=fs/filesystems.a
+NETWORK		=net/network.a
 DRIVERS		=kernel/blk_drv/blk_drv.a kernel/chr_drv/chr_drv.a \
 		 kernel/blk_drv/scsi/scsi.a kernel/chr_drv/sound/sound.a \
 		 ibcs/ibcs.o
@@ -170,6 +171,7 @@ tools/system:	boot/head.o init/main.o tools/version.o linuxsubdirs
 	$(LD) $(LDFLAGS) -M boot/head.o init/main.o tools/version.o \
 		$(ARCHIVES) \
 		$(FILESYSTEMS) \
+		$(NETWORK) \
 		$(DRIVERS) \
 		$(MATH) \
 		$(LIBS) \
@@ -204,15 +206,14 @@ zlilo: $(CONFIGURE) zImage
 	cat zImage > /vmlinuz
 	/etc/lilo/install
 
-# TODO WGJA: Work in progress build
-tools/zSystem:	boot/head.o init/main.o tools/version.o linuxsubdirs will/todo.o will/tests.o will/early_printk.o
+tools/zSystem:	boot/head.o init/main.o tools/version.o linuxsubdirs will/tests.o will/early_printk.o
 	$(LD) $(LDFLAGS) -Ttext 100000 -M boot/head.o init/main.o tools/version.o \
 		$(ARCHIVES) \
 		$(FILESYSTEMS) \
+		$(NETWORK) \
 		$(DRIVERS) \
 		$(MATH) \
 		$(LIBS) \
-		will/todo.o \
 		will/early_printk.o \
 		will/tests.o \
 		-o tools/zSystem > zSystem.map

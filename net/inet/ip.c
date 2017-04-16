@@ -391,41 +391,42 @@ unsigned short
 ip_compute_csum(unsigned char * buff, int len)
 {
   unsigned long sum = 0;
+  // TODO WGJA ip_compute_csum
 
-  /* Do the first multiple of 4 bytes and convert to 16 bits. */
-  if (len > 3) {
-	__asm__("\t clc\n"
-	        "1:\n"
-	        "\t lodsl\n"
-	        "\t adcl %%eax, %%ebx\n"
-	        "\t loop 1b\n"
-	        "\t adcl $0, %%ebx\n"
-	        "\t movl %%ebx, %%eax\n"
-	        "\t shrl $16, %%eax\n"
-	        "\t addw %%ax, %%bx\n"
-	        "\t adcw $0, %%bx\n"
-	        : "=b" (sum) , "=S" (buff)
-	        : "0" (sum), "c" (len >> 2) ,"1" (buff)
-	        : "ax", "cx", "si", "bx" );
-  }
-  if (len & 2) {
-	__asm__("\t lodsw\n"
-	        "\t addw %%ax, %%bx\n"
-	        "\t adcw $0, %%bx\n"
-	        : "=b" (sum), "=S" (buff)
-	        : "0" (sum), "1" (buff)
-	        : "bx", "ax", "si");
-  }
-  if (len & 1) {
-	__asm__("\t lodsb\n"
-	        "\t movb $0, %%ah\n"
-	        "\t addw %%ax, %%bx\n"
-	        "\t adcw $0, %%bx\n"
-	        : "=b" (sum), "=S" (buff)
-	        : "0" (sum), "1" (buff)
-	        : "bx", "ax", "si");
-  }
-  sum =~sum;
+ //  /* Do the first multiple of 4 bytes and convert to 16 bits. */
+ //  if (len > 3) {
+	// __asm__("\t clc\n"
+	//         "1:\n"
+	//         "\t lodsl\n"
+	//         "\t adcl %%eax, %%ebx\n"
+	//         "\t loop 1b\n"
+	//         "\t adcl $0, %%ebx\n"
+	//         "\t movl %%ebx, %%eax\n"
+	//         "\t shrl $16, %%eax\n"
+	//         "\t addw %%ax, %%bx\n"
+	//         "\t adcw $0, %%bx\n"
+	//         : "=b" (sum) , "=S" (buff)
+	//         : "0" (sum), "c" (len >> 2) ,"1" (buff)
+	//         : "ax", "cx", "si", "bx" );
+ //  }
+ //  if (len & 2) {
+	// __asm__("\t lodsw\n"
+	//         "\t addw %%ax, %%bx\n"
+	//         "\t adcw $0, %%bx\n"
+	//         : "=b" (sum), "=S" (buff)
+	//         : "0" (sum), "1" (buff)
+	//         : "bx", "ax", "si");
+ //  }
+ //  if (len & 1) {
+	// __asm__("\t lodsb\n"
+	//         "\t movb $0, %%ah\n"
+	//         "\t addw %%ax, %%bx\n"
+	//         "\t adcw $0, %%bx\n"
+	//         : "=b" (sum), "=S" (buff)
+	//         : "0" (sum), "1" (buff)
+	//         : "bx", "ax", "si");
+ //  }
+ //  sum =~sum;
   return(sum & 0xffff);
 }
 

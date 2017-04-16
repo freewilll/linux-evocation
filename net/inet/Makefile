@@ -16,7 +16,6 @@
 	$(CC) $(CFLAGS) \
 	-S -o $*.s $<
 
-
 OBJS	= Space.o sock.o utils.o route.o proc.o timer.o protocol.o loopback.o \
 	  eth.o packet.o arp.o dev.o 8390.o wd.o ne.o el2.o hp.o plip.o \
 	  slip.o slhc.o d_link.o auto_irq.o ip.o raw.o icmp.o tcp.o udp.o\

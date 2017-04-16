@@ -181,7 +181,7 @@ at1500_init(int ioaddr, struct device *dev)
     lp->init_block.tx_ring = (int)lp->tx_ring | RING_LEN_BITS;
 
     outw(0x0001, ioaddr+LANCE_ADDR);
-    outw((short) &lp->init_block, ioaddr+LANCE_DATA);
+    outw((int) &lp->init_block, ioaddr+LANCE_DATA);
     outw(0x0002, ioaddr+LANCE_ADDR);
     outw(((int)&lp->init_block) >> 16, ioaddr+LANCE_DATA);
     outw(0x0000, ioaddr+LANCE_ADDR);
@@ -317,7 +317,7 @@ lance_open(struct device *dev)
 
     /* Re-initialize the LANCE, and start it when done. */
     outw(0x0001, ioaddr+LANCE_ADDR);
-    outw((short) &lp->init_block, ioaddr+LANCE_DATA);
+    outw((int) &lp->init_block, ioaddr+LANCE_DATA);
     outw(0x0002, ioaddr+LANCE_ADDR);
     outw(((int)&lp->init_block) >> 16, ioaddr+LANCE_DATA);
 

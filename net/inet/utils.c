@@ -37,6 +37,8 @@
 #include "arp.h"
 
 
+extern "C" int vsprintf(char * buf, const char * fmt, va_list args);
+
 /* Display an IP address in readable format. */
 char *in_ntoa(unsigned long in)
 {
@@ -81,7 +83,6 @@ dprintf(int level, char *fmt, ...)
 {
   va_list args;
   char *buff;
-  extern int vsprintf(char * buf, const char * fmt, va_list args);
 
   if (level != inet_debug) return;
 
