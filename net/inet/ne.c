@@ -295,14 +295,13 @@ ne_block_input(struct device *dev, int count, char *buf, int ring_offset)
     outb_p(ring_offset & 0xff, nic_base + EN0_RSARLO);
     outb_p(ring_offset >> 8, nic_base + EN0_RSARHI);
     outb_p(E8390_RREAD+E8390_START, nic_base + NE_CMD);
-    // TODO WGJA ne asm 2
- //    if (ei_status.word16) {
- //      port_read(NE_BASE + NE_DATAPORT,buf,count>>1);
- //      if (count & 0x01)
-	// buf[count-1] = inb(NE_BASE + NE_DATAPORT), xfer_count++;
- //    } else {
-	// port_read_b(NE_BASE + NE_DATAPORT, buf, count);
- //    }
+    if (ei_status.word16) {
+      port_read(NE_BASE + NE_DATAPORT,(const unsigned char*) buf,count>>1);
+      if (count & 0x01)
+	buf[count-1] = inb(NE_BASE + NE_DATAPORT), xfer_count++;
+    } else {
+	port_read_b(NE_BASE + NE_DATAPORT, (const unsigned char*) buf, count);
+    }
 
     /* This was for the ALPHA version only, but enough people have
        encountering problems that it is still here.  If you see
@@ -375,12 +374,11 @@ ne_block_output(struct device *dev, int count,
     outb_p(start_page, nic_base + EN0_RSARHI);
 
     outb_p(E8390_RWRITE+E8390_START, nic_base + NE_CMD);
-    // TODO WGJA ne asm 1
- //    if (ei_status.word16) {
-	// port_write(NE_BASE + NE_DATAPORT, buf, count>>1);
- //    } else {
-	// port_write_b(NE_BASE + NE_DATAPORT, buf, count);
- //    }
+    if (ei_status.word16) {
+	port_write(NE_BASE + NE_DATAPORT, buf, count>>1);
+    } else {
+	port_write_b(NE_BASE + NE_DATAPORT, buf, count);
+    }
 
     /* This was for the ALPHA version only, but enough people have
        encountering problems that it is still here. */

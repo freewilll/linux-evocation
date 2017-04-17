@@ -115,12 +115,38 @@ __asm__ __volatile__ ("inw %1,%w0"
 
 /* The word-wide I/O operations are more general, but require a halved
    count.  */
-#define port_read(port,buf,nr) \
-__asm__("cld;rep;insw": :"d" (port),"D" (buf),"c" (nr):"cx","di")
-#define port_write(port,buf,nr) \
-__asm__("cld;rep;outsw": :"d" (port),"S" (buf),"c" (nr):"cx","si")
+static inline void port_read(int port, const unsigned char* buf, int nr)
+{
+	int d0, d1, d2;
+	__asm__ __volatile__(
+		"cld;rep;insw"
+		: "=&d" (d0), "=D" (d1),  "=c" (d2)
+		: "0" (port), "1" (buf), "2" (nr));
+}
 
-#define port_read_b(port,buf,nr) \
-__asm__("cld;rep;insb": :"d" (port),"D" (buf),"c" (nr):"cx","di")
-#define port_write_b(port,buf,nr) \
-__asm__("cld;rep;outsb": :"d" (port),"S" (buf),"c" (nr):"cx","si")
+static inline void port_write(int port, const unsigned char* buf, int nr)
+{
+	int d0, d1, d2;
+	__asm__ __volatile__(
+		"cld;rep;outsw"
+		: "=&d" (d0), "=S" (d1),  "=c" (d2)
+		: "0" (port), "1" (buf), "2" (nr));
+}
+
+static inline void port_read_b(int port, const unsigned char* buf, int nr)
+{
+	int d0, d1, d2;
+	__asm__ __volatile__(
+		"cld;rep;insb"
+		: "=&d" (d0), "=D" (d1),  "=c" (d2)
+		: "0" (port), "1" (buf), "2" (nr));
+}
+
+static inline void port_write_b(int port, const unsigned char* buf, int nr)
+{
+	int d0, d1, d2;
+	__asm__ __volatile__(
+		"cld;rep;outsb"
+		: "=&d" (d0), "=S" (d1),  "=c" (d2)
+		: "0" (port), "1" (buf), "2" (nr));
+}
