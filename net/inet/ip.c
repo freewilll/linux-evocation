@@ -391,42 +391,49 @@ unsigned short
 ip_compute_csum(unsigned char * buff, int len)
 {
   unsigned long sum = 0;
-  // TODO WGJA ip_compute_csum
 
- //  /* Do the first multiple of 4 bytes and convert to 16 bits. */
- //  if (len > 3) {
-	// __asm__("\t clc\n"
-	//         "1:\n"
-	//         "\t lodsl\n"
-	//         "\t adcl %%eax, %%ebx\n"
-	//         "\t loop 1b\n"
-	//         "\t adcl $0, %%ebx\n"
-	//         "\t movl %%ebx, %%eax\n"
-	//         "\t shrl $16, %%eax\n"
-	//         "\t addw %%ax, %%bx\n"
-	//         "\t adcw $0, %%bx\n"
-	//         : "=b" (sum) , "=S" (buff)
-	//         : "0" (sum), "c" (len >> 2) ,"1" (buff)
-	//         : "ax", "cx", "si", "bx" );
- //  }
- //  if (len & 2) {
-	// __asm__("\t lodsw\n"
-	//         "\t addw %%ax, %%bx\n"
-	//         "\t adcw $0, %%bx\n"
-	//         : "=b" (sum), "=S" (buff)
-	//         : "0" (sum), "1" (buff)
-	//         : "bx", "ax", "si");
- //  }
- //  if (len & 1) {
-	// __asm__("\t lodsb\n"
-	//         "\t movb $0, %%ah\n"
-	//         "\t addw %%ax, %%bx\n"
-	//         "\t adcw $0, %%bx\n"
-	//         : "=b" (sum), "=S" (buff)
-	//         : "0" (sum), "1" (buff)
-	//         : "bx", "ax", "si");
- //  }
- //  sum =~sum;
+  /* Do the first multiple of 4 bytes and convert to 16 bits. */
+  if (len > 3) {
+ 	int d0, d1;
+	__asm__ __volatile__(
+		"\t clc\n"
+	        "1:\n"
+	        "\t lodsl\n"
+	        "\t adcl %%eax, %%ebx\n"
+	        "\t loop 1b\n"
+	        "\t adcl $0, %%ebx\n"
+	        "\t movl %%ebx, %%eax\n"
+	        "\t shrl $16, %%eax\n"
+	        "\t addw %%ax, %%bx\n"
+	        "\t adcw $0, %%bx\n"
+	        : "=b" (sum) , "=S" (buff), "=&a" (d0), "=&c" (d1)
+	        : "0" (sum), "3" (len >> 2) ,"1" (buff)
+	        : "memory");
+  }
+  /* Check for an extra word. */
+  if (len & 2) {
+  	int d0;
+	__asm__ __volatile__(
+		"\t lodsw\n"
+	        "\t addw %%ax, %%bx\n"
+	        "\t adcw $0, %%bx\n"
+	        : "=b" (sum), "=S" (buff), "=&a" (d0)
+	        : "0" (sum), "1" (buff)
+	        : "memory");
+  }
+  /* Now check for the extra byte. */  
+  if (len & 1) {
+  	int d0;
+	__asm__ __volatile__(
+		"\t lodsb\n"
+	        "\t movb $0, %%ah\n"
+	        "\t addw %%ax, %%bx\n"
+	        "\t adcw $0, %%bx\n"
+	        : "=b" (sum), "=S" (buff), "=&a" (d0)
+	        : "0" (sum), "1" (buff)
+	        : "memory");
+  }
+  sum =~sum;
   return(sum & 0xffff);
 }
 

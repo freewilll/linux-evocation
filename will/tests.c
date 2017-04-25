@@ -10,6 +10,7 @@
 #include <linux/socket.h>
 
 extern "C" int vsprintf(char *,const char *,va_list);
+extern unsigned short ip_compute_csum(unsigned char * buff, int len);
 
 static inline _syscall0(int,fork)
 static inline _syscall3(int,reboot,int,magic,int,magic_too,int,flag)
@@ -543,4 +544,82 @@ void test_sock_alloc()
 	// struct socket *sock;
 	// sock = sock_alloc(1);
 	// printk("sock=%d\n", sock);
+}
+
+typedef unsigned short csum_func_t(unsigned char *, int);
+
+// Adapted from https://tools.ietf.org/html/rfc1071
+// I'm not convinced the pointer logic in the rfc is entirely correct.
+unsigned short c_version_of_ip_compute_csum(unsigned char * buff, int len)
+{
+	long sum = 0;
+	unsigned short* short_buff = (unsigned short*) buff;
+
+	while (len > 1)  {
+		/*  This is the inner loop */
+		sum += *short_buff++;
+		len -= 2;
+		buff += 2;
+	}
+
+	/*  Add left-over byte, if any */
+	if (len > 0)
+		sum += *buff;
+
+	/*  Fold 32-bit sum to 16 bits */
+	while (sum >> 16) 
+		sum = (sum & 0xffff) + (sum >> 16);
+
+	return ~sum;
+}
+
+void test_one_csum(csum_func_t func, unsigned short* data, int len, unsigned short expected_csum)
+{
+	// Calculate a new checksum by first clearing the checksum word
+	data[5] = 0;
+	unsigned short csum = func((unsigned char*) data, len);
+	printf("len=%d, csum=%#x ", len, csum); 
+
+	if (csum != expected_csum)
+		printf("Fail ");
+
+	// Verify the data with checksum
+	data[5] = csum;
+	csum = func((unsigned char*) data, len);
+	if (csum) 
+		printf("Fail\n");
+	else 
+		printf("\n");
+
+}
+
+// https://en.wikipedia.org/wiki/IPv4_header_checksum
+void test_ip_compute_csum()
+{
+	unsigned short data[14] = {
+		0x4500,
+		0x0073,
+		0x0000,
+		0x4000,
+		0x4011,
+		0xb861,		// The checksum
+		0xc0a8,
+		0x0001,
+		0xc0a8,
+		0x00c7,
+		0xfffe,
+		0xfdfc,
+	};
+
+	printf("\nC version\n");
+	test_one_csum(c_version_of_ip_compute_csum, data, 20, 0xb861);
+	test_one_csum(c_version_of_ip_compute_csum, data, 21, 0xb763);
+	test_one_csum(c_version_of_ip_compute_csum, data, 22, 0xb862);
+	test_one_csum(c_version_of_ip_compute_csum, data, 23, 0xb766);
+
+	printf("\nAssembly version\n");
+	test_one_csum(ip_compute_csum, data, 20, 0xb861);
+	test_one_csum(ip_compute_csum, data, 21, 0xb763);
+	test_one_csum(ip_compute_csum, data, 22, 0xb862);
+	test_one_csum(ip_compute_csum, data, 23, 0xb766);
 }
