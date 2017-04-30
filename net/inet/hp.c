@@ -201,14 +201,13 @@ hp_block_input(struct device *dev, int count, char *buf, int ring_offset)
     outb_p(ring_offset & 0xff, nic_base + EN0_RSARLO);
     outb_p(ring_offset >> 8, nic_base + EN0_RSARHI);
     outb_p(E8390_RREAD+E8390_START, nic_base);
-    // TODO WGJA hp asm 2
- //    if (ei_status.word16) {
- //      port_read(nic_base - NIC_OFFSET + HP_DATAPORT,buf,count>>1);
- //      if (count & 0x01)
-	// buf[count-1] = inb(nic_base - NIC_OFFSET + HP_DATAPORT), xfer_count++;
- //    } else {
-	// port_read_b(nic_base - NIC_OFFSET + HP_DATAPORT, buf, count);
- //    }
+    if (ei_status.word16) {
+        port_read(nic_base - NIC_OFFSET + HP_DATAPORT,(const unsigned char*) buf,count>>1);
+      if (count & 0x01)
+        buf[count-1] = inb(nic_base - NIC_OFFSET + HP_DATAPORT), xfer_count++;
+    } else {
+        port_read_b(nic_base - NIC_OFFSET + HP_DATAPORT, (const unsigned char*) buf, count);
+    }
     /* This is for the ALPHA version only, remove for later releases. */
     if (ei_debug > 0) {		/* DMA termination address check... */
       int high = inb_p(nic_base + EN0_RSARHI);
@@ -258,13 +257,12 @@ hp_block_output(struct device *dev, int count,
     outb_p(start_page, nic_base + EN0_RSARHI);
 
     outb_p(E8390_RWRITE+E8390_START, nic_base);
-    // TODO WGJA hp asm 1
- //    if (ei_status.word16) {
-	// /* Use the 'rep' sequence for 16 bit boards. */
-	// port_write(nic_base - NIC_OFFSET + HP_DATAPORT, buf, count>>1);
- //    } else {
-	// port_write_b(nic_base - NIC_OFFSET + HP_DATAPORT, buf, count);
- //    }
+    if (ei_status.word16) {
+ /* Use the 'rep' sequence for 16 bit boards. */
+        port_write(nic_base - NIC_OFFSET + HP_DATAPORT, (const unsigned char*) buf, count>>1);
+    } else {
+        port_write_b(nic_base - NIC_OFFSET + HP_DATAPORT, (const unsigned char*) buf, count);
+    }
 
     /* DON'T check for 'inb_p(EN0_ISR) & ENISR_RDC' here -- it's broken! */
 
