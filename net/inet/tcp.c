@@ -376,63 +376,73 @@ tcp_check(struct tcphdr *th, int len,
 	  unsigned long saddr, unsigned long daddr)
 {     
   unsigned long sum;
-  // TODO WGJA tcp_check
-   
- //  if (saddr == 0) saddr = my_addr();
- //  print_th(th);
- //  __asm__("\t addl %%ecx,%%ebx\n"
-	//   "\t adcl %%edx,%%ebx\n"
-	//   "\t adcl $0, %%ebx\n"
-	//   : "=b"(sum)
-	//   : "0"(daddr), "c"(saddr), "d"((ntohs(len) << 16) + IPPROTO_TCP*256)
-	//   : "cx","bx","dx" );
-   
- //  if (len > 3) {
-	// __asm__("\tclc\n"
-	// 	"1:\n"
-	// 	"\t lodsl\n"
-	// 	"\t adcl %%eax, %%ebx\n"
-	// 	"\t loop 1b\n"
-	// 	"\t adcl $0, %%ebx\n"
-	// 	: "=b"(sum) , "=S"(th)
-	// 	: "0"(sum), "c"(len/4) ,"1"(th)
-	// 	: "ax", "cx", "bx", "si" );
- //  }
-   
- //  /* Convert from 32 bits to 16 bits. */
- //  __asm__("\t movl %%ebx, %%ecx\n"
-	//   "\t shrl $16,%%ecx\n"
-	//   "\t addw %%cx, %%bx\n"
-	//   "\t adcw $0, %%bx\n"
-	//   : "=b"(sum)
-	//   : "0"(sum)
-	//   : "bx", "cx");
-   
- //  /* Check for an extra word. */
- //  if ((len & 2) != 0) {
-	// __asm__("\t lodsw\n"
-	// 	"\t addw %%ax,%%bx\n"
-	// 	"\t adcw $0, %%bx\n"
-	// 	: "=b"(sum), "=S"(th)
-	// 	: "0"(sum) ,"1"(th)
-	// 	: "si", "ax", "bx");
- //  }
-   
- //  /* Now check for the extra byte. */
- //  if ((len & 1) != 0) {
-	// __asm__("\t lodsb\n"
-	// 	"\t movb $0,%%ah\n"
-	// 	"\t addw %%ax,%%bx\n"
-	// 	"\t adcw $0, %%bx\n"
-	// 	: "=b"(sum)
-	// 	: "0"(sum) ,"S"(th)
-	// 	: "si", "ax", "bx");
- //  }
-   
- //  /* We only want the bottom 16 bits, but we never cleared the top 16. */
+
+  DPRINTF((DBG_TCP, "TCP: check(th=%X, len = %d, saddr = %X, daddr = %X check=%#x)\n",
+	   						th, len, saddr, daddr, th->check));
+  if (saddr == 0) saddr = my_addr();
+  print_th(th);
+
+  int d0, d1;
+  __asm__ __volatile__(
+	 "\t addl %%ecx,%%ebx\n"
+	  "\t adcl %%edx,%%ebx\n"
+	  "\t adcl $0, %%ebx\n"
+	  : "=&b"(sum), "=&c" (d0), "=&d"( d1)
+	  : "0"(daddr), "1"(saddr), "2"((ntohs(len) << 16) + IPPROTO_TCP*256)
+	  : "memory");
+
+  if (len > 3) {
+  	int d0, d1;
+	__asm__ __volatile__(
+		"\tclc\n"
+		"1:\n"
+		"\t lodsl\n"
+		"\t adcl %%eax, %%ebx\n"
+		"\t loop 1b\n"
+		"\t adcl $0, %%ebx\n"
+		: "=b" (sum) , "=S" (th), "=&a" (d0), "=&c" (d1)
+		: "0" (sum), "3" (len >> 2) ,"1" (th)
+		: "memory");
+  }
+
+  /* Convert from 32 bits to 16 bits. */
+  int d2;
+  __asm__ __volatile(
+	  "\t movl %%ebx, %%ecx\n"
+	  "\t shrl $16,%%ecx\n"
+	  "\t addw %%cx, %%bx\n"
+	  "\t adcw $0, %%bx\n"
+	  : "=b"(sum), "=&c" (d2)
+	  : "0"(sum)
+	  : "memory");
+
+  /* Check for an extra word. */
+  if (len & 2) {
+  	int d0;
+	__asm__ __volatile__(
+		"\t lodsw\n"
+	        "\t addw %%ax, %%bx\n"
+	        "\t adcw $0, %%bx\n"
+	        : "=b" (sum), "=S" (th), "=&a" (d0)
+	        : "0" (sum), "1" (th)
+	        : "memory");
+  }
+  /* Now check for the extra byte. */  
+  if (len & 1) {
+  	int d0;
+	__asm__ __volatile__(
+		"\t lodsb\n"
+	        "\t movb $0, %%ah\n"
+	        "\t addw %%ax, %%bx\n"
+	        "\t adcw $0, %%bx\n"
+	        : "=b" (sum), "=S" (th), "=&a" (d0)
+	        : "0" (sum), "1" (th)
+	        : "memory");
+  }
+
+  /* We only want the bottom 16 bits, but we never cleared the top 16. */
   return((~sum) & 0xffff);
 }
-
 
 void
 tcp_send_check(struct tcphdr *th, unsigned long saddr, 
