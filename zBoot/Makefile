@@ -14,7 +14,7 @@ ZLINKFLAGS = -Ttext $(ZIMAGE_OFFSET) $(ZLDFLAGS)
 
 .c.s:
 	$(CC) $(CFLAGS) -S -o $*.s $<
-.s.o:
+.ss.o:
 	$(AS) -c -o $*.o $<
 .c.o:
 	$(CC) $(CFLAGS) -c -o $*.o $<
@@ -24,10 +24,10 @@ all:	zSystem
 zSystem:	piggy.o $(zOBJECTS)
 		$(LD) $(ZLINKFLAGS) -o zSystem $(zOBJECTS) piggy.o
 
-head.o:	head.s
+head.o:	head.ss
 
-head.s: head.S ../include/linux/tasks.h
-	$(CPP) -traditional head.S -o head.s
+head.ss: head.S ../include/linux/tasks.h
+	$(CPP) -traditional head.S -o head.ss
 
 piggy.o: $(SYSTEM)
 	tmppiggy=_tmp_$$$$piggy; \
@@ -42,4 +42,4 @@ $(SYSTEM):
 	cd ..;make tools/zSystem
 
 clean:
-	-rm -f *.o *.s zSystem core piggy.* _tmp_* zBoot/zSystem.out
+	-rm -f *.o *.ss zSystem core piggy.* _tmp_* zBoot/zSystem.out

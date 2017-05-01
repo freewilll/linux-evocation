@@ -7,15 +7,6 @@
 #
 # Note 2! The CFLAGS definitions are now in the main makefile...
 
-.S.s:
-	$(CPP) -traditional $< -o $*.s
-.c.s:
-	$(CC) $(CFLAGS) -S $<
-.s.o:
-	$(AS) -c -o $*.o $<
-.c.o:
-	$(CC) $(CFLAGS) -c $<
-
 SUBDIRS	= chr_drv blk_drv FPU-emu
 
 OBJS  = sched.o sys_call.o traps.o irq.o dma.o fork.o \
@@ -31,15 +22,15 @@ kernel.o: $(OBJS)
 kernelsubdirs: dummy
 	@for i in $(SUBDIRS); do (cd $$i && echo $$i && $(MAKE)) || exit; done
 
-sys_call.s: sys_call.S
+sys_call.ss: sys_call.S
 
-sys_call.o: sys_call.s
+sys_call.o: sys_call.ss
 
 sched.o: sched.c
 	$(CC) $(CFLAGS) $(PROFILING) -fno-omit-frame-pointer -c $<
 
 clean:
-	rm -f core *.o *.a *.s
+	rm -f core *.o *.a *.ss
 	for i in $(SUBDIRS); do (cd $$i && $(MAKE) clean); done
 
 dep:

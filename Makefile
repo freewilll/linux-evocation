@@ -124,7 +124,7 @@ CC := $(CC) -I$(TOPDIR)/usr/include
 
 .c.s:
 	$(CC) $(CFLAGS) -S -o $*.s $<
-.s.o:
+.ss.o:
 	$(AS) -c -o $*.o $<
 .c.o:
 	$(CC) $(CFLAGS) -c -o $*.o $<
@@ -159,10 +159,10 @@ tools/version.h: $(CONFIGURE) Makefile
 tools/build: $(CONFIGURE) tools/build.c
 	$(HOSTCC) -o tools/build tools/build.c
 
-boot/head.o: $(CONFIGURE) boot/head.s
+boot/head.o: $(CONFIGURE) boot/head.ss
 
-boot/head.s: $(CONFIGURE) boot/head.S include/linux/tasks.h
-	$(CPP) -traditional boot/head.S -o boot/head.s
+boot/head.ss: $(CONFIGURE) boot/head.S include/linux/tasks.h
+	$(CPP) -traditional boot/head.S -o boot/head.ss
 
 tools/version.o: tools/version.c tools/version.h
 
@@ -179,18 +179,18 @@ tools/system:	boot/head.o init/main.o tools/version.o linuxsubdirs
 		$(LIBS) \
 		-o tools/system > System.map
 
-boot/setup: boot/setup.s
-	$(AS86) -o boot/setup.o boot/setup.s
+boot/setup: boot/setup.ss
+	$(AS86) -o boot/setup.o boot/setup.ss
 	$(LD86) -s -o boot/setup boot/setup.o
 
-boot/setup.s: $(CONFIGURE) boot/setup.S include/linux/config.h Makefile
-	$(CPP) -traditional $(SVGA_MODE) $(RAMDISK) boot/setup.S -o boot/setup.s
+boot/setup.ss: $(CONFIGURE) boot/setup.S include/linux/config.h Makefile
+	$(CPP) -traditional $(SVGA_MODE) $(RAMDISK) boot/setup.S -o boot/setup.ss
 
-boot/bootsect.s: $(CONFIGURE) boot/bootsect.S include/linux/config.h Makefile
-	$(CPP) -traditional $(SVGA_MODE) $(RAMDISK) boot/bootsect.S -o boot/bootsect.s
+boot/bootsect.ss: $(CONFIGURE) boot/bootsect.S include/linux/config.h Makefile
+	$(CPP) -traditional $(SVGA_MODE) $(RAMDISK) boot/bootsect.S -o boot/bootsect.ss
 
-boot/bootsect:	boot/bootsect.s
-	$(AS86) -o boot/bootsect.o boot/bootsect.s
+boot/bootsect:	boot/bootsect.ss
+	$(AS86) -o boot/bootsect.o boot/bootsect.ss
 	$(LD86) -s -o boot/bootsect boot/bootsect.o
 
 zBoot/zSystem: zBoot/*.c zBoot/*.S tools/zSystem
@@ -235,7 +235,7 @@ kernel: dummy
 clean:
 	rm -f zImage zSystem.map tools/zSystem
 	rm -f Image System.map core boot/bootsect boot/setup \
-		boot/bootsect.s boot/setup.s boot/head.s init/main.s
+		boot/bootsect.ss boot/setup.ss boot/head.ss init/main.ss
 	rm -f init/*.o tools/system tools/build boot/*.o tools/*.o
 	for i in zBoot $(SUBDIRS); do (cd $$i && $(MAKE) clean); done
 

@@ -7,15 +7,6 @@
 #
 # Note 2! The CFLAGS definitions are now in the main makefile...
 
-.S.s:
-	$(CPP) -traditional $< -o $*.s
-.c.s:
-	$(CC) $(CFLAGS) -S $<
-.s.o:
-	$(AS) -c -o $*.o $<
-.c.o:
-	$(CC) $(CFLAGS) -c $<
-
 SUBDIRS	= 
 
 OBJS  = emulate.o
@@ -24,7 +15,7 @@ ibcs.o: $(OBJS)
 	$(LD) -r -o ibcs.o $(OBJS)
 
 clean:
-	rm -f core *.o *.a *.s
+	rm -f core *.o *.a *.s *.ss
 	for i in $(SUBDIRS); do (cd $$i && $(MAKE) clean); done
 
 dep:

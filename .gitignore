@@ -16,9 +16,10 @@ System.map
 core
 boot/bootsect
 boot/setup 
-boot/bootsect.s 
-boot/setup.s 
-boot/head.s 
+boot/bootsect.ss
+boot/setup.ss
+boot/head.ss
+zBoot/head.ss
 init/main.s
 tools/system
 tools/build
