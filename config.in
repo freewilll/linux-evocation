@@ -40,14 +40,14 @@ fi
 *
 * Network device support
 *
-bool 'Network device support?' CONFIG_ETHERCARDS n
+bool 'Network device support?' CONFIG_ETHERCARDS y
 if [ "$CONFIG_ETHERCARDS" = "n" ]
 :
 : Skipping ethercard configuration options...
 :
 else
-bool 'SLIP (serial line) support' CONFIG_SLIP n
-bool 'PLIP (parallel port) support' CONFIG_PLIP n
+bool 'SLIP (serial line) support' CONFIG_SLIP y
+bool 'PLIP (parallel port) support' CONFIG_PLIP y
 bool 'NE2000/NE1000 support' CONFIG_NE2000 y
 bool 'WD80*3 support' CONFIG_WD80x3 y
 #bool '3c501 support' CONFIG_EL1 n
