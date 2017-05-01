@@ -113,7 +113,7 @@ static inline int *xdr_decode_data(int *p, char *data, int *lenp, int maxlen)
 
 static int *xdr_decode_fattr(int *p, struct nfs_fattr *fattr)
 {
-	fattr->type = ntohl(*p++);
+	fattr->type = (nfs_ftype) ntohl(*p++);
 	fattr->mode = ntohl(*p++);
 	fattr->nlink = ntohl(*p++);
 	fattr->uid = ntohl(*p++);
@@ -679,27 +679,27 @@ static struct {
 	enum nfs_stat stat;
 	int errno;
 } nfs_errtbl[] = {
-	{ NFS_OK,		0		},
-	{ NFSERR_PERM,		EPERM		},
-	{ NFSERR_NOENT,		ENOENT		},
-	{ NFSERR_IO,		EIO		},
-	{ NFSERR_NXIO,		ENXIO		},
-	{ NFSERR_ACCES,		EACCES		},
-	{ NFSERR_EXIST,		EEXIST		},
-	{ NFSERR_NODEV,		ENODEV		},
-	{ NFSERR_NOTDIR,	ENOTDIR		},
-	{ NFSERR_ISDIR,		EISDIR		},
-	{ NFSERR_FBIG,		EFBIG		},
-	{ NFSERR_NOSPC,		ENOSPC		},
-	{ NFSERR_ROFS,		EROFS		},
-	{ NFSERR_NAMETOOLONG,	ENAMETOOLONG	},
-	{ NFSERR_NOTEMPTY,	ENOTEMPTY	},
-	{ NFSERR_DQUOT,		EDQUOT		},
-	{ NFSERR_STALE,		ESTALE		},
+	{ (nfs_stat) NFS_OK,			(nfs_stat) 0			},
+	{ (nfs_stat) NFSERR_PERM,		(nfs_stat) EPERM		},
+	{ (nfs_stat) NFSERR_NOENT,		(nfs_stat) ENOENT		},
+	{ (nfs_stat) NFSERR_IO,			(nfs_stat) EIO			},
+	{ (nfs_stat) NFSERR_NXIO,		(nfs_stat) ENXIO		},
+	{ (nfs_stat) NFSERR_ACCES,		(nfs_stat) EACCES		},
+	{ (nfs_stat) NFSERR_EXIST,		(nfs_stat) EEXIST		},
+	{ (nfs_stat) NFSERR_NODEV,		(nfs_stat) ENODEV		},
+	{ (nfs_stat) NFSERR_NOTDIR,		(nfs_stat) ENOTDIR		},
+	{ (nfs_stat) NFSERR_ISDIR,		(nfs_stat) EISDIR		},
+	{ (nfs_stat) NFSERR_FBIG,		(nfs_stat) EFBIG		},
+	{ (nfs_stat) NFSERR_NOSPC,		(nfs_stat) ENOSPC		},
+	{ (nfs_stat) NFSERR_ROFS,		(nfs_stat) EROFS		},
+	{ (nfs_stat) NFSERR_NAMETOOLONG,	(nfs_stat) ENAMETOOLONG		},
+	{ (nfs_stat) NFSERR_NOTEMPTY,		(nfs_stat) ENOTEMPTY		},
+	{ (nfs_stat) NFSERR_DQUOT,		(nfs_stat) EDQUOT		},
+	{ (nfs_stat) NFSERR_STALE,		(nfs_stat) ESTALE		},
 #ifdef EWFLUSH
-	{ NFSERR_WFLUSH,	EWFLUSH		},
+	{ (nfs_stat) NFSERR_WFLUSH,		(nfs_stat) EWFLUSH		},
 #endif
-	{ -1,			EIO		}
+	{ (nfs_stat) -1,			(nfs_stat) EIO			}
 };
 
 static int nfs_stat_to_errno(int stat)

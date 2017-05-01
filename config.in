@@ -72,7 +72,7 @@ bool 'Second extended fs support' CONFIG_EXT2_FS y
 bool 'xiafs filesystem support' CONFIG_XIA_FS y
 bool 'msdos fs support' CONFIG_MSDOS_FS y
 bool '/proc filesystem support' CONFIG_PROC_FS y
-bool 'NFS filesystem support' CONFIG_NFS_FS n
+bool 'NFS filesystem support' CONFIG_NFS_FS y
 bool 'ISO9660 cdrom filesystem support' CONFIG_ISO9660_FS y
 *
 *  character devices
