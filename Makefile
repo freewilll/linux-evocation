@@ -143,8 +143,10 @@ soundconf:
 linuxsubdirs: dummy
 	@for i in $(SUBDIRS); do (cd $$i && echo $$i && $(MAKE)) || exit; done
 
+.PHONY: tools/./version.h
 tools/./version.h: tools/version.h
 
+.PHONY: tools/version.h
 tools/version.h: $(CONFIGURE) Makefile
 	@./makever.sh
 	@echo \#define UTS_RELEASE \"0.99.12\" > tools/version.h
