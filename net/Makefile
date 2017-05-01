@@ -10,9 +10,7 @@
 # only these two lines should need to be changed to remove inet sockets.
 # (and the inet/tcpip.o in net.o)
 
-# TODO WGJA: Work in progress build
-DRIVERS=
-# DRIVERS     = drv
+DRIVERS     = drv
 SUBDIRS     := unix inet
 
 .c.o:
