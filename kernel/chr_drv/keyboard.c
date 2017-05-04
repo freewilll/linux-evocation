@@ -127,6 +127,7 @@ static inline void kb_wait(void)
 static void keyboard_interrupt(int int_pt_regs)
 {
 	unsigned char scancode;
+	unsigned char data_available;
 
 	pt_regs = (struct pt_regs *) int_pt_regs;
 	kbd_prev_dead_keys |= kbd_dead_keys;
@@ -134,7 +135,11 @@ static void keyboard_interrupt(int int_pt_regs)
 		kbd_prev_dead_keys = 0;
 	kbd_dead_keys = 0;
 	kb_wait();
-	if (!(inb_p(0x64) & 0x01))
+	data_available = inb_p(0x64);
+	if (!(data_available & 0x01))
+		goto end_kbd_intr;
+	if (data_available & 0x20)
+		// Ignore PS/2 mouse data
 		goto end_kbd_intr;
 	scancode = inb(0x60);
 	mark_bh(KEYBOARD_BH);
