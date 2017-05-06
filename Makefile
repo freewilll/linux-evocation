@@ -209,7 +209,7 @@ zlilo: $(CONFIGURE) zImage
 	cat zImage > /vmlinuz
 	/etc/lilo/install
 
-tools/zSystem:	boot/head.o init/main.o tools/version.o linuxsubdirs will/tests.o will/early_printk.o
+tools/zSystem:	boot/head.o init/main.o tools/version.o linuxsubdirs
 	$(LD) $(LDFLAGS) -Ttext 100000 -M boot/head.o init/main.o tools/version.o \
 		$(ARCHIVES) \
 		$(FILESYSTEMS) \
@@ -217,8 +217,6 @@ tools/zSystem:	boot/head.o init/main.o tools/version.o linuxsubdirs will/tests.o
 		$(DRIVERS) \
 		$(MATH) \
 		$(LIBS) \
-		will/early_printk.o \
-		will/tests.o \
 		-o tools/zSystem > zSystem.map
 
 fs: dummy
