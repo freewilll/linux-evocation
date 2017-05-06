@@ -42,4 +42,4 @@ $(SYSTEM):
 	cd ..;make tools/zSystem
 
 clean:
-	-rm -f *.o *.ss zSystem core piggy.* _tmp_* zBoot/zSystem.out
+	-rm -f *.o *.ss zSystem zSystem.out core piggy.* _tmp_*
