@@ -1,0 +1,155 @@
+Changelog for the porting of linux-0.99.12 to gcc 5.7 and making it run under qemu.
+
+May 4
+- Fixed spurious keyboard "7"s when running under qemu and moving the mouse, or detaching from the UI and then pressing a key
+
+May 1
+- Got UDP and TCP working by fixing checksum assembly
+- Enabled NFS FS
+- Enabled PLIP and SLIP
+- Removed last WGJA TODO :)
+
+Apr 30
+- Got ICMP  working by fixing ip_compute_checksum assembly
+
+Apr 17
+- Got ne network adapter working
+
+Apr 16
+- Removed unnecessary ELF section since networking compilation was creating a too large kernel to fit in memory
+- Enabled inet networking protocol. Not a lot working yet though.
+
+Apr 14
+- Added unix networking protocol
+
+Apr 5
+- Added CONFIG_INET ...
+
+Apr 3
+- Enabled ext fs
+- Enabled xia fs
+
+Apr 2
+- Enabled everything related to SCSI
+- Enabled XT HD controller
+- Enabled cdu31a Sony cdrom
+- Enabled mcd Mitsumi cdrom 
+- Added iso9660 fs
+- Added sys_modify_ldt
+- Added trace and ptrace
+
+Mar 29
+- Added tpqic02
+- Added lp
+- Added pty
+
+Mar 28
+- Enabled ipc
+- Enabled FPU emulation
+- Finished main.c, no more TODOs in there
+
+Mar 26
+- Added sys_select
+- Enabled core_dump
+- Added calibrate_delay(), timers & alarms
+- Reduced calibrate_delay() loop time from 100 ticks to 10 ticks for faster booting.
+- Enabled bad_page and bad_pagetable
+- Enabled sys_swapon, sys_swapoff
+- Enabled code for CONFIG_PROFILE
+
+Mar 25
+- Fixed fs sequence point errors under gcc 5.4.0
+
+Mar 24
+- Added proc fs
+- Added serial chrdev
+
+Mar 23
+- Added ext2 fs & ramdisk support for it
+- Added hard disks
+
+Mar 20
+- Added sys_uselib. A dynamically loaded hello world, with libc.so.4 is now working.
+- Added sys_fcntl
+
+Mar 19
+- Added execve
+- Added sys_brk, sys_ioctl, sys_sysinfo stat* and sys_readlink syscalls
+
+Mar 14
+- Added sys_mmap and sys_munmap
+
+Mar 12
+- Added console
+- Added traps, page faults, sys_exit and sys_close
+- Enabled do_signal, waitpid, getrusage, wait4
+- Enabled a whole load of trivial syscalls
+- Added start_kernel: time_init
+- Added mount & unmount syscalls
+
+Mar 9
+- Added tty, tty io, tty ioctl and keyboard
+
+Mar 8
+- Added rmdir syscall
+
+Mar 5
+- Most of generic block devices
+- Floppy and ramdisk block devices
+- Most of the VFS
+- Minix FS
+- New syscalls: fsync, lseek, open, pipe, read, readdir, setup, sync, write
+- start_kernel: init() with working minix root mount from ramdisk using floppy to load the ramdisk
+- Squashed a load of fpermissisve errors by redeclaring NULL without void*.
+- Some test code for minix and /dev/zero
+
+Feb 28
+- Added memory character devices
+
+Feb 27
+- Added start_kernel: parse_options()
+
+Feb 24
+- Added fork()
+
+Feb 19
+- Added kmalloc(), kfree() and *free_page() functions 
+
+Feb 18
+- start_kernel: move_to_user_mode()
+- working sys_idle syscall
+- start_kernel: mem_init()
+
+Feb 17
+- start_kernel: init_sched(), with quite a few compromises. It runs and the timer ticks, but not much else is happening.
+
+Feb 16
+- start_kernel: init_IRQ()
+
+Feb 15
+- start_kernel: Added some misc initialisations, such as screen, fs & device values from setup & head
+- start_kernel: trap_init()
+
+Feb 14
+- start_kernel: paging_init()
+
+Feb 12
+- start_kernel: Added set_call_gate for ibcs. It's not really testable though since it's not more than a stub.
+- Added early printk
+
+Feb 10
+  - Got boot/head.S working, with stubs for printk and start_kernel.
+
+Feb 6
+  - Added changes for producing a zImage from ELF32 binaries
+  - Got zBoot working
+  - So far everything runs until boot/head.S startup_32
+
+Feb 4
+  - Fixed last warning in tools/build.c
+
+Feb 2
+  - Got tools/build compiling
+  - Fixed bootsect and setup
+  - bootsect & setup are working using a pre built zBoot/zSystem from slackware 1.0.1
+  - Set vga mode to 1, to avoid the annoying prompt for missing VGA mode 3 in qemu
