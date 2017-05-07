@@ -267,7 +267,7 @@ static inline int try_to_swap_out(unsigned long * table_ptr)
  */
 extern "C" int sys_idle(void)
 {
-	__asm__ ("hlt" :::);
+	__asm__ ("hlt");
 	need_resched = 1;
 	return 0;
 }

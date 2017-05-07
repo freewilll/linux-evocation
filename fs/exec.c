@@ -358,7 +358,6 @@ static unsigned long copy_strings(int argc,char ** argv,unsigned long *page,
 					if (!pag)
 						return 0;
 				}
-
 				if (from_kmem==2)
 					set_fs(new_fs);
 
@@ -645,7 +644,6 @@ restart_interp:
 			goto exec_error1;
 		goto restart_interp;
 	}
-
 	if (!sh_bang) {
 		bprm.p = copy_strings(bprm.envc,envp,bprm.page,bprm.p,0);
 		bprm.p = copy_strings(bprm.argc,argv,bprm.page,bprm.p,0);
@@ -667,13 +665,11 @@ restart_interp:
 		}
 		fmt++;
 	} while (retval == -ENOEXEC);
-
 exec_error2:
 	iput(bprm.inode);
 exec_error1:
 	for (i=0 ; i<MAX_ARG_PAGES ; i++)
 		free_page(bprm.page[i]);
-
 	return(retval);
 }
 
@@ -728,9 +724,11 @@ int load_aout_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	}
 	if (N_MAGIC(ex) == ZMAGIC && N_TXTOFF(ex) &&
 	    (N_TXTOFF(ex) < bprm->inode->i_sb->s_blocksize)) {
+		printk("N_TXTOFF < BLOCK_SIZE. Please convert binary.");
 		return -ENOEXEC;
 	}
 	if (N_TXTOFF(ex) != BLOCK_SIZE && N_MAGIC(ex) != OMAGIC) {
+		printk("N_TXTOFF != BLOCK_SIZE. See a.out.h.");
 		return -ENOEXEC;
 	}
 
@@ -768,6 +766,7 @@ int load_aout_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 			send_sig(SIGSEGV, current, 0);
 			return 0;
 		};
+
 		error = do_mmap(file, ex.a_text, ex.a_data,
 				PROT_READ | PROT_WRITE | PROT_EXEC,
 				MAP_FIXED | MAP_PRIVATE, N_TXTOFF(ex) + ex.a_text);
