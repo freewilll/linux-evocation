@@ -107,7 +107,7 @@ Then run this inside slackware:
 ```
 
 That results in:
-```sh
+```
 slack:/# ping 10.0.2.2 -c 1
 PING 10.0.2.2 (10.0.2.2): 56 data bytes
 64 bytes from 10.0.2.2: icmp_seq=0 ttl=185 time=3 ms
