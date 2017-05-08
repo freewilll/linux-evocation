@@ -31,3 +31,7 @@ tools/build
 .fseventsd
 .DocumentRevisions-V100
 .TemporaryItems
+.vagrant
+ubuntu-xenial-16.04-cloudimg-console.log
+floppy
+images/
