@@ -120,9 +120,6 @@ SUBDIRS		=kernel mm fs net ipc ibcs lib
 
 KERNELHDRS	=/usr/src/linux/include
 
-# Add local usr/include path to avoid pulling anything from a much more modern /usr/include
-CC := $(CC) -I$(TOPDIR)/usr/include
-
 .c.s:
 	$(CC) $(CFLAGS) -S -o $*.s $<
 .ss.o:
