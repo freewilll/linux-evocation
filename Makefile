@@ -98,9 +98,9 @@ CROSS_COMPILE 	?=i386-elf-
 endif
 
 AS		=$(CROSS_COMPILE)as
-LD		=$(CROSS_COMPILE)ld
+LD		=$(CROSS_COMPILE)ld -m elf_i386
 HOSTCC		=gcc -I$(HPATH) -m32
-CC		=$(CROSS_COMPILE)gcc -D__KERNEL__ -I$(HPATH)
+CC		=$(CROSS_COMPILE)gcc -D__KERNEL__ -I$(HPATH) -m32
 MAKE		=make
 CPP		=$(CC) -E -Wno-extra-tokens
 HOSTCPP		=$(HOSTCC) -E -Wno-extra-tokens

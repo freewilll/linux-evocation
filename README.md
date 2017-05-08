@@ -4,7 +4,7 @@ Linux-evocation is a conversion of the historic 0.99.12 linux kernel so that it 
 
 # Prerequisites
 The kernel can be built using both these OSSes:
-- Ubuntu 16.04 xenial xerus 32 bit
+- Ubuntu 16.04 xenial xerus 32 & 64 bit
 - MacOS Sierra
 
 The following was used to compile the kernel:
