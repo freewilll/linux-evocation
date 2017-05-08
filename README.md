@@ -65,13 +65,12 @@ dd bs=512 count=2880 if=/dev/zero of=floppy
 Then copy the kernel to the floppy and set the root to `/dev/hda1`.
 ```sh
 dd bs=512 if=zImage of=floppy conv=notrunc
-near the end of the boot sector.
 echo -ne "\x01\x03" | dd ibs=1 obs=1 count=2 seek=508 of=floppy conv=notrunc
 ```
 
-Run it with the slackware 1.01 using `-curses`
+Boot qemu with the floppy and the slackware 1.01 image on /dev/hda:
 ```sh
-qemu-system-i386 -m 8 -curses -drive if=floppy,format=raw,file=floppy -drive if=ide,format=qcow2,file=images/slackware.qcow2
+qemu-system-i386 -m 8 -curses -drive if=floppy,format=raw,file=floppy -drive if=ide,format=qcow2,file=images/slackware.qcow2 -boot a
 ```
 
 The results:
@@ -118,20 +117,21 @@ PING 10.0.2.2 (10.0.2.2): 56 data bytes
 round-trip min/avg/max = 3/3/3 ms
 ```
 
+Put these command lines in `/etc/rc.d/rc.inet1` to make them take effect on boot.
+
 # Changes
-- `sys_idle()` uses the `hlt` instruction for better performance under qemu.
-- `panic()` stops on a `cld` & `hlt` instead of an infinite loop, also so that the cpu doesn't go to 100% on qemu if there is a problem.
+- `sys_idle()` and `panic()` use the `hlt` instruction for better performance under qemu.
 - Search for a ramdisk filesystem on more blocks on the floppy, to allow for using the 1 MB image from [linux-0.11-lab](https://github.com/tinyclub/linux-0.11-lab).
-- Adapted ramdisk code to also look for an ext2 filesystem. 
+- Adapted ramdisk code to also look for an ext2 filesystem in addition to minix. 
 - Reduced `calibrate_delay()` loop time from 100 ticks to 10 ticks for faster booting.
 - Added `/* wait for "start of" clock tick */` from a later kernel to `calibrate_delay()`.
 - Fixed spurious keyboard "7"s when running under qemu and moving the mouse, or detaching from the UI and then pressing a key.
 
 # Compiler Warnings
-Although `-Wall` is switched on, a considerable amount of warnings have been ignored by using `-Wno-*` parameters to gcc. I preferred having clean output and didn't want to spend too much time fixing warnings. I'll leave it as an exercise to a motivated reader :) to fix them.
+Although `-Wall` is switched on, a considerable amount of warnings have been ignored by using `-Wno-*` parameters to gcc. I preferred having clean output and didn't want to spend too much time fixing warnings. I'll leave it as an exercise to a motivated reader to fix them.
 
 # Why
-The main purpose was to learn about how the linux kernel works by reading, compiling and running the code. Inspired by [Mariuz's Blog](http://mapopa.blogspot.co.uk/2008/09/linux-0.html), I decided to make whatever changes were needed to compile the kernel with a modern toolchain.
+The main purpose was to learn about how the linux kernel works by reading, compiling and running the code. Inspired by [Mariuz's Blog](http://mapopa.blogspot.co.uk/2008/09/linux-0.html), I decided to make whatever changes were needed to compile the kernel with a modern toolchain. This allowed for a quick edit/build/run cycle and also provided a migration path.
 
 # Known Issues
 - It's got Y2k bugs
