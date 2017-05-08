@@ -106,6 +106,8 @@ Then run this inside slackware:
 /etc/route add default gw 10.0.2.2
 ```
 
+Put these command lines in `/etc/rc.d/rc.inet1` to make them take effect on boot.
+
 That results in:
 ```
 slack:/# ping 10.0.2.2 -c 1
@@ -116,8 +118,6 @@ PING 10.0.2.2 (10.0.2.2): 56 data bytes
 1 packets transmitted, 1 packets received, 0% packet loss
 round-trip min/avg/max = 3/3/3 ms
 ```
-
-Put these command lines in `/etc/rc.d/rc.inet1` to make them take effect on boot.
 
 # Changes
 - `sys_idle()` and `panic()` use the `hlt` instruction for better performance under qemu.
