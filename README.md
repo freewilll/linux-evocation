@@ -3,14 +3,15 @@
 Linux-evocation is a conversion of the historic 0.99.12 linux kernel so that it compiles under gcc 5, cross compiles under MacOS and runs with qemu. Why this kernel? This was the one used by the first linux distribution, [Slackware 1.01](http://mirrors.slackware.com/slackware/slackware-1.01/) back in 1993. 
 
 # Prerequisites
-The kernel can be built using both these OSSes:
-- Ubuntu 16.04 xenial xerus 32 & 64 bit
-- MacOS Sierra
+The kernel can be built using either of these OSSes:
+- Ubuntu 16.04 xenial 32 bit
+- Ubuntu 20.04 focus 64 bit
+- MacOS Monterey
 
-The following was used to compile the kernel:
-- gcc 5.4
-- binutils 2.26.1
-- make 4.1
+The following has been known to work when compiling the kernel
+- gcc 5.4, 9.4.0, 12.2.0
+- binutils 2.26.1, 2.34, 2.40
+- make 3.8.1, 4.1, 4.2.1
 - as86 and ld86 0.16.17
 
 Testing was done with qemu i386 2.8.0 on MacOS Sierra using the slackware 1.01 disk image from the [2014 QEMU Advent Calendar](http://www.qemu-advent-calendar.org/2014/). 

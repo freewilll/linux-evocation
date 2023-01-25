@@ -77,7 +77,7 @@ WARNING_CFLAGS=\
 	-Wno-endif-labels \
 	-Wno-overflow \
 	-Wno-maybe-uninitialized
-CFLAGS= -Wall $(WARNING_CFLAGS) -O3 -fomit-frame-pointer -x c++ -fno-stack-protector -fno-tree-loop-distribute-patterns
+CFLAGS= -Wall $(WARNING_CFLAGS) -O3 -fomit-frame-pointer -x c++ -fno-stack-protector -fno-tree-loop-distribute-patterns -fno-reorder-blocks-and-partition
 
 ifdef CONFIG_M486
 CFLAGS := $(CFLAGS) -march=i486
@@ -94,12 +94,12 @@ AS86	=as86 -0 -a
 LD86	=ld86 -0
 
 ifeq ($(OS), Darwin)
-CROSS_COMPILE 	?=i386-elf-
+CROSS_COMPILE 	?=x86_64-elf-
 endif
 
 AS		=$(CROSS_COMPILE)as
 LD		=$(CROSS_COMPILE)ld -m elf_i386
-HOSTCC		=gcc -I$(HPATH) -m32
+HOSTCC		=gcc -I$(HPATH)
 CC		=$(CROSS_COMPILE)gcc -D__KERNEL__ -I$(HPATH) -m32
 MAKE		=make
 CPP		=$(CC) -E -Wno-extra-tokens
